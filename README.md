@@ -1,7 +1,22 @@
 # model-server-mvp
 MVP for the model market place
 
+## Usage
+### Install Packages
+```sh
+npm install
+```
 
+### To run
+```sh
+npm start
+```
+
+then go to http://localhost:3000 for the demo.
+
+## Roadmap
+
+First we will implement the entire document pages with `react`. Later we will break the page down and server with node. This is okay in production because these pages are easy to cache, and the majority of the code is html related.
 
 ---
 
