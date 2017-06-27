@@ -18,6 +18,8 @@ then go to http://localhost:3000 for the demo.
 
 First we will implement the entire document pages with `react`. Later we will break the page down and server with node. This is okay in production because these pages are easy to cache, and the majority of the code is html related.
 
+During development make sure we separate out view and state and keep all components stateless.
+
 ---
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
