@@ -10,9 +10,11 @@
     text-decoration: none;
     color: inherit;
 }
+
 .model-snippet .snippet-title {
     padding: 14px
 }
+
 .model-snippet h1.snippet-title {
     margin: 0 0 0 0;
     font-size: 1.7em;
@@ -21,7 +23,12 @@
 }
 
 .model-snippet .snippet-body {
-    padding: 14px
+    padding: 14px;
+    padding-top: 0;
+}
+
+.model-snippet .snippet-body p:first-child {
+    margin-top: 0;
 }
 
 .model-snippet .snippet-body p:last-child {

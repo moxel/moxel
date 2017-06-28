@@ -1,0 +1,10 @@
+.model-view .model-snippet {
+    width: 100%;
+}
+
+.model-view article.markdown-body {
+    margin-top: 20px;
+    padding-top: 20px;
+    width: 100%;
+    padding-bottom: 100px;
+}
