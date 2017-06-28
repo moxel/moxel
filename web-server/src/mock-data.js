@@ -1,8 +1,8 @@
 export const store = {
     account: {
-        username: "episodeyang",
-        name: "Ge Yang",
-        profileImage: "/images/episodeyang.jpg"
+        username: "timshi",
+        name: "Tim Shi",
+        profileImage: "/images/timshi.jpg"
     },
     models: {
         featured: [],
@@ -16,6 +16,21 @@ export const store = {
             totalDownload: 9900000000
         },
         searchResult: [
+            {
+                id: "tensorflow/object-detection",
+                title: "Tensorflow Object Detection API",
+                details: "The TensorFlow Object Detection API is an open source framework built on top of TensorFlow that makes it easy to construct, train and deploy object detection models.",
+                readme: "No README yet.\n\n\n",
+                tags: ["deep learning", "computer vision"],
+                contributors: [
+                    {username: "google", name: "Google"},
+                ],
+                stats: {
+                    download: 271,
+                    stars: 805
+                },
+                lastUpdated: '1 days ago',
+            },
             {
                 id: "DeepScale/SqueezeNet",
                 title: "squeezeNet",
