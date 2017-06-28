@@ -9,7 +9,7 @@ export default function TabButtonBar({children, repoUrl, ..._props}) {
             <FlexItem className="tab-button" component={Flex} column justify="center"><a href={repoUrl}>ReadMe</a></FlexItem>
             <FlexItem className="tab-button" component={Flex} column justify="center"><a href={repoUrl + '/issues'}>Issues</a></FlexItem>
             <FlexItem className="tab-button" component={Flex} column justify="center"><a href={repoUrl + '/tags'}>Versions</a></FlexItem>
-            <FlexItem className="tab-button" component={Flex} column justify="center"><a href={repoUrl + '/license'}>License</a></FlexItem>
+            <FlexItem className="tab-button" component={Flex} column justify="center"><a href={repoUrl + '/blob/master/LICENSE'}>License</a></FlexItem>
             <FlexSpacer/>
         </FixedWidthRow>
     );
