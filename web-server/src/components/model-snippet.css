@@ -5,6 +5,10 @@
     margin-bottom: 15px;
     cursor: pointer;
 }
+.model-snippet:hover {
+    /*use header link as url in the future instead of the entire card.*/
+    box-shadow: rgb(136, 182, 255) 0 0 1px;
+}
 
 .model-snippet a {
     text-decoration: none;
