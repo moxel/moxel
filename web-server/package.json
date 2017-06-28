@@ -15,6 +15,8 @@
     "react-router-dom": "^4.1.1"
   },
   "devDependencies": {
+    "setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git",
+    "publish-gh-pages": "git add web-server/build -f && git commit -m \"BUILD\" && git subtree push --prefix web-server/build",
     "node-sass": "^4.5.3",
     "react-scripts": "1.0.7",
     "sass-loader": "^6.0.6"
