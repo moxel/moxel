@@ -20,6 +20,7 @@ export const store = {
                 id: "forresti/sqeezeNet",
                 title: "squeezeNet",
                 details: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters",
+                tags: ["deep learning"],
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
                     {username: "terrychenism", name: "Terry Chen"}
@@ -34,6 +35,7 @@ export const store = {
                 id: "episodeyang/resNet",
                 title: "resNet",
                 details: "resNet: AlexNet-level accuracy with 50x fewer parameters",
+                tags: ["deep learning"],
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
                     {username: "terrychenism", name: "Terry Chen"}
@@ -48,6 +50,7 @@ export const store = {
                 id: "strin/Wasserstein_GAN",
                 title: "Wasserstein GAN",
                 details: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters",
+                tags: ["deep learning"],
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
                     {username: "terrychenism", name: "Terry Chen"}
@@ -62,6 +65,7 @@ export const store = {
                 id: "zwang/Dueling_networks",
                 title: "Dueling Networks",
                 details: "Dualing Networks: RL model with separate value function and advantage function",
+                tags: ["deep learning"],
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
                     {username: "terrychenism", name: "Terry Chen"}

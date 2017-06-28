@@ -1,0 +1,11 @@
+.simple-tag {
+    cursor: pointer;
+    border-radius: 4px;
+    height: 11px;
+    font-size: 0.8em;
+    font-weight: 100;
+    color: #4c0e07;
+    border: 1px solid #ff8e95;
+    background-color: #ffb5b5;
+    padding: 2px 4px;
+}

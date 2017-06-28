@@ -1,12 +1,15 @@
 import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import ProfileImage from "./profile-image";
+import SimpleTag from "./simple-tag";
+
 
 import "./model-snippet.css";
 export default function ModelSnippet({
                                          id,
                                          title,
                                          details,
+                                         tags,
                                          contributors,
                                          stats,
                                          onClick,
@@ -17,7 +20,12 @@ export default function ModelSnippet({
             <a href={`/models/${id}`}
                onClick={onClick}>
                 <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
-                <FlexItem className="snippet-body">{details}</FlexItem>
+                <FlexItem className="snippet-body">
+                    <p>{details}</p>
+                    <p>{
+                        tags.map((tag) => <SimpleTag href={`/list?tag=${tag}`}>{tag}</SimpleTag>)
+                    }</p>
+                </FlexItem>
                 <Flex row
                       className="snippet-footer"
                       component={FlexItem}
