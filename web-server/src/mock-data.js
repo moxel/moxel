@@ -20,7 +20,7 @@ export const store = {
                 id: "tensorflow/object-detection",
                 title: "Tensorflow Object Detection API",
                 details: "The TensorFlow Object Detection API is an open source framework built on top of TensorFlow that makes it easy to construct, train and deploy object detection models.",
-                readme: "No README yet.\n\n\n",
+                readme: "## API\n\n**POST** `/tensorflow/object-detection`\n\n**Args** \n\nA JSON object of \n\n* `image`. Base64 encoding of the input image.\n* `ext`. Extension format such as .jpg, .png.\n\n\n**Return**\n\nA JSON object of \n\n* `boxes`. A list of bounding boxes, each with coordinates (x, y, w, h).\n* `num_detections`. Number of detections.\n* `vis`. Base64 encoding of visualization - image plus bounding boxes.\n* `vis_ext`. Extension format of the visualizing image.\n",
                 tags: ["deep learning", "computer vision"],
                 contributors: [
                     {username: "google", name: "Google"},
