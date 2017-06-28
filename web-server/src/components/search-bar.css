@@ -4,13 +4,13 @@
     border: 0 solid transparent;
     padding: 0 18px;
     font-size: 1em;
-    color: #202020;
-    background-color: #eeeeee;
+    color: #fffff4;
+    background-color: #f1346e;
 }
 .search-bar > button:hover {
-    background-color: #dcdcdc;
+    background-color: #eb336c;
 }
 
 .search-bar > button:active{
-    background-color: #c7c7c7;
+    background-color: #cb2963;
 }

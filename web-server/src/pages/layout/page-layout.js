@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Flex, FlexItem} from "layout-components";
+import {Flex} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 

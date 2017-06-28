@@ -2,7 +2,7 @@ export const store = {
     account: {
         username: "episodeyang",
         name: "Ge Yang",
-        profileImage: "images/episodeyang.jpg"
+        profileImage: "/images/episodeyang.jpg"
     },
     models: {
         featured: [],
@@ -17,6 +17,7 @@ export const store = {
         },
         searchResult: [
             {
+                id: "forresti/sqeezeNet",
                 title: "squeezeNet",
                 details: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters",
                 contributors: [
@@ -30,6 +31,7 @@ export const store = {
                 lastUpdated: '21 days ago',
             },
             {
+                id: "episodeyang/resNet",
                 title: "resNet",
                 details: "resNet: AlexNet-level accuracy with 50x fewer parameters",
                 contributors: [
@@ -43,7 +45,8 @@ export const store = {
                 lastUpdated: '21 days ago',
             },
             {
-                title: "squeezeNet",
+                id: "strin/Wasserstein_GAN",
+                title: "Wasserstein GAN",
                 details: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters",
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
@@ -56,8 +59,9 @@ export const store = {
                 lastUpdated: '21 days ago',
             },
             {
-                title: "squeezeNet",
-                details: "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters",
+                id: "zwang/Dueling_networks",
+                title: "Dueling Networks",
+                details: "Dualing Networks: RL model with separate value function and advantage function",
                 contributors: [
                     {username: "forresti", name: "Forrest Landola"},
                     {username: "terrychenism", name: "Terry Chen"}

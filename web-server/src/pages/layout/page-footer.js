@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Flex, FlexItem, FlexSpacer} from "layout-components";
+import {FlexItem, FlexSpacer} from "layout-components";
 import HeaderButton from "./header-button";
 import FixedWidthRow from "./fixed-width-row";
 
