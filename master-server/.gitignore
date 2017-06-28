@@ -1,0 +1,5 @@
+.DS_STORE
+*.swo
+*.swp
+.ropeproject
+__pycache__

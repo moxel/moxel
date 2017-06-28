@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+"""
+Initialize database
+"""
+import sys
+
+from dummy_master.db import Base, engine
+
+Base.metadata.create_all(engine)
