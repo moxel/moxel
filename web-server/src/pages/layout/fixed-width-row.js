@@ -1,18 +1,21 @@
-import React, {Component} from 'react';
-import {Flex, FlexItem} from "layout-components";
+import React  from 'react';
+import {Flex} from "layout-components";
 
-import "./page-header.css";
-class FixedWidthRow extends Component {
-    render() {
-        return (
-            <FlexItem fixed width="100%" height="50px" style={{backgroundColor: "grey"}}>
-                <Flex row align="center" className="page-header-inner"
-                      style={{margin: '0 auto', width: '900px'}}>{
-                    this.props.children || null
-                }</Flex>
-            </FlexItem>
-        )
-    }
+export default function FixedWidthRow({className="", style = {}, children, ..._props}) {
+    return (
+        <Flex row
+              align="center"
+              className={`fixed-width-row ${className}`}
+              style={{
+                  position: "relative",
+                  ...style,
+                  marginLeft: 'auto',
+                  marginRight: "auto",
+                  width: '860px',
+                  minWidth: '860px',
+                  maxWidth: '860px'
+              }} {..._props}
+        >{children || null}</Flex>
+    )
 }
 
-export default FixedWidthRow;

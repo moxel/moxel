@@ -11,3 +11,6 @@
 .page-footer .header-button {
     color: grey;
 }
+.page-footer .header-button:hover {
+    color: #484848;
+}

@@ -3,12 +3,13 @@ import {Flex, FlexItem} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 
+import "./page-layout.css";
 class PageLayout extends Component {
     render() {
         return (
             <Flex column>
                 <PageHeader/>
-                <FlexItem fluid>{this.props.children}</FlexItem>
+                <div style={{flex: "1 0 auto"}} className="page-body">{this.props.children}</div>
                 <PageFooter/>
             </Flex>
         );
