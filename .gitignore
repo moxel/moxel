@@ -10,3 +10,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# vim
+*.swp
+*.swo
+.ropeproject
+.build
+package-lock.json
+tags
+
+# specific paths
+/master-server/bin
