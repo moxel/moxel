@@ -1,5 +1,5 @@
 import React from 'react';
-import {Flex, FlexItem, FlexSpacer} from "layout-components";
+import {Flex, FlexItem} from "layout-components";
 import FixedWidthRow from "../layout/fixed-width-row";
 import SearchBar from "../../components/SearchBar";
 
