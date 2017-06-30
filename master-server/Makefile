@@ -6,3 +6,6 @@ build:
 
 clean:
 	./build.py clean
+
+run:
+	./bin/dummy-master
