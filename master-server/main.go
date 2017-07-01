@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dummy-ai/mvp/master-server/models"
 	"net/http"
+	"os"
 )
 
 func sayHello(w http.ResponseWriter, r *http.Request) {
@@ -11,9 +12,23 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", sayHello)
-	db := models.CreateDB()
-	defer db.Close()
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: master-server [migrate / start]")
+		return
+	}
 
-	models.MigrateDB(db)
+	command := os.Args[1]
+
+	if command == "migrate" {
+		// migrate database schema.
+		db := models.CreateDB()
+		defer db.Close()
+
+		models.MigrateDB(db)
+	} else if command == "start" {
+		http.HandleFunc("/", sayHello)
+
+	} else {
+		panic("Unknown command " + command)
+	}
 }

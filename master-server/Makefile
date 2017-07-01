@@ -8,4 +8,7 @@ clean:
 	./build.py clean
 
 run:
-	./bin/dummy-master
+	./bin/master-server start
+
+migrate: 
+	./bin/master-server migrate

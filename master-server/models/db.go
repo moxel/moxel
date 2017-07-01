@@ -9,6 +9,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+const dbAddress = "35.185.221.185"
+
 type Model struct {
 	gorm.Model
 	UserId   string `gorm:"size:64"`
@@ -20,7 +22,8 @@ type Model struct {
 }
 
 func CreateDB() *gorm.DB {
-	db, err := gorm.Open("postgres", "host=35.185.221.185 user=postgres dbname=postgres sslmode=disable password=postgres")
+	dbString := fmt.Sprintf("host=%s user=postgres dbname=postgres sslmode=disable password=postgres", dbAddress)
+	db, err := gorm.Open("postgres", dbString)
 	if err != nil {
 		panic(err)
 	}
