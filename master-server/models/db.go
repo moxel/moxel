@@ -11,6 +11,14 @@ import (
 
 const dbAddress = "35.185.221.185"
 
+type User struct {
+	gorm.Model
+	UserName  string
+	FirstName string
+	LastName  string
+	Email     string
+}
+
 type Model struct {
 	gorm.Model
 	UserId   string `gorm:"size:64"`
@@ -33,6 +41,7 @@ func CreateDB() *gorm.DB {
 }
 
 func MigrateDB(db *gorm.DB) {
-	fmt.Println("Migrating data")
+	fmt.Println("Migrating DB schemas")
 	db.Debug().AutoMigrate(&Model{})
+	db.Debug().AutoMigrate(&User{})
 }
