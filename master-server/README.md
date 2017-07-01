@@ -2,6 +2,42 @@
 
 Master server configures Kubernetes cluster and manages models.
 
+## Development
+
+### Run the Server
+
+```
+make build && make run
+```
+
+### Migrate DB Schema
+
+```
+make build && make migrate
+```
+
+### Testing
+
+To run all test cases,
+
+```
+make build && make test
+```
+
+To run testing on just one package, for example `models`, use 
+
+```
+make build && make test ARGS=github.com/dummy-ai/mvp/master-server/models
+```
+
+To run testing on a specific function, do
+
+```
+make build && make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
+```
+
+
+
 ## Useful Kube Commands
 
 ```

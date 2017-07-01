@@ -1,14 +1,17 @@
 install:
-	./build.py install	
+	./manage.py install	
 
 build:
-	./build.py build
+	./manage.py build
 
 clean:
-	./build.py clean
+	./manage.py clean
 
 run:
 	./bin/master-server start
 
 migrate: 
 	./bin/master-server migrate
+
+test:
+	./manage.py test ${ARGS}
