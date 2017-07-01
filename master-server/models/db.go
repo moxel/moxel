@@ -11,24 +11,6 @@ import (
 
 const dbAddress = "35.185.221.185"
 
-type User struct {
-	gorm.Model
-	UserName  string
-	FirstName string
-	LastName  string
-	Email     string
-}
-
-type Model struct {
-	gorm.Model
-	UserId   string `gorm:"size:64"`
-	RepoId   string `gorm:"size:64"`
-	Tag      string
-	Git      string // git remote and branch
-	Docker   string // docker image
-	Metadata string // model metadata
-}
-
 func CreateDB() *gorm.DB {
 	dbString := fmt.Sprintf("host=%s user=postgres dbname=postgres sslmode=disable password=postgres", dbAddress)
 	db, err := gorm.Open("postgres", dbString)
