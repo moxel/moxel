@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mvp
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: mvp
+      labels:
+        app: mvp
+    spec:
+      containers:
+      - name: main
+        image: dummyai/mvp
+        ports:
+        - containerPort: 3000
+        tty: true
+
