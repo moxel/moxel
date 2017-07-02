@@ -12,7 +12,6 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	UserName  string
-	FirstName string
-	LastName  string
+	FullName  string
 	Email     string
 }
