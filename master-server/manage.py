@@ -36,12 +36,13 @@ def build(command='build', args=[]):
             os.makedirs(os.path.normpath('.build/src/github.com/dummy-ai/mvp'))
             os.symlink('../../../../..', '.build/src/github.com/dummy-ai/mvp/master-server')
 
-        env['gopath'] = os.path.join(os.getcwd(), '.build')
+        env['GOPATH'] = os.path.join(os.getcwd(), '.build')
         env['go15vendorexperiment'] = '1' # needed on go 1.5, no-op on go 1.6+
 
         for k, v in env.items():
             print("export {}='{}'".format(k, v))
             os.environ[k] = v
+
 
         if command == 'install':
             os.system('cd .build/src/github.com/dummy-ai/mvp/master-server && go get')

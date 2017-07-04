@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dummy-ing
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/rewrite-target: /
+    # nginx.org/rewrites: "serviceName=tf-object-detection rewrite=/"
+    # ingress.kubernetes.io/configuration-snippet: | 
+    #    rewrite .* / permanent;
+    kubernetes.io/ingress.global-static-ip-name: "dummy-ingress"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /tensorflow/object-detection
+        backend:
+          serviceName: tf-object-detection
+          servicePort: 5900
+  backend:
+    serviceName: default-http-backend
+    servicePort: 80
