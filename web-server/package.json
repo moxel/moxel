@@ -3,12 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "github-markdown-css": "^2.8.0",
+    "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
+    "markdown-it": "^8.3.1",
+    "prop-types": "latest",
     "react": "^15.6.1",
-    "react-dom": "^15.6.1"
+    "react-dom": "^15.6.1",
+    "react-markdownit": "^2.5.0",
+    "react-router": "^4.1.1",
+    "react-router-dom": "^4.1.1"
   },
   "devDependencies": {
-    "react-scripts": "1.0.7"
+    "setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git",
+    "publish-gh-pages": "git add web-server/build -f && git commit -m \"BUILD\" && git subtree push --prefix web-server/build",
+    "node-sass": "^4.5.3",
+    "react-scripts": "1.0.7",
+    "sass-loader": "^6.0.6"
   },
   "scripts": {
     "start": "react-scripts start",

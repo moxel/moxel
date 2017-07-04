@@ -1,5 +1,13 @@
 .idea
 
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# testing
+/coverage
+
+# production
+/build
+
 # misc
 .DS_Store
 .env.local
@@ -21,3 +29,5 @@ tags
 
 # specific paths
 /master-server/bin
+*.swp
+*.swo

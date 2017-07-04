@@ -1,0 +1,47 @@
+.model-snippet {
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: solid 1px #dddddd;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+.model-snippet:hover {
+    /*use header link as url in the future instead of the entire card.*/
+    box-shadow: rgb(136, 182, 255) 0 0 1px;
+}
+
+.model-snippet a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.model-snippet .snippet-title {
+    padding: 14px
+}
+
+.model-snippet h1.snippet-title {
+    margin: 0 0 0 0;
+    font-size: 1.7em;
+    font-weight: 400;
+    color: #f13770
+}
+
+.model-snippet .snippet-body {
+    padding: 14px;
+    padding-top: 0;
+}
+
+.model-snippet .snippet-body p:first-child {
+    margin-top: 0;
+}
+
+.model-snippet .snippet-body p:last-child {
+    margin-bottom: 0;
+}
+
+.model-snippet .snippet-footer {
+    background-color: rgba(240, 243, 248, 0.6);
+    padding: 7px 14px 14px;
+    border-bottom-right-radius: 7px;
+    border-bottom-left-radius: 7px;
+}
