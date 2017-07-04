@@ -37,6 +37,11 @@ make build && make test ARGS="github.com/dummy-ai/mvp/master-server/models -run 
 ```
 
 
+#### Test Deployments
+
+Make sure kubeconfig `admin.conf` is available in this directory.
+
+
 
 ## Useful Kube Commands
 
