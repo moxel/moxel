@@ -27,13 +27,15 @@ make build && make test
 To run testing on just one package, for example `models`, use 
 
 ```
-make build && make test ARGS=github.com/dummy-ai/mvp/master-server/models
+make test ARGS=github.com/dummy-ai/mvp/master-server/models
 ```
 
 To run testing on a specific function, do
 
 ```
-make build && make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
+make test ARGS="github.com/dummy-ai/mvp/master-server -run TestGetRepoURL"
+
+make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
 ```
 
 
