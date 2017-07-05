@@ -1,0 +1,3 @@
+[submodule "examples/tf-bare"]
+	path = examples/tf-bare
+	url = https://github.com/dummy-ai/tf-bare
