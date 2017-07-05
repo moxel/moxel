@@ -13,7 +13,7 @@ import (
 var _ = fmt.Println
 
 const deploymentTarget = "tf-object-detection"
-const kubeconfig = "admin.conf"
+const kubeconfig = "secrets/admin.conf"
 
 // Given the path to kube config file, create a Clientset.
 func createClient(kubeconfig string) *kube.Clientset {
