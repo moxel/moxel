@@ -7,6 +7,9 @@ build:
 clean:
 	./manage.py clean
 
+dev:
+	./manage.py dev
+
 run:
 	./bin/master-server start
 

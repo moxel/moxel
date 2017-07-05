@@ -48,7 +48,7 @@ def build(command='build', args=[]):
             os.system('cd .build/src/github.com/dummy-ai/mvp/master-server && go get')
 
         elif command == 'build':
-            cmd = 'go build -o bin/master-server github.com/dummy-ai/mvp/master-server'
+            cmd = 'go build -i -o bin/master-server github.com/dummy-ai/mvp/master-server'
             subprocess.call(cmd.split())
 
         elif command == 'test':
