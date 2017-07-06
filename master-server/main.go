@@ -45,6 +45,37 @@ func getRepoURL(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getDataURL(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	user := query.Get("user")   // dummy user
+	name := query.Get("name")   // project name
+	cloud := query.Get("cloud") // cloud provider: gcloud
+	verb := query.Get("verb")   // HTTP verb: PUT | GET
+	path := query.Get("path")   // path to object
+
+	fmt.Println("[GET] Data URL from Cloud Provider " + cloud)
+
+	var url string
+	var err error
+
+	if cloud == "gcloud" {
+		// Signed URL from Google Cloud Storage.
+		url, err = GetGCloudStorageURL(user, name, path, verb)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		fmt.Println(url)
+	}
+
+	response, _ := json.Marshal(map[string]string{
+		"url": url,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
@@ -62,6 +93,7 @@ func main() {
 	} else if command == "start" {
 		http.HandleFunc("/", sayHello)
 		http.HandleFunc("/url/code", getRepoURL)
+		http.HandleFunc("/url/data", getDataURL)
 
 		fmt.Println("Starting HTTP master server")
 		http.ListenAndServe(":8080", nil)

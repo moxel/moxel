@@ -66,12 +66,16 @@ func LoadGCSCredentials() (string, string) {
 }
 
 // Get the signed url for storage, given user, project name, and path.
-func GetGCloudStorageURL(user string, name string, path string) (string, error) {
+func GetGCloudStorageURL(user string, name string, path string, verb string) (string, error) {
 	if gcsAccessID == "" || gcsAccessKey == "" {
 		LoadGCSCredentials()
 	}
 
-	method := "PUT"
+	if verb != "GET" && verb != "PUT" {
+		return "", errors.New("Unknown HTTP Verb " + verb)
+	}
+
+	method := verb
 	expires := time.Now().Add(time.Second * 3600)
 
 	url, err := gcs.SignedURL(gcsBucket, path, &gcs.SignedURLOptions{

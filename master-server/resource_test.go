@@ -31,7 +31,7 @@ func TestLoadGCSredentials(t *testing.T) {
 }
 
 func TestGetGCloudStorageURL(t *testing.T) {
-	url, err := GetGCloudStorageURL(user, name, "tmp/test_gcs.txt")
+	url, err := GetGCloudStorageURL(user, name, "tmp/test_gcs.txt", "PUT")
 	if err != nil {
 		t.Fatal("Cannot get signed URL from GCloud. Reason:", err.Error())
 		return
