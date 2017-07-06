@@ -1,0 +1,53 @@
+#!/usr/bin/python3
+""" Runtime for docker containers.
+"""
+import os
+import sys
+from os.path import join, abspath, dirname, expanduser, exists
+import yaml
+import pexpect
+
+DAEMON_VERSION = '0.0.1'
+WARP_CONFIG = 'dummy.yml'
+
+print('[daemon] {}'.format(DAEMON_VERSION))
+
+root = '/code'
+work_path = sys.argv[1]
+cmd = sys.argv[2:]
+
+root = abspath(expanduser(root))
+
+# def mount_gcs(bucket, key, local_path):
+#     if not os.path.exists(local_path):
+#         os.makedirs(local_path)
+
+#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/etc/gcloud-credential/dummy-067db29c85f1.json'
+#     os.system('gcsfuse dummy-sci /mnt/cloudfs')
+
+# verify this is a valid warpdrive dir.
+if not exists(join(root, '.git')):
+    print('[daemon] This is not a valid git repository: {}'.format(root))
+    exit(1)
+
+if not exists(join(root, WARP_CONFIG)):
+    print('[daemon] This is not a valid warpdrive repository: {}'.format(root))
+    exit(1)
+
+os.chdir(root)
+
+with open(WARP_CONFIG, 'r') as f:
+    config = yaml.load(f)
+
+# for local_path, volume in config.get('volumes', {}).items():
+#     where = volume['where']
+#     if where['cloud'] == 'aws':
+#         mount_gcs(where['bucket'], where['key'], local_path)
+
+print('[daemon] Running command {}'.format(' '.join(cmd)))
+sys.stdout.flush() # make sure daemon outputs finish
+
+os.chdir(work_path)
+ret = os.system(' '.join(cmd))
+
+exit(ret)
