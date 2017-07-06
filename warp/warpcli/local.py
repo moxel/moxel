@@ -30,7 +30,6 @@ class PushProgressPrinter(RemoteProgress):
             self.progress_bar.cursor.restore()
             self.progress_bar.max_value = max_count
             self.progress_bar.draw(cur_count)
-            # print('(' + self.meme + ')')
 
 
 class Repo(object):
