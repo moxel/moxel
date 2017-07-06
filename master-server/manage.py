@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import distutils.sysconfig
 import os
-import numpy
 import re
 import shutil
 import subprocess

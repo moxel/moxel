@@ -9,13 +9,8 @@ WARP_CONFIG = 'dummy.yml'
 WARP_USER = 'warp'
 
 GIT_SSH_COMMAND = 'ssh -i {}/secrets/warpdrive'.format(abspath(join(dirname(warpcli.__file__), '..')))
-GIT_REGISTRY = 'git.dummy.ai:/mnt/code'
+MASTER_URL = 'master-dev.dummy.ai'
+MASTER_PORT = 8080
 
-
-def project_remote_dir(user, name):
-    return '/{}/{}'.format(user, name)
-
-
-def git_remote_url(user, name):
-    return 'ssh://{}@{}/{}'.format(WARP_USER, GIT_REGISTRY, project_remote_dir(user, name))
-
+def master_server_http(path):
+    return 'http://' + MASTER_URL + ':{}'.format(MASTER_PORT) + path

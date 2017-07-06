@@ -6,7 +6,7 @@ import random
 from progressive.bar import Bar
 from git import Remote, Repo as GitRepo, RemoteProgress, IndexFile
 
-from warpcli.constants import WARP_CONFIG, project_remote_dir, git_remote_url, GIT_SSH_COMMAND
+from warpcli.constants import GIT_SSH_COMMAND, WARP_CONFIG
 from warpcli.utils import load_yaml, dump_yaml
 
 
@@ -45,13 +45,14 @@ class Repo(object):
         self.config = load_yaml(self.config_path)
         self.name = self.config.get('name')
         self.version = self.config.get('version')
+        self.assets = self.config.get('assets', [])
 
         self.path = path
         self.git_repo = GitRepo(self.path)
         self.git_command = GIT_SSH_COMMAND
 
 
-    def push(self, user):
+    def push(self, git_remote_url):
         """ sync the staged files to remote """
         with self.git_repo.git.custom_environment(GIT_SSH_COMMAND=self.git_command):
             # create a diff again working copy
@@ -73,7 +74,7 @@ class Repo(object):
             try:
                 branch = self.git_repo.create_head('branch-' + commit.hexsha, commit.hexsha)
                 remote_id = str(uuid.uuid4())[:10]
-                remote = self.git_repo.create_remote(remote_id, url=git_remote_url(user, self.name))
+                remote = self.git_repo.create_remote(remote_id, url=git_remote_url)
                 remote.push(branch, progress=PushProgressPrinter())
             finally:
                 # clean up.

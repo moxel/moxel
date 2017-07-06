@@ -46,7 +46,7 @@ func GetRepoURL(user string, name string) (string, error) {
 		}
 	}
 
-	return "ssh://" + gitRegistry + ":" + gitPath, nil
+	return "ssh://warp@" + gitRegistry + ":" + gitPath, nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets
