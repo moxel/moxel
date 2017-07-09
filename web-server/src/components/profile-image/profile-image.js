@@ -13,17 +13,16 @@ type State = {
 export default class ProfileImage extends React.Component<void, Props, State> {
     state = {id: '0'};
 
-    componentWillUpdate(){
-        const {username} = this.props;
-        if (username) this.getId(username);
+    componentWillReceiveProps(prevProps: Props) {
+        if (prevProps.username !== this.props.username && username)
+            this.getId(this.props.username);
     }
 
     componentDidMount() {
-        const {username} = this.props;
-        if (username) this.getId(username);
+        if (this.props.username) this.getId(this.props.username);
     }
 
-    getId(username){
+    getId(username) {
         fetch(`https://api.github.com/users/${username}`)
             .then((res) => res.json())
             .then(data => {
