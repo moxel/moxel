@@ -6,12 +6,12 @@ import sys
 import yaml
 import requests
 import dateparser
-from os.path import join, abspath, exists, relpath, getsize
+from os.path import join, abspath, exists, relpath, getsize, dirname
 
 sys.path.append('./')
 
 import warpcli
-from warpcli.local import Repo
+from warpcli.local import Repo, Deployment
 from warpcli.remote import MasterRemote
 from warpcli.utils import (load_yaml, dump_yaml, query_yes_no, mkdir_if_not_exists,
                            ProgressBar, SpinCursor)
@@ -36,27 +36,37 @@ def cli(): pass
 
 
 @cli.command()
-def upload():
+@click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
+def deploy(config_file):
+    """
+    Note: paths in yaml is relative to the yaml file.
+    """
+
     # Load meta config.
     root = current_repo_dir()
     path = relpath(os.getcwd(), start=current_repo_dir())
     user = current_user()
     remote = MasterRemote()
+
+    # Gather local file information.
     repo = Repo(root)
-    print('{}:{}'.format(repo.name, repo.version))
+    config_path = join(os.getcwd(), config_file)
+    deploy = Deployment(root, config_path)
+    print('{}:{}'.format(deploy.name, deploy.version))
 
     # Push code.
-    remote_url = remote.get_repo_url(user, repo.name)
+    remote_url = remote.get_repo_url(user, deploy.name)
     print('Push code => {}'.format(remote_url))
     commit = repo.push(remote_url)
+    print('Commit:', commit)
 
     # Push data.
     cloud = 'gcloud'
 
-    # calculate total size.
+    # Calculate total asset sizes.
     total_size = 0.
-    for asset in repo.assets:
-        file_path = os.path.join(root, asset)
+    for asset in deploy.assets:
+        file_path = os.path.join(root, deploy.work_path, asset)
         total_size += getsize(file_path)
 
         if total_size >= 1e9:
@@ -72,22 +82,50 @@ def upload():
             unit = 'B'
             denom = 1
 
-    bar = ProgressBar(round(total_size / denom, 1), title='Uploading', unit=unit)
+    # Upload the assets.
+    bar = ProgressBar(round(total_size / denom, 1), title='Uploading:', unit=unit)
+    bar.update(0.)
+    accum_size = 0.
 
-    for asset in repo.assets:
-        asset_remote_path = join(user, repo.name, commit, asset)
-        asset_url = remote.get_asset_url(user, repo.name,
+    class UploadByChunks(object):
+        def __init__(self, filename, chunksize=1 << 13):
+            self.filename = filename
+            self.chunksize = chunksize
+            self.totalsize = os.path.getsize(filename)
+            self.readsofar = 0
+
+        def __iter__(self):
+            with open(self.filename, 'rb') as file:
+                while True:
+                    data = file.read(self.chunksize)
+                    if not data:
+                        sys.stderr.write("\n")
+                        break
+                    self.readsofar += len(data)
+                    bar.update(round(accum_size + self.readsofar / denom, 1),
+                               max_value=round(self.totalsize / denom, 1))
+                    yield data
+
+        def __len__(self):
+            return self.totalsize
+
+    for asset in deploy.assets:
+        file_path = os.path.join(root, deploy.work_path, asset)
+        asset_path = relpath(file_path, start=root)
+
+        asset_remote_path = join(user, deploy.name, commit, asset_path)
+        asset_url = remote.get_asset_url(user, deploy.name,
                                          cloud, 'PUT', asset_remote_path)
-        with open(asset, 'rb') as f:
-            response = requests.put(asset_url, f.read(),
-                                    headers={
-                                        'Content-Type': 'application/octet-stream'
-                                    })
 
-        accum_size = 0.
-        file_path = os.path.join(root, asset)
+        response = requests.put(asset_url, UploadByChunks(join(root, file_path)),
+                                headers={
+                                    'Content-Type': 'application/octet-stream'
+                                })
+
         accum_size += getsize(file_path)
         bar.update(round(accum_size / denom, 1))
 
 
-
+@cli.command()
+def publish():
+    print('Model published')
