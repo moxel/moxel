@@ -2,15 +2,18 @@
 import React from 'react';
 
 type Props = {
-    username: string,
+    /** GitHub username */
+    username?: string,
+    /** size of image in pixels */
     size: number,
+    /** style object to pass on. */
     style?: Object,
     [key: string]: any,
 };
 type State = {
     id: string
 }
-export default class ProfileImage extends React.Component<void, Props, State> {
+export default class ProfileImage extends React.Component<Props, Props, State> {
     state = {id: '0'};
 
     componentWillReceiveProps(prevProps: Props) {
