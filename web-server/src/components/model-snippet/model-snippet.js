@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
-import ProfileImage from "../profile-image";
+import ProfileImage from "../profile-image/profile-image";
 import SimpleTag from "../simple-tag";
 
 import "./model-snippet.css";

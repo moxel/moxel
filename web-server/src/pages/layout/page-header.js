@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {FlexItem, FlexSpacer} from "layout-components";
 import HeaderButton from "./header-button";
-import ProfileImage from '../../components/profile-image';
+import ProfileImage from '../../components/profile-image/profile-image';
 import FixedWidthRow from "./fixed-width-row";
 
 import "./page-header.css";
