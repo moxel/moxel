@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../layout/fixed-width-row";
-import ModelSnippet from "../../components/model-snippet";
+import ModelSnippet from "../../components/model-snippet/model-snippet";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";

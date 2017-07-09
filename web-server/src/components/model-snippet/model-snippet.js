@@ -1,10 +1,21 @@
+// @flow
 import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
-import ProfileImage from "./profile-image";
-import SimpleTag from "./simple-tag";
-
+import ProfileImage from "../profile-image";
+import SimpleTag from "../simple-tag";
 
 import "./model-snippet.css";
+
+type ModelSnippetProps = {
+    id: string,
+    title: stirng,
+    details: string,
+    tags: string,
+    contributors: Array<string>,
+    stats: Object,
+    onClick: func,
+    [key: string]: any,
+};
 export default function ModelSnippet({
                                          id,
                                          title,
@@ -14,7 +25,7 @@ export default function ModelSnippet({
                                          stats,
                                          onClick,
                                          ..._props
-                                     }) {
+                                     }: ModelSnippetProps) {
     return (
         <FlexItem component={Flex} column className="model-snippet">
             <a href={`/models/${id}`}

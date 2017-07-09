@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 
 import {store} from '../../mock-data';
 import SearchLayout from "./SearchLayout";
-import ModelSnippet from "../../components/model-snippet";
+import ModelSnippet from "../../components/model-snippet/model-snippet";
 
 class Main extends Component {
     render() {
