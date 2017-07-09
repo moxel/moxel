@@ -6,7 +6,7 @@ import SimpleTag from "../simple-tag";
 
 import "./model-snippet.css";
 
-type ModelSnippetProps = {
+type Props = {
     id: string,
     title: stirng,
     details: string,
@@ -25,7 +25,7 @@ export default function ModelSnippet({
                                          stats,
                                          onClick,
                                          ..._props
-                                     }: ModelSnippetProps) {
+                                     }: Props) {
     return (
         <FlexItem component={Flex} column className="model-snippet">
             <a href={`/models/${id}`}
@@ -41,7 +41,10 @@ export default function ModelSnippet({
                       className="snippet-footer"
                       component={FlexItem}
                       fixed>
-                    {contributors.map(({username, profileImageUrl}) => <ProfileImage key={username}/>)}
+                    {contributors.map(({username}) => <ProfileImage className="profile-snippet"
+                                                                    key={username}
+                                                                    username={username}
+                                                                    size={30}/>)}
                     <FlexSpacer/>
                     <FlexItem>{stats.download}</FlexItem>
                     <FlexItem>{stats.stars}</FlexItem>

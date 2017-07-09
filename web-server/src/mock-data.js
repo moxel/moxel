@@ -1,8 +1,7 @@
 export const store = {
     account: {
-        username: "timshi",
-        name: "Tim Shi",
-        profileImage: "/images/timshi.jpg"
+        username: "strin",
+        name: "Tim Shi"
     },
     models: {
         featured: [],
