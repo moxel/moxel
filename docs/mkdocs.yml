@@ -1,0 +1,4 @@
+site_name: Dummy
+theme_dir: cinder
+pages:
+- 'index.md'
