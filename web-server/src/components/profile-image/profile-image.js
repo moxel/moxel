@@ -13,8 +13,17 @@ type State = {
 export default class ProfileImage extends React.Component<void, Props, State> {
     state = {id: '0'};
 
+    componentWillUpdate(){
+        const {username} = this.props;
+        if (username) this.getId(username);
+    }
+
     componentDidMount() {
         const {username} = this.props;
+        if (username) this.getId(username);
+    }
+
+    getId(username){
         fetch(`https://api.github.com/users/${username}`)
             .then((res) => res.json())
             .then(data => {

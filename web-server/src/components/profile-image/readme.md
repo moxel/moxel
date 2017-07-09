@@ -19,7 +19,7 @@ The image can be HUUUUGE:
 
 When no username is specified, the default GitHub profile picture is shown:
 ```example
-<ProfileImage username=""
+<ProfileImage username={undefined}
               size={100} />
 ```
 

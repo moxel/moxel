@@ -17,7 +17,7 @@ class PageHeader extends Component {
                     <HeaderButton fixed to="/blog">Blog</HeaderButton>
                     <HeaderButton fixed to="/help">Help</HeaderButton>
                     <FlexSpacer/>
-                    <HeaderButton fixed to="/account"><FlexItem fixed component={ProfileImage} style={{marginRight: "5px"}}/>{store.account.name}</HeaderButton>
+                    <HeaderButton fixed to="/account"><FlexItem fixed component={ProfileImage} size={38} username="strin" style={{marginRight: "5px"}}/>{store.account.name}</HeaderButton>
                 </FixedWidthRow>
             </FlexItem>
         )
