@@ -1,10 +1,21 @@
+// @flow
 import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
-import ProfileImage from "./profile-image";
-import SimpleTag from "./simple-tag";
-
+import ProfileImage from "../profile-image/profile-image";
+import SimpleTag from "../simple-tag";
 
 import "./model-snippet.css";
+
+type Props = {
+    id: string,
+    title: string,
+    details: string,
+    tags: Array<string>,
+    contributors: Array<any>,
+    stats: Object,
+    onClick: () => void,
+    [key: string]: any,
+};
 export default function ModelSnippet({
                                          id,
                                          title,
@@ -14,7 +25,7 @@ export default function ModelSnippet({
                                          stats,
                                          onClick,
                                          ..._props
-                                     }) {
+                                     }: Props) {
     return (
         <FlexItem component={Flex} column className="model-snippet">
             <a href={`/models/${id}`}
@@ -30,7 +41,10 @@ export default function ModelSnippet({
                       className="snippet-footer"
                       component={FlexItem}
                       fixed>
-                    {contributors.map(({username, profileImageUrl}) => <ProfileImage key={username}/>)}
+                    {contributors.map(({username}) => <ProfileImage className="profile-snippet"
+                                                                    key={username}
+                                                                    username={username}
+                                                                    size={30}/>)}
                     <FlexSpacer/>
                     <FlexItem>{stats.download}</FlexItem>
                     <FlexItem>{stats.stars}</FlexItem>

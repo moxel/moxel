@@ -1,5 +1,5 @@
 import React from 'react';
-import FixedWidthRow from '../pages/layout/fixed-width-row';
+import FixedWidthRow from './fixed-width-row';
 
 import './tab-button-bar.css';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";

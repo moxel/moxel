@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import {FlexItem, FlexSpacer} from "layout-components";
 import HeaderButton from "./header-button";
-import ProfileImage from '../../components/profile-image';
-import FixedWidthRow from "./fixed-width-row";
+import ProfileImage from '../../components/profile-image/profile-image';
+import FixedWidthRow from "../../components/fixed-width-row";
 
 import "./page-header.css";
 import {store} from "../../mock-data";
@@ -13,11 +13,12 @@ class PageHeader extends Component {
             <FlexItem fixed width="100%" height="50px" className="page-header">
                 <FixedWidthRow row align="center" className="page-header-inner">
                     <Route exact path="/(.+)" component={()=>(<HeaderButton exact fixed to="/">Home</HeaderButton>)}/>
-                    <HeaderButton fixed to="/list">Browse Models</HeaderButton>
+                    <HeaderButton fixed to="/list?category=models">Models</HeaderButton>
+                    <HeaderButton fixed to="/list?category=datasets">Datasets</HeaderButton>
                     <HeaderButton fixed to="/blog">Blog</HeaderButton>
                     <HeaderButton fixed to="/help">Help</HeaderButton>
                     <FlexSpacer/>
-                    <HeaderButton fixed to="/account"><FlexItem fixed component={ProfileImage} style={{marginRight: "5px"}}/>{store.account.name}</HeaderButton>
+                    <HeaderButton fixed to="/account"><FlexItem fixed component={ProfileImage} size={32} username="strin" style={{marginRight: "5px"}}/>{store.account.name}</HeaderButton>
                 </FixedWidthRow>
             </FlexItem>
         )

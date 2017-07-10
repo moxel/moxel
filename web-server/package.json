@@ -7,7 +7,6 @@
     "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
     "markdown-it": "^8.3.1",
-    "prop-types": "latest",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-markdownit": "^2.5.0",
@@ -15,16 +14,26 @@
     "react-router-dom": "^4.1.1"
   },
   "devDependencies": {
-    "setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git",
-    "publish-gh-pages": "git add web-server/build -f && git commit -m \"BUILD\" && git subtree push --prefix web-server/build",
+    "flow-bin": "^0.49.1",
+    "flow-typed": "^2.1.2",
+    "flow-watch": "^1.1.1",
     "node-sass": "^4.5.3",
+    "prop-types": "^15.5.10",
     "react-scripts": "1.0.7",
+    "react-styleguidist": "^5.5.4",
     "sass-loader": "^6.0.6"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "flow": "flow",
+    "flow-watch": "flow-watch",
+    "flow:start": "flow start",
+    "flow:stop": "flow stope",
+    "styleguide": "styleguidist server",
+    "styleguide:build": "styleguidist build",
+    "setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git"
   }
 }

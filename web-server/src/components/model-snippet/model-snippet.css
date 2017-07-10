@@ -5,6 +5,7 @@
     margin-bottom: 15px;
     cursor: pointer;
 }
+
 .model-snippet:hover {
     /*use header link as url in the future instead of the entire card.*/
     box-shadow: rgb(136, 182, 255) 0 0 1px;
@@ -41,7 +42,11 @@
 
 .model-snippet .snippet-footer {
     background-color: rgba(240, 243, 248, 0.6);
-    padding: 7px 14px 14px;
+    padding: 14px;
     border-bottom-right-radius: 7px;
     border-bottom-left-radius: 7px;
+}
+
+.snippet-footer > .profile-snippet:not(:last-child) {
+    margin-right: 14px;
 }
