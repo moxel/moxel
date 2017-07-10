@@ -1,10 +1,11 @@
 // Running these test cases require setting up a kube cluster first.
-// TODO: automatically run CreateDeploy, ListDeploy and DeleteDeploy in order.
+// TODO: automatically run CreateDeployV1, ListDeploy and DeleteDeploy in order.
 package main
 
 import (
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"testing"
@@ -31,10 +32,39 @@ func createClient(kubeconfig string) *kube.Clientset {
 }
 
 // Test creating a deployment.
-func TestCreateDeploy(t *testing.T) {
+func TestCreateDeployV1(t *testing.T) {
 	client := createClient(kubeconfig)
 
-	name, err := CreateDeploy(client, deploymentTarget, "dummyai/tf-object-detection", 1)
+	name, err := CreateDeployV1(client, deploymentTarget, "dummyai/tf-object-detection", 1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created deployment %q.\n", name)
+
+	if name != deploymentTarget {
+		panic(errors.New(fmt.Sprintf("Name of deployed target %s does not match %s",
+			name, deploymentTarget)))
+	}
+}
+
+// Test creating a deployment.
+func TestCreateDeployV2(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	data := map[string]interface{}{
+		"user":  "dummy",
+		"name":  "tf-object-detection",
+		"tag":   "latest",
+		"image": "dummyai/py3-tf-cpu",
+	}
+	yamlBytes, err := yaml.Marshal(&data)
+	if err != nil {
+		panic(err)
+	}
+	yamlString := string(yamlBytes)
+	fmt.Println("yaml", yamlString)
+
+	name, err := CreateDeployV2(client, yamlString, 1)
 	if err != nil {
 		panic(err)
 	}

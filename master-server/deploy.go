@@ -13,7 +13,10 @@ import (
 	"text/template"
 )
 
-const templateDeploy = `
+// V1 deployment template
+// Assume the user has packaged the model in a docker container.
+// All we need to do is to ship the container to cloud.
+const templateDeployV1 = `
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -34,10 +37,65 @@ spec:
         tty: true
 `
 
+// V2 deployment template
+// Assume the user pushes code and assets.
+// We will create a container that mounts these resources.
+const templateDeployV2 = `
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{.Name}} 
+spec:
+  replicas: {{.Replica}}
+  template:
+    metadata:
+      name: {{.Name}}
+      labels:
+        app: dummy
+    command:
+      - ls
+      - -l
+      - /mnt/nfs
+    spec:
+      containers:
+      - name: main
+        image: {{.Image}}
+        ports:
+        - containerPort: 5900
+        tty: true
+        volumeMounts:
+        - name: nfs
+          mountPath: "/mnt/nfs"
+        - name: secrets
+          mountPath: "/secrets"
+        - name: fuse
+          mountPath: "/dev/fuse"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - SYS_ADMIN
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs-east-claim
+      - name: secrets
+        configMap:
+          name: secrets
+      - name: fuse
+        hostPath:
+          path: /dev/fuse
+`
+
 func panicNil(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func decodeYAML(yamlString string, output interface{}) {
+	reader := strings.NewReader(yamlString)
+	yaml.NewYAMLOrJSONDecoder(reader, 32).Decode(output)
 }
 
 func SpecFromTemplate(templateString string, data interface{}, output interface{}) {
@@ -51,11 +109,10 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 	specPod := buf.String()
 	fmt.Println(specPod)
 
-	reader := strings.NewReader(specPod)
-	yaml.NewYAMLOrJSONDecoder(reader, 32).Decode(output)
+	decodeYAML(specPod, &output)
 }
 
-func CreateDeploy(client *kube.Clientset, name string, image string, replica int) (string, error) {
+func CreateDeployV1(client *kube.Clientset, name string, image string, replica int) (string, error) {
 	// Instantiate templates.
 	args := struct {
 		Name    string
@@ -67,7 +124,48 @@ func CreateDeploy(client *kube.Clientset, name string, image string, replica int
 		image,
 	}
 	var deployment v1beta1.Deployment
-	SpecFromTemplate(templateDeploy, args, &deployment)
+	SpecFromTemplate(templateDeployV1, args, &deployment)
+
+	fmt.Println(deployment)
+
+	// Create deployment.
+	deploymentClient := client.AppsV1beta1().Deployments(v1.NamespaceDefault)
+
+	result, err := deploymentClient.Create(&deployment)
+
+	// Extract results.
+	if err != nil {
+		return "", err
+	}
+	return result.GetObjectMeta().GetName(), nil
+}
+
+func CreateDeployV2(client *kube.Clientset, yamlString string, replica int) (string, error) {
+	// Load YAML configuration.
+	var config map[string]string
+	decodeYAML(yamlString, &config)
+
+	// Get basic properties.
+	user := config["user"]
+	name := config["name"]
+	tag := config["tag"]
+	image := config["image"]
+
+	// Basic derived properties for deployment.
+	deployName := user + name + tag // user + "/" + name + ":" + tag
+
+	args := struct {
+		Name    string
+		Replica int
+		Image   string
+	}{
+		deployName,
+		replica,
+		image,
+	}
+
+	var deployment v1beta1.Deployment
+	SpecFromTemplate(templateDeployV2, args, &deployment)
 
 	fmt.Println(deployment)
 

@@ -16,19 +16,19 @@ type Model struct {
 	Uid       string `gorm:"size:64;primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	UserId    string `gorm:"size:64"`
-	RepoId    string `gorm:"size:64"`
-	Tag       string
-	Git       string // git remote and branch
-	Docker    string // docker image
-	Metadata  string // model metadata
+	// TODO: check size.
+	Name   string `gorm:"size:64"`
+	UserId string `gorm:"size:64"`
+	Tag    string
+	Yaml   string
+	Status string
 }
 
 // Compute the unique ID of a Model.
-func ModelId(userId string, repoId string, tag string) string {
+func ModelId(userId string, Name string, tag string) string {
 	hash := sha1.New()
 	io.WriteString(hash, userId)
-	io.WriteString(hash, repoId)
+	io.WriteString(hash, Name)
 	io.WriteString(hash, tag)
 	return base64.URLEncoding.EncodeToString(hash.Sum(nil))
 }
@@ -36,7 +36,7 @@ func ModelId(userId string, repoId string, tag string) string {
 // AddModel inserts a row of Model into the database.
 func AddModel(db *gorm.DB, model Model) error {
 	// compute uuid.
-	model.Uid = ModelId(model.UserId, model.RepoId, model.Tag)
+	model.Uid = ModelId(model.UserId, model.Name, model.Tag)
 	// database operations.
 	err := db.Create(&model).Error
 	return err
