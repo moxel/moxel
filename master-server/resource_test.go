@@ -65,3 +65,7 @@ func TestGitAddWorktree(t *testing.T) {
 		t.Fatal("Cannot clean up worktree mirror:", err.Error())
 	}
 }
+
+func TestCreateRepoMirror(t *testing.T) {
+	CreateRepoMirror("dummy", "tf-object-detection", "07aab83f0516918f691178e15b68695f2bd9e29b")
+}

@@ -42,9 +42,8 @@ def build(command='build', args=[]):
             print("export {}='{}'".format(k, v))
             os.environ[k] = v
 
-
         if command == 'install':
-            os.system('cd .build/src/github.com/dummy-ai/mvp/master-server && go get')
+            os.system('cd .build/src/github.com/dummy-ai/mvp/master-server && go get -t && go install')
 
         elif command == 'build':
             cmd = 'go build -i -o bin/master-server github.com/dummy-ai/mvp/master-server'
