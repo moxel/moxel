@@ -5,6 +5,7 @@ import os
 import sys
 import yaml
 import requests
+import requests.exceptions
 import dateparser
 from os.path import join, abspath, exists, relpath, getsize, dirname
 
@@ -55,8 +56,13 @@ def deploy(config_file):
     print('{}:{}'.format(deploy.name, deploy.version))
 
     # Push code.
-    remote_url = remote.get_repo_url(user, deploy.name)
-    print('Push code => {}'.format(remote_url))
+    try:
+        remote_url = remote.get_repo_url(user, deploy.name)
+        print('Push code => {}'.format(remote_url))
+    except requests.exceptions.ConnectionError as e:
+        print('Error: Unable to connect to the server.')
+        exit(1)
+
     commit = repo.push(remote_url)
     print('Commit:', commit)
 
