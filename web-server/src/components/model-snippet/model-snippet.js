@@ -8,12 +8,12 @@ import "./model-snippet.css";
 
 type Props = {
     id: string,
-    title: stirng,
+    title: string,
     details: string,
-    tags: string,
-    contributors: Array<string>,
+    tags: Array<string>,
+    contributors: Array<any>,
     stats: Object,
-    onClick: func,
+    onClick: () => void,
     [key: string]: any,
 };
 export default function ModelSnippet({

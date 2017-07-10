@@ -1,0 +1,13 @@
+.list-section {
+    color: #00bf61;
+    vertical-align: bottom;
+    margin-bottom: 14px;
+}
+
+.list-section .header {
+    font-size: 24px;
+}
+
+.list-section .controls {
+    font-size: 14px;
+}

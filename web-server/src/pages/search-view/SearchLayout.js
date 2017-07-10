@@ -1,6 +1,6 @@
 import React from 'react';
 import {Flex, FlexItem} from "layout-components";
-import FixedWidthRow from "../layout/fixed-width-row";
+import FixedWidthRow from "../../components/fixed-width-row";
 import SearchBar from "../../components/SearchBar";
 
 import "./catalogue.css";

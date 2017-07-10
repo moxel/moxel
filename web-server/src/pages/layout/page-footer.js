@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {FlexItem, FlexSpacer} from "layout-components";
 import HeaderButton from "./header-button";
-import FixedWidthRow from "./fixed-width-row";
+import FixedWidthRow from "../../components/fixed-width-row";
 
 import "./page-footer.css";
 class PageFooter extends Component {

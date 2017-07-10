@@ -13,7 +13,7 @@ type Props = {
 type State = {
     id: string
 }
-export default class ProfileImage extends React.Component<Props, Props, State> {
+export default class ProfileImage extends React.Component<void, Props, State> {
     state = {id: '0'};
 
     componentWillReceiveProps(prevProps: Props) {
@@ -25,7 +25,7 @@ export default class ProfileImage extends React.Component<Props, Props, State> {
         if (this.props.username) this.getId(this.props.username);
     }
 
-    getId(username) {
+    getId(username:string) {
         fetch(`https://api.github.com/users/${username}?access_token=416d0c68498745652c3a00ca53edf4f0ff593ea6`)
             .then((res) => res.json())
             .then(data => {
