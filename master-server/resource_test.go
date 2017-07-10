@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"testing"
 )
 
@@ -38,4 +40,28 @@ func TestGetGCloudStorageURL(t *testing.T) {
 	}
 
 	fmt.Println("Signed GCS URL = ", url)
+}
+
+func TestGitAddWorktree(t *testing.T) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Cannot get current dir")
+	}
+
+	err = os.RemoveAll(path.Join(pwd, "tests/tf-bare-mirror"))
+	if err != nil {
+		t.Fatal("Cannot clean up worktree mirror:", err.Error())
+	}
+
+	fmt.Println(path.Join(pwd, "tests/tf-bare-mirror"))
+	err = GitAddWorktree(path.Join(pwd, "tests/tf-bare"),
+		path.Join(pwd, "tests/tf-bare-mirror"), "master")
+	if err != nil {
+		t.Fatal("Cannot create worktree mirror:", err.Error())
+	}
+
+	err = os.RemoveAll(path.Join(pwd, "tests/tf-bare-mirror"))
+	if err != nil {
+		t.Fatal("Cannot clean up worktree mirror:", err.Error())
+	}
 }

@@ -19,6 +19,9 @@ migrate:
 test:
 	./manage.py test ${ARGS}
 
+ssh:
+	ssh -i secrets/warpdrive warp@master-dev.dummy.ai
+
 sync:
 	rsync -e "ssh -i secrets/warpdrive" -rvL --exclude=bin --exclude=*.build ./ warp@master-dev.dummy.ai:~/master-server
 

@@ -10,12 +10,13 @@ import (
 	git "gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"time"
 )
 
 const gitRegistry string = "master-dev.dummy.ai"
-const gitRoot string = "/mnt/code"
+const gitRoot string = "/mnt/nfs/code"
 
 const gcsBucket string = "dummy-dev"
 const gcsCredentials string = "secrets/dummy-87bbacfcb748.json"
@@ -24,6 +25,20 @@ var gcsAccessID string
 var gcsAccessKey string
 
 var _ = fmt.Println
+
+// Create a worktree mirror of a given repo.
+// Return: the path to the destination.
+func GitAddWorktree(srcPath string, destPath string, branch string) error {
+	command := exec.Command("git", "worktree", "add", "-f", destPath, branch)
+	command.Dir = srcPath
+
+	output, err := command.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(output))
+	return nil
+}
 
 // Get the url for a git repo, given user and name.
 func GetRepoURL(user string, name string) (string, error) {

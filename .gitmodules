@@ -4,3 +4,9 @@
 [submodule "examples/models"]
 	path = examples/tf-models
 	url = https://github.com/dummy-ai/models
+[submodule "master-server/test/tf-bare"]
+	path = master-server/test/tf-bare
+	url = https://github.com/dummy-ai/tf-bare
+[submodule "master-server/tests/tf-bare"]
+	path = master-server/tests/tf-bare
+	url = https://github.com/dummy-ai/tf-bare

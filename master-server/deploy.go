@@ -140,7 +140,10 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func CreateDeployV2(client *kube.Clientset, yamlString string, replica int) (string, error) {
+func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, replica int) (string, error) {
+	// Command to run in container.
+	//var command []string
+
 	// Load YAML configuration.
 	var config map[string]string
 	decodeYAML(yamlString, &config)

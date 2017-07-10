@@ -64,7 +64,7 @@ func TestCreateDeployV2(t *testing.T) {
 	yamlString := string(yamlBytes)
 	fmt.Println("yaml", yamlString)
 
-	name, err := CreateDeployV2(client, yamlString, 1)
+	name, err := CreateDeployV2(client, "0x323fe", yamlString, 1)
 	if err != nil {
 		panic(err)
 	}

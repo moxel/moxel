@@ -2,6 +2,30 @@
 
 Master server configures Kubernetes cluster and manages models.
 
+## Code Version Control
+
+Master server uses Git to control the versions of model codebase. A NFS is setup to host the code, and shared across all containers.
+
+### Pushing the Code
+
+The client `warp` 
+
+1. Set remote to the master server.
+2. Create Git repo on NFS if it does not exist.
+3. Push code to the Git repo through SSH.
+
+### Accessing the Code
+
+It defines a constant `gitRoot = /mnt/nfs/code`. The Git repo is stored under `<gitRoot>/<user>/<repo>/repo`. 
+
+When using a branch of the repo for training / deployment, the master server first uses Git-Worktree to create a mirror under 
+
+```
+<gitRoot>/<user>/<repo>/mirror/<commit>
+```
+
+
+
 ## Development
 
 ### Run the Server
