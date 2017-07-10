@@ -25,4 +25,6 @@ RUN mkdir -p /mnt/cloudfs
 
 RUN pip3 install pexpect pyyaml
 
-# ENTRYPOINT ["/init"]
+COPY core /core
+
+ENTRYPOINT ["/core/init"]
