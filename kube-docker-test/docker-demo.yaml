@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: docker-demo
+spec:
+  volumes:
+  - name: pod-data
+    emptyDir: {}
+  containers:
+  - name: docker-test-container
+    image: hello-node:v1
+    volumeMounts:
+    - name: pod-data
+      mountPath: /usr/share/pod-data
