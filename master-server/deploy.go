@@ -180,8 +180,14 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	}
 
 	// Add command.
+	commandInterface := config["cmd"]
 	command = append(command, "--cmd")
-	command = append(command, config["cmd"].(string))
+
+	var cmd string
+	for _, line := range commandInterface.([]interface{}) {
+		cmd += line.(string) + " ; "
+	}
+	command = append(command, cmd)
 
 	fmt.Println("command", command)
 
