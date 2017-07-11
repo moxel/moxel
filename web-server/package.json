@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "body-parser": "^1.17.2",
+    "compression": "^1.7.0",
+    "express": "^4.15.3",
     "github-markdown-css": "^2.8.0",
     "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
     "markdown-it": "^8.3.1",
+    "morgan": "^1.8.2",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-markdownit": "^2.5.0",
@@ -27,6 +31,7 @@
   },
   "scripts": {
     "start:dev": "babel-node ./server/index.js",
+    "watch:build-server": "fswatch -o ./server | xargs -n1 -I{} npm run build-server",
     "build-server": "babel -d ./server-build ./server -s",
     "start:production": "NODE_ENV=production node ./server-build/index.js",
     "test-web-server": "curl localhost:3001",
