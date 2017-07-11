@@ -3,13 +3,14 @@ import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
+import ReactLoader from "./ReactLoader";
 
 const app = express();
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('combined'));
-// app.use('/', index);
+app.use('/', ReactLoader);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`App listening on port ${PORT}!`));
