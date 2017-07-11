@@ -52,10 +52,16 @@ func TestCreateDeployV2(t *testing.T) {
 	client := createClient(kubeconfig)
 
 	data := map[string]interface{}{
-		"user":  "dummy",
-		"name":  "tf-object-detection",
-		"tag":   "latest",
-		"image": "dummyai/py3-tf-cpu",
+		"user":      "dummy",
+		"name":      "tf-object-detection",
+		"repo":      "tf-object-detection",
+		"tag":       "latest",
+		"image":     "dummyai/py3-tf-cpu",
+		"work_path": "object_detection",
+		"assets": []string{
+			"ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb",
+		},
+		"cmd": "ls -hl",
 	}
 	yamlBytes, err := yaml.Marshal(&data)
 	if err != nil {
@@ -64,16 +70,11 @@ func TestCreateDeployV2(t *testing.T) {
 	yamlString := string(yamlBytes)
 	fmt.Println("yaml", yamlString)
 
-	name, err := CreateDeployV2(client, "0x323fe", yamlString, 1)
+	name, err := CreateDeployV2(client, "b0ca1187039c30aa38bfae23d2034b17d6cc35f9", yamlString, 1)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Created deployment %q.\n", name)
-
-	if name != deploymentTarget {
-		panic(errors.New(fmt.Sprintf("Name of deployed target %s does not match %s",
-			name, deploymentTarget)))
-	}
 }
 
 // Test listing existing deployment.

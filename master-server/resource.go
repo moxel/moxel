@@ -35,24 +35,36 @@ func GitAddWorktree(srcPath string, destPath string, branch string) error {
 	if err != nil {
 		return err
 	}
+
+	command = exec.Command("chmod", "-R", "a+rwx", destPath)
+	output, err = command.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
 	fmt.Println(string(output))
 	return nil
 }
 
 // Get the repo path given user and project name
-func getRepoPath(user string, repo string) string {
+func GetRepoPath(user string, repo string) string {
 	return path.Join(gitRoot, user, repo, "main")
 }
 
 // Get the repo mirror path given user, project name and commit
-func getRepoMirrorPath(user string, repo string, commit string) string {
+func GetRepoMirrorPath(user string, repo string, commit string) string {
 	return path.Join(gitRoot, user, repo, "mirror", commit)
+}
+
+// Get the path to asset.
+func GetAssetPath(user string, repo string, commit string) string {
+	return path.Join(user, repo, commit)
 }
 
 // Create a mirror of repo given commit.
 func CreateRepoMirror(user string, repo string, commit string) error {
-	srcPath := getRepoPath(user, repo)
-	destPath := getRepoMirrorPath(user, repo, commit)
+	srcPath := GetRepoPath(user, repo)
+	destPath := GetRepoMirrorPath(user, repo, commit)
 	branch := "branch-" + commit
 
 	if pathExists(destPath) {
@@ -72,7 +84,7 @@ func GetRepoURL(user string, name string) (string, error) {
 		return "", errors.New("Project name cannot be nil or empty")
 	}
 
-	gitPath := getRepoPath(user, name)
+	gitPath := GetRepoPath(user, name)
 
 	if _, err := os.Stat(gitPath); os.IsNotExist(err) {
 		// Create an empty git repo if it does not exist.

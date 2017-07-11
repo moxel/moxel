@@ -52,10 +52,6 @@ spec:
       name: {{.Name}}
       labels:
         app: dummy
-    command:
-      - ls
-      - -l
-      - /mnt/nfs
     spec:
       containers:
       - name: main
@@ -141,21 +137,56 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 }
 
 func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, replica int) (string, error) {
-	// Command to run in container.
-	//var command []string
-
 	// Load YAML configuration.
-	var config map[string]string
+	var err error
+	var config map[string]interface{}
 	decodeYAML(yamlString, &config)
 
 	// Get basic properties.
-	user := config["user"]
-	name := config["name"]
-	tag := config["tag"]
-	image := config["image"]
+	user := config["user"].(string)
+	name := config["name"].(string)
+	repo := config["repo"].(string)
+	tag := config["tag"].(string)
+	image := config["image"].(string)
+	workPath := config["work_path"].(string)
+
+	// Create git worktree for the container.
+	err = CreateRepoMirror(user, repo, commit)
+	if err != nil {
+		fmt.Println("Error: " + err.Error())
+	}
+
+	// Command to run in container.
+	var command []string
+
+	// Add code root. This is where the code repo sits.
+	command = append(command, "--code_root")
+	command = append(command, GetRepoMirrorPath(user, repo, commit))
+
+	// Add asset root. This is where data / model weights sit.
+	command = append(command, "--asset_root")
+	command = append(command, GetAssetPath(user, repo, commit))
+
+	// Add working path.
+	command = append(command, "--work_path")
+	command = append(command, workPath)
+
+	// Add assets
+	assetsInterface := config["assets"]
+
+	command = append(command, "--assets")
+	for _, asset := range assetsInterface.([]interface{}) {
+		command = append(command, asset.(string))
+	}
+
+	// Add command.
+	command = append(command, "--cmd")
+	command = append(command, config["cmd"].(string))
+
+	fmt.Println("command", command)
 
 	// Basic derived properties for deployment.
-	deployName := user + name + tag // user + "/" + name + ":" + tag
+	deployName := user + "." + name + "." + tag
 
 	args := struct {
 		Name    string
@@ -170,6 +201,8 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	var deployment v1beta1.Deployment
 	SpecFromTemplate(templateDeployV2, args, &deployment)
 
+	// https://godoc.org/k8s.io/api/core/v1#Container
+	deployment.Spec.Template.Spec.Containers[0].Args = command
 	fmt.Println(deployment)
 
 	// Create deployment.
