@@ -83,6 +83,17 @@ func TestCreateDeployV2(t *testing.T) {
 	fmt.Printf("Created deployment %q.\n", name)
 }
 
+// Test exposing a deployment as service
+func TestCreateService(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+	err := CreateService(client, deployName)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Test listing existing deployment.
 func TestListDeploy(t *testing.T) {
 	client := createClient(kubeconfig)

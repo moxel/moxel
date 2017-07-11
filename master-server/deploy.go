@@ -6,7 +6,9 @@ import (
 	"github.com/google/uuid"
 	"k8s.io/api/apps/v1beta1"
 	v1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
 	"strings"
@@ -27,7 +29,7 @@ spec:
     metadata:
       name: {{.Name}}
       labels:
-        app: dummy
+        app: {{.Name}}
     spec:
       containers:
       - name: main
@@ -51,7 +53,7 @@ spec:
     metadata:
       name: {{.Name}}
       labels:
-        app: dummy
+        app: {{.Name}}
     spec:
       containers:
       - name: main
@@ -106,6 +108,13 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 	fmt.Println(specPod)
 
 	decodeYAML(specPod, &output)
+}
+
+func GetDeployName(user string, model string, tag string) string {
+	return strings.Replace(user, "-", "--", -1) +
+		"-" +
+		strings.Replace(model, "-", "--", -1) +
+		"-" + tag
 }
 
 func CreateDeployV1(client *kube.Clientset, name string, image string, replica int) (string, error) {
@@ -192,7 +201,8 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	fmt.Println("command", command)
 
 	// Basic derived properties for deployment.
-	deployName := user + "." + name + "." + tag
+	// TODO: use a better separator.
+	deployName := GetDeployName(user, name, tag)
 
 	args := struct {
 		Name    string
@@ -221,6 +231,47 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 		return "", err
 	}
 	return result.GetObjectMeta().GetName(), nil
+}
+
+func CreateService(client *kube.Clientset, deployName string) error {
+	serviceSpec := &v1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: deployName,
+		},
+		Spec: v1.ServiceSpec{
+			Type:     v1.ServiceTypeNodePort,
+			Selector: map[string]string{"app": deployName},
+			Ports: []v1.ServicePort{
+				v1.ServicePort{
+					Protocol: v1.ProtocolTCP,
+					Port:     5900,
+					TargetPort: intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: 5900,
+					},
+				},
+			},
+		},
+	}
+
+	namespace := "default"
+	service := client.CoreV1().Services(namespace)
+	svc, err := service.Get(deployName, metav1.GetOptions{})
+
+	switch {
+	case err == nil:
+		serviceSpec.ObjectMeta.ResourceVersion = svc.ObjectMeta.ResourceVersion
+		serviceSpec.Spec.ClusterIP = svc.Spec.ClusterIP
+		_, err = service.Update(serviceSpec)
+	case k8sErrors.IsNotFound(err):
+		_, err = service.Create(serviceSpec)
+	}
+
+	return err
 }
 
 func ListDeploy(client *kube.Clientset) ([]string, error) {
