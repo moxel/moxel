@@ -106,6 +106,32 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+func listModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+
+	ms, err := models.ListModelByUser(db, user)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+		return
+	}
+
+	var results []map[string]string
+
+	for _, model := range ms {
+		results = append(results, map[string]string{
+			"uid":    model.Uid,
+			"name":   model.Name,
+			"tag":    model.Tag,
+			"status": model.Status,
+		})
+	}
+
+	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
 func putModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -298,6 +324,7 @@ func main() {
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
+		router.HandleFunc("/model/{user}", listModel).Methods("GET")
 
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{

@@ -54,3 +54,15 @@ func TestModelId(t *testing.T) {
 		t.Errorf("ModelId is not computed correctly.")
 	}
 }
+
+func TestListModelByUser(t *testing.T) {
+	db := CreateDB()
+	const userId = "dummy"
+
+	models, err := ListModelByUser(db, userId)
+	if err != nil {
+		t.Error("Error: %s", err.Error())
+	}
+
+	fmt.Println("Models = ", models)
+}

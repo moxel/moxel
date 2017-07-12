@@ -175,6 +175,20 @@ def teardown(model_id):
     else:
         print('Error: {}'.format(response.text))
 
+@cli.command()
+def list():
+    user = current_user()
+    remote = MasterRemote()
+
+    fmt = '{:>5} | {:>20} | {:>10} | {:>10}'
+
+    print('-' * 80)
+    print(fmt.format('ID', 'Name', 'Tag', 'Status'))
+
+    models = remote.list_models(user)
+    for model in models:
+        print(fmt.format('', model['name'], model['tag'], model['status']))
+
 
 
 

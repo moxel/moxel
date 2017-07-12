@@ -55,3 +55,9 @@ class MasterRemote(object):
                                  })
         return response
 
+    def list_models(self, user):
+        response = requests.get(master_server_http('/model/{}'.format(user)))
+        if response.status_code == 200:
+            return response.json()
+        return []
+

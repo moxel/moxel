@@ -74,3 +74,12 @@ func DeleteModel(db *gorm.DB, modelId string) error {
 	model := Model{Uid: modelId}
 	return db.Delete(&model).Error
 }
+
+// ListModelByUser lists models that belong to UserId.
+
+func ListModelByUser(db *gorm.DB, userId string) ([]Model, error) {
+	var models []Model
+	err := db.Find(&models, "user_id = ?", userId).Error
+
+	return models, err
+}
