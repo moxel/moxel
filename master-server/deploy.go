@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"k8s.io/api/apps/v1beta1"
 	v1 "k8s.io/api/core/v1"
+	v1beta1Extensions "k8s.io/api/extensions/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -14,6 +15,9 @@ import (
 	"strings"
 	"text/template"
 )
+
+const kubeNamespace string = v1.NamespaceDefault
+const ingressName string = "dummy"
 
 // V1 deployment template
 // Assume the user has packaged the model in a docker container.
@@ -134,7 +138,7 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	fmt.Println(deployment)
 
 	// Create deployment.
-	deploymentClient := client.AppsV1beta1().Deployments(v1.NamespaceDefault)
+	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
 
 	result, err := deploymentClient.Create(&deployment)
 
@@ -222,7 +226,7 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	fmt.Println(deployment)
 
 	// Create deployment.
-	deploymentClient := client.AppsV1beta1().Deployments(v1.NamespaceDefault)
+	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
 
 	result, err := deploymentClient.Create(&deployment)
 
@@ -258,26 +262,120 @@ func CreateService(client *kube.Clientset, deployName string) error {
 		},
 	}
 
-	namespace := "default"
-	service := client.CoreV1().Services(namespace)
-	svc, err := service.Get(deployName, metav1.GetOptions{})
+	services := client.CoreV1().Services(kubeNamespace)
+	service, err := services.Get(deployName, metav1.GetOptions{})
 
 	switch {
 	case err == nil:
-		serviceSpec.ObjectMeta.ResourceVersion = svc.ObjectMeta.ResourceVersion
-		serviceSpec.Spec.ClusterIP = svc.Spec.ClusterIP
-		_, err = service.Update(serviceSpec)
+		serviceSpec.ObjectMeta.ResourceVersion = service.ObjectMeta.ResourceVersion
+		serviceSpec.Spec.ClusterIP = service.Spec.ClusterIP
+		_, err = services.Update(serviceSpec)
 	case k8sErrors.IsNotFound(err):
-		_, err = service.Create(serviceSpec)
+		_, err = services.Create(serviceSpec)
 	}
 
+	return err
+}
+
+func AddServiceToIngress(client *kube.Clientset, path string, serviceName string) error {
+	ingresses := client.ExtensionsV1beta1().Ingresses(kubeNamespace)
+	ingress, err := ingresses.Get(ingressName, metav1.GetOptions{})
+
+	modelBackend := &v1beta1Extensions.IngressBackend{
+		ServiceName: serviceName,
+		ServicePort: intstr.IntOrString{
+			Type:   intstr.Int,
+			IntVal: 5900,
+		},
+	}
+	if k8sErrors.IsNotFound(err) {
+		defaultBackend := &v1beta1Extensions.IngressBackend{
+			ServiceName: "default-http-backend",
+			ServicePort: intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: 80,
+			},
+		}
+		ingressSpec := &v1beta1Extensions.Ingress{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Ingress",
+				APIVersion: "v1beta1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: ingressName,
+				Annotations: map[string]string{
+					"ingress.kubernetes.io/ssl-redirect":          "false",
+					"kubernetes.io/ingress.class":                 "nginx",
+					"ingress.kubernetes.io/rewrite-target":        "/",
+					"kubernetes.io/ingress.global-static-ip-name": "dummy-ingress",
+				},
+			},
+			Spec: v1beta1Extensions.IngressSpec{
+				Backend: defaultBackend,
+				Rules: []v1beta1Extensions.IngressRule{
+					v1beta1Extensions.IngressRule{
+						IngressRuleValue: v1beta1Extensions.IngressRuleValue{
+							HTTP: &v1beta1Extensions.HTTPIngressRuleValue{
+								Paths: []v1beta1Extensions.HTTPIngressPath{
+									v1beta1Extensions.HTTPIngressPath{
+										Path:    path,
+										Backend: *modelBackend,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		_, err = ingresses.Create(ingressSpec)
+	} else if err == nil {
+		// check if the path already exists.
+		paths := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
+		for _, rule := range paths {
+			if rule.Path == path {
+				return fmt.Errorf("Ingress rule already exists for path %s", path)
+			}
+		}
+
+		ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = append(paths,
+			v1beta1Extensions.HTTPIngressPath{
+				Path:    path,
+				Backend: *modelBackend,
+			},
+		)
+
+		_, err = ingresses.Update(ingress)
+	}
+	return err
+}
+
+func RemoveServiceFromIngress(client *kube.Clientset, path string) error {
+	ingresses := client.ExtensionsV1beta1().Ingresses(kubeNamespace)
+	ingress, err := ingresses.Get(ingressName, metav1.GetOptions{})
+
+	if err == nil {
+		paths := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
+
+		var index int
+		var rule v1beta1Extensions.HTTPIngressPath
+		for index, rule = range paths {
+			if rule.Path == path {
+				break
+			}
+		}
+		paths = append(paths[:index], paths[index+1:]...)
+		ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = paths
+
+		_, err = ingresses.Update(ingress)
+	}
 	return err
 }
 
 func ListDeploy(client *kube.Clientset) ([]string, error) {
 	var names []string
 
-	deploymentClient := client.AppsV1beta1().Deployments(v1.NamespaceDefault)
+	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
 
 	list, err := deploymentClient.List(metav1.ListOptions{LabelSelector: "app=dummy"})
 	if err != nil {
@@ -292,7 +390,7 @@ func ListDeploy(client *kube.Clientset) ([]string, error) {
 }
 
 func TeardownDeploy(client *kube.Clientset, name string) error {
-	deploymentClient := client.AppsV1beta1().Deployments(v1.NamespaceDefault)
+	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
 
 	deletePolicy := metav1.DeletePropagationForeground
 	err := deploymentClient.Delete(name,

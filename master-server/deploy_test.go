@@ -94,6 +94,29 @@ func TestCreateService(t *testing.T) {
 	}
 }
 
+// Test adding service to ingress rules.
+func TestAddServiceToIngress(t *testing.T) {
+	client := createClient(kubeconfig)
+	path := "/tensorflow/object-detection2"
+	serviceName := "dummy-tf--object--detection-latest"
+
+	err := AddServiceToIngress(client, path, serviceName)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Test deleting service from ingress rules.
+func TestRemoveServiceFromIngress(t *testing.T) {
+	client := createClient(kubeconfig)
+	path := "/tensorflow/object-detection2"
+
+	err := RemoveServiceFromIngress(client, path)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Test listing existing deployment.
 func TestListDeploy(t *testing.T) {
 	client := createClient(kubeconfig)
