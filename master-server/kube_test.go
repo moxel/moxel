@@ -83,6 +83,38 @@ func TestCreateDeployV2(t *testing.T) {
 	fmt.Printf("Created deployment %q.\n", name)
 }
 
+// Test creating an experiment job.
+func TestCreateJobV1(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	data := map[string]interface{}{
+		"user":      "dummy",
+		"name":      "tf-object-detection",
+		"repo":      "tf-object-detection",
+		"tag":       "latest",
+		"image":     "dummyai/py3-tf-cpu",
+		"work_path": "object_detection",
+		"assets": []string{
+			"ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb",
+		},
+		"cmd": []string{
+			"ls /mnt",
+		},
+	}
+	yamlBytes, err := yaml.Marshal(&data)
+	if err != nil {
+		panic(err)
+	}
+	yamlString := string(yamlBytes)
+	fmt.Println("yaml", yamlString)
+
+	name, err := CreateJobV1(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", yamlString)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created job %q.\n", name)
+}
+
 // Test exposing a deployment as service
 func TestCreateService(t *testing.T) {
 	client := createClient(kubeconfig)
