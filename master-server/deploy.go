@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"k8s.io/api/apps/v1beta1"
@@ -331,20 +332,37 @@ func AddServiceToIngress(client *kube.Clientset, path string, serviceName string
 		_, err = ingresses.Create(ingressSpec)
 	} else if err == nil {
 		// check if the path already exists.
-		paths := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
+		paths := []v1beta1Extensions.HTTPIngressPath{}
+		if len(ingress.Spec.Rules) > 0 {
+			paths = ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
+		}
+
 		for _, rule := range paths {
 			if rule.Path == path {
 				return fmt.Errorf("Ingress rule already exists for path %s", path)
 			}
 		}
 
-		ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = append(paths,
+		newPaths := append(paths,
 			v1beta1Extensions.HTTPIngressPath{
 				Path:    path,
 				Backend: *modelBackend,
 			},
 		)
 
+		if len(ingress.Spec.Rules) == 0 {
+			ingress.Spec.Rules = []v1beta1Extensions.IngressRule{
+				v1beta1Extensions.IngressRule{
+					IngressRuleValue: v1beta1Extensions.IngressRuleValue{
+						HTTP: &v1beta1Extensions.HTTPIngressRuleValue{
+							Paths: newPaths,
+						},
+					},
+				},
+			}
+		} else {
+			ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = newPaths
+		}
 		_, err = ingresses.Update(ingress)
 	}
 	return err
@@ -355,7 +373,12 @@ func RemoveServiceFromIngress(client *kube.Clientset, path string) error {
 	ingress, err := ingresses.Get(ingressName, metav1.GetOptions{})
 
 	if err == nil {
-		paths := ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
+		paths := []v1beta1Extensions.HTTPIngressPath{}
+		if len(ingress.Spec.Rules) == 0 {
+			return errors.New("There is zero ingress rules. Cannot delete")
+		}
+
+		paths = ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
 
 		var index int
 		var rule v1beta1Extensions.HTTPIngressPath
@@ -364,8 +387,15 @@ func RemoveServiceFromIngress(client *kube.Clientset, path string) error {
 				break
 			}
 		}
+
 		paths = append(paths[:index], paths[index+1:]...)
-		ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = paths
+		fmt.Println("paths", paths)
+
+		if len(paths) == 0 {
+			ingress.Spec.Rules = []v1beta1Extensions.IngressRule{}
+		} else {
+			ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths = paths
+		}
 
 		_, err = ingresses.Update(ingress)
 	}
@@ -398,5 +428,12 @@ func TeardownDeploy(client *kube.Clientset, name string) error {
 			PropagationPolicy: &deletePolicy,
 		})
 
+	return err
+}
+
+func TeardownService(client *kube.Clientset, name string) error {
+	services := client.CoreV1().Services(kubeNamespace)
+
+	err := services.Delete(name, &metav1.DeleteOptions{})
 	return err
 }

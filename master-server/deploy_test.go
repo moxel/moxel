@@ -94,6 +94,17 @@ func TestCreateService(t *testing.T) {
 	}
 }
 
+// Test deleting a service>
+func TestTeardownService(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+	err := TeardownService(client, deployName)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Test adding service to ingress rules.
 func TestAddServiceToIngress(t *testing.T) {
 	client := createClient(kubeconfig)

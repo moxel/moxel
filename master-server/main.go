@@ -30,6 +30,10 @@ func CreateClient(kubeconfig string) *kube.Clientset {
 	return client
 }
 
+func GetModelPath(user string, name string, tag string) string {
+	return fmt.Sprintf("/model/%s/%s/%s", user, name, tag)
+}
+
 func sayHello(w http.ResponseWriter, r *http.Request) {
 	response, _ := json.Marshal(map[string]string{
 		"status": "OK",
@@ -219,13 +223,19 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 		err = CreateService(kubeClient, deployName)
 		if err != nil {
 			http.Error(w, "Unable to expose deployment as service. "+err.Error(), 500)
+			// Rollback deployment.
+			TeardownDeploy(kubeClient, deployName)
 			return
 		}
 
-		path := fmt.Sprintf("/model/%s/%s/%s", user, name, tag)
+		path := GetModelPath(user, name, tag)
+
 		err = AddServiceToIngress(kubeClient, path, deployName)
 		if err != nil {
 			http.Error(w, "Unable to create Ingress endpoint for "+deployName, 500)
+			// Rollback service and deployment.
+			TeardownService(kubeClient, deployName)
+			TeardownDeploy(kubeClient, deployName)
 			return
 		}
 
@@ -237,6 +247,25 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 	} else if data["action"] == "ping" {
 		w.WriteHeader(200)
 		return
+	} else if data["action"] == "teardown" {
+		deployName := GetDeployName(user, name, tag)
+		path := GetModelPath(user, name, tag)
+
+		err = TeardownDeploy(kubeClient, deployName)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		err = TeardownService(kubeClient, deployName)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		err := RemoveServiceFromIngress(kubeClient, path)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		model.Status = "INACTIVE"
+		models.UpdateModel(db, model)
 	}
 	w.WriteHeader(400)
 	w.Write([]byte(fmt.Sprintf("[POST] Deploying model using unknown action %s", data["action"])))

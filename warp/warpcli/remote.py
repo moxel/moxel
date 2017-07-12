@@ -48,5 +48,10 @@ class MasterRemote(object):
                                  })
         return response
 
-
+    def teardown_model(self, user, name, tag):
+        response = requests.post(master_server_http('/model/{}/{}/{}'.format(user, name, tag)),
+                                 json={
+                                     'action': 'teardown'
+                                 })
+        return response
 

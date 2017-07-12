@@ -155,6 +155,39 @@ def deploy(model_id):
 
     print('Deploying model {}/{}:{}'.format(user, name, tag))
     response = remote.deploy_model(user, name, tag)
+    if response.status_code == 200:
+        print('Successfully deployed the model')
+    else:
+        print('Error: {}'.format(response.text))
+
+
+@cli.command()
+@click.argument('model_id', type=str)
+def teardown(model_id):
+    name, tag = model_id.split(':')
+    user = current_user()
+    remote = MasterRemote()
+
+    print('Teardown model {}/{}:{}'.format(user, name, tag))
+    response = remote.teardown_model(user, name, tag)
+    if response.status_code == 200:
+        print('Successfully deployed the model')
+    else:
+        print('Error: {}'.format(response.text))
+
+
+
+
+
+@cli.command()
+@click.argument('model_id', type=str)
+def teardown(model_id):
+    name, tag = model_id.split(':')
+    user = current_user()
+    remote = MasterRemote()
+
+    print('Teardown model {}/{}:{}'.format(user, name, tag))
+    response = remote.teardown_model(user, name, tag)
     print(response)
 
 
