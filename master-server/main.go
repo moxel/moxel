@@ -6,7 +6,6 @@ import (
 	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
-	"io/ioutil"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
@@ -105,12 +104,23 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 
 func putModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var params map[string]interface{}
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
 
 	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
-		vars["user"], vars["model"], vars["tag"]))
+		user, name, tag))
 
-	err := json.NewDecoder(r.Body).Decode(&params)
+	// Check if the model already exists.
+	_, err := models.GetModelById(db, models.ModelId(user, name, tag))
+	if err == nil {
+		http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists",
+			user, name, tag), 500)
+		return
+	}
+
+	var params map[string]interface{}
+	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -144,7 +154,12 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	modelId := models.ModelId(vars["user"], vars["model"], vars["tag"])
 
 	// Check if the model is active.
-	isActive := models.GetModelById(db, modelId).Status == "LIVE"
+	model, err := models.GetModelById(db, modelId)
+	isActive := model.Status == "LIVE"
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	if isActive {
 		http.Error(w, "Unable to delete model, because the model is live. Unpublish it first", 500)
@@ -152,7 +167,7 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Otherwise, delete the model from database.
-	err := models.DeleteModel(db, modelId)
+	err = models.DeleteModel(db, modelId)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -165,22 +180,26 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 	name := vars["model"]
 	tag := vars["tag"]
 
-	fmt.Println(fmt.Sprintf("[POST] Changing the state of the model %s/%s:%s",
-		user, name, tag))
+	fmt.Printf("[POST] Changing the state of the model %s/%s:%s\n",
+		user, name, tag)
 
 	// Get ModelId based on user, model name and tag.
 	modelId := models.ModelId(user, name, tag)
+	fmt.Printf("modelId = %s\n", modelId)
 
 	// Read request JSON.
-	body, err := ioutil.ReadAll(r.Body)
+	var data map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "Unable to read the HTTP request body", 400)
 		return
 	}
-	var data map[string]interface{}
-	json.Unmarshal(body, &data)
 
-	model := models.GetModelById(db, modelId)
+	model, err := models.GetModelById(db, modelId)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	fmt.Println(model)
 
@@ -210,12 +229,17 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		model.Status = "live"
+		model.Status = "LIVE"
 		models.UpdateModel(db, model)
 
 		w.WriteHeader(200)
 		return
+	} else if data["action"] == "ping" {
+		w.WriteHeader(200)
+		return
 	}
+	w.WriteHeader(400)
+	w.Write([]byte(fmt.Sprintf("[POST] Deploying model using unknown action %s", data["action"])))
 }
 
 func main() {

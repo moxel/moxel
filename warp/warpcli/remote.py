@@ -32,6 +32,15 @@ class MasterRemote(object):
                               })
         return response
 
+    def ping_model(self, user, name, tag):
+        """ Check to see if the model to be deployed already exists.
+        """
+        response = requests.post(master_server_http('/model/{}/{}/{}'.format(user, name, tag)),
+                                 json={
+                                     'action': 'ping'
+                                 })
+        return response.status_code
+
     def deploy_model(self, user, name, tag):
         response = requests.post(master_server_http('/model/{}/{}/{}'.format(user, name, tag)),
                                  json={

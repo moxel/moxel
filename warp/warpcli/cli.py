@@ -12,6 +12,7 @@ from os.path import join, abspath, exists, relpath, getsize, dirname
 sys.path.append('./')
 
 import warpcli
+from warpcli.constants import model_id
 from warpcli.local import Repo, Deployment
 from warpcli.remote import MasterRemote
 from warpcli.utils import (load_yaml, dump_yaml, query_yes_no, mkdir_if_not_exists,
@@ -42,7 +43,6 @@ def upload(config_file):
     """
     Note: paths in yaml is relative to the yaml file.
     """
-
     # Load meta config.
     root = current_repo_dir()
     path = relpath(os.getcwd(), start=current_repo_dir())
@@ -53,7 +53,13 @@ def upload(config_file):
     repo = Repo(root)
     config_path = join(os.getcwd(), config_file)
     deploy = Deployment(root, config_path)
-    print('{}:{}'.format(deploy.name, deploy.tag))
+    print('Uploading model: "{}"'.format(model_id(user, deploy.name, deploy.tag)))
+
+    # Check to see if model already exists.
+    status_code = remote.ping_model(user, deploy.name, deploy.tag)
+    if status_code == 200:
+        print('The model "{}" already exists'.format(model_id(user, deploy.name, deploy.tag)))
+        exit(1)
 
     # Push code.
     try:
@@ -132,7 +138,12 @@ def upload(config_file):
         bar.update(round(accum_size / denom, 1))
 
     # Register model.
-    remote.put_model(user, deploy.name, deploy.tag, commit, deploy.yaml)
+    response = remote.put_model(user, deploy.name, deploy.tag, commit, deploy.yaml)
+    if response.status_code == 200:
+        print('Model has been successfully uploaded!')
+    else:
+        print('Error: {}'.format(response.text))
+
 
 
 @cli.command()

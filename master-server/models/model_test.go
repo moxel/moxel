@@ -9,8 +9,8 @@ var _ = fmt.Println
 
 func TestAddModel(t *testing.T) {
 	db := CreateDB()
-	model := Model{UserId: "strin", RepoId: "inception", Tag: "0.0.1",
-		Git: "github.com/strin/inception", Docker: "strin/inception", Metadata: ""}
+	model := Model{UserId: "dummy", Name: "tf-object-detection", Tag: "test",
+		Repo: "tf-object-detection", Commit: "test-commit", Yaml: "test-yaml", Status: "LIVE"}
 	err := AddModel(db, model)
 	if err != nil {
 		t.Errorf(err.Error())
@@ -19,7 +19,7 @@ func TestAddModel(t *testing.T) {
 
 func TestDeleteModel(t *testing.T) {
 	db := CreateDB()
-	modelId := "xHNie6dxkpn9iVd2ujniIPYVdPc="
+	modelId := "dummy/tf-object-detection:test"
 	err := DeleteModel(db, modelId)
 	if err != nil {
 		t.Errorf("Delete model failed: " + err.Error())
@@ -28,24 +28,29 @@ func TestDeleteModel(t *testing.T) {
 
 func TestGetModelById(t *testing.T) {
 	db := CreateDB()
-	model := GetModelById(db, "xHNie6dxkpn9iVd2ujniIPYVdPc=")
-	if model.UserId != "strin" {
-		t.Errorf("Expect UserId = strin")
+	modelId := "dummy/tf-object-detection:test"
+	model, err := GetModelById(db, modelId)
+	if err != nil {
+		t.Errorf("Cannot get model by id = %s. %s", modelId, err.Error())
 	}
-	if model.RepoId != "inception" {
-		t.Errorf("Expect RepoId = inception")
+
+	if model.UserId != "dummy" {
+		t.Errorf("Expect UserId = dummy")
 	}
-	if model.Tag != "0.0.1" {
-		t.Errorf("Expect Tag = 0.0.1")
+	if model.Name != "tf-object-detection" {
+		t.Errorf("Expect RepoId = tf-object-detection")
+	}
+	if model.Tag != "test" {
+		t.Errorf("Expect Tag = test")
 	}
 }
 
 func TestModelId(t *testing.T) {
-	const userId = "strin"
-	const repoId = "inception"
-	const tag = "0.0.1"
+	const userId = "dummy"
+	const repoId = "tf-object-detection"
+	const tag = "test"
 	modelId := ModelId(userId, repoId, tag)
-	if modelId != "xHNie6dxkpn9iVd2ujniIPYVdPc=" {
+	if modelId != "dummy/tf-object-detection:test" {
 		t.Errorf("ModelId is not computed correctly.")
 	}
 }
