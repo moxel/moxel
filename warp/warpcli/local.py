@@ -78,8 +78,10 @@ class Deployment(object):
         self.config_path = config_path
         self.config = load_yaml(config_path)
         self.name = self.config.get('name')
-        self.version = self.config.get('version')
+        self.tag = self.config.get('tag')
         self.assets = self.config.get('assets', [])
         self.work_path = relpath(dirname(config_path), start=repo_root)
+        with open(config_path, 'r') as f:
+            self.yaml = f.read()
 
 

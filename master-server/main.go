@@ -6,12 +6,30 @@ import (
 	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"io/ioutil"
+	kube "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
 	"os"
 	"time"
 )
 
 var db *gorm.DB
+var kubeClient *kube.Clientset
+
+func CreateClient(kubeconfig string) *kube.Clientset {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+
+	client, err := kube.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+
+	return client
+}
 
 func sayHello(w http.ResponseWriter, r *http.Request) {
 	response, _ := json.Marshal(map[string]string{
@@ -103,6 +121,7 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 		Name:   vars["model"],
 		Tag:    vars["tag"],
 		Yaml:   params["yaml"].(string),
+		Commit: params["commit"].(string),
 		Status: "INACTIVE",
 	}
 
@@ -111,6 +130,8 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
+	w.WriteHeader(200)
 }
 
 func deleteModel(w http.ResponseWriter, r *http.Request) {
@@ -138,6 +159,65 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func postModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	fmt.Println(fmt.Sprintf("[POST] Changing the state of the model %s/%s:%s",
+		user, name, tag))
+
+	// Get ModelId based on user, model name and tag.
+	modelId := models.ModelId(user, name, tag)
+
+	// Read request JSON.
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Unable to read the HTTP request body", 400)
+		return
+	}
+	var data map[string]interface{}
+	json.Unmarshal(body, &data)
+
+	model := models.GetModelById(db, modelId)
+
+	fmt.Println(model)
+
+	if data["action"] == "deploy" {
+		fmt.Println(fmt.Sprintf("[POST] Deploying model %s/%s:%s", user, name, tag))
+
+		replicas, ok := data["replicas"].(int)
+		if !ok {
+			replicas = 1
+		}
+		deployName, err := CreateDeployV2(kubeClient, model.Commit, model.Yaml, replicas)
+		if err != nil {
+			http.Error(w, "Unable to create deployment. "+err.Error(), 500)
+			return
+		}
+
+		err = CreateService(kubeClient, deployName)
+		if err != nil {
+			http.Error(w, "Unable to expose deployment as service. "+err.Error(), 500)
+			return
+		}
+
+		path := fmt.Sprintf("/model/%s/%s/%s", user, name, tag)
+		err = AddServiceToIngress(kubeClient, path, deployName)
+		if err != nil {
+			http.Error(w, "Unable to create Ingress endpoint for "+deployName, 500)
+			return
+		}
+
+		model.Status = "live"
+		models.UpdateModel(db, model)
+
+		w.WriteHeader(200)
+		return
+	}
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
@@ -154,6 +234,7 @@ func main() {
 		models.MigrateDB(db)
 	} else if command == "start" {
 		db = models.CreateDB()
+		kubeClient = CreateClient(KubeConfig)
 		defer db.Close()
 
 		router := mux.NewRouter()
@@ -163,6 +244,7 @@ func main() {
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
+		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
 
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{

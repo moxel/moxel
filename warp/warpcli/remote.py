@@ -24,3 +24,20 @@ class MasterRemote(object):
                         }).json()
         return response.get('url')
 
+    def put_model(self, user, name, tag, commit, yaml):
+        response = requests.put(master_server_http('/model/{}/{}/{}'.format(user, name, tag)),
+                              json={
+                                  'commit': commit,
+                                  'yaml': yaml
+                              })
+        return response
+
+    def deploy_model(self, user, name, tag):
+        response = requests.post(master_server_http('/model/{}/{}/{}'.format(user, name, tag)),
+                                 json={
+                                     'action': 'deploy'
+                                 })
+        return response
+
+
+

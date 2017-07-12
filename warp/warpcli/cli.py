@@ -38,7 +38,7 @@ def cli(): pass
 
 @cli.command()
 @click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
-def deploy(config_file):
+def upload(config_file):
     """
     Note: paths in yaml is relative to the yaml file.
     """
@@ -53,7 +53,7 @@ def deploy(config_file):
     repo = Repo(root)
     config_path = join(os.getcwd(), config_file)
     deploy = Deployment(root, config_path)
-    print('{}:{}'.format(deploy.name, deploy.version))
+    print('{}:{}'.format(deploy.name, deploy.tag))
 
     # Push code.
     try:
@@ -131,7 +131,19 @@ def deploy(config_file):
         accum_size += getsize(file_path)
         bar.update(round(accum_size / denom, 1))
 
+    # Register model.
+    remote.put_model(user, deploy.name, deploy.tag, commit, deploy.yaml)
+
 
 @cli.command()
-def publish():
-    print('Model published')
+@click.argument('model_id', type=str)
+def deploy(model_id):
+    name, tag = model_id.split(':')
+    user = current_user()
+    remote = MasterRemote()
+
+    print('Deploying model {}/{}:{}'.format(user, name, tag))
+    response = remote.deploy_model(user, name, tag)
+    print(response)
+
+

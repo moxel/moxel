@@ -17,9 +17,11 @@ type Model struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	// TODO: check size.
-	Name   string `gorm:"size:64"`
 	UserId string `gorm:"size:64"`
+	Name   string `gorm:"size:64"`
 	Tag    string
+	Repo   string
+	Commit string
 	Yaml   string
 	Status string
 }
@@ -39,6 +41,15 @@ func AddModel(db *gorm.DB, model Model) error {
 	model.Uid = ModelId(model.UserId, model.Name, model.Tag)
 	// database operations.
 	err := db.Create(&model).Error
+	return err
+}
+
+// UpdateModel updates a row of Model based on ModelId.
+func UpdateModel(db *gorm.DB, model Model) error {
+	// compute uuid.
+	model.Uid = ModelId(model.UserId, model.Name, model.Tag)
+
+	err := db.Save(&model).Error
 	return err
 }
 
