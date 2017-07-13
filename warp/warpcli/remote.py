@@ -61,3 +61,11 @@ class MasterRemote(object):
             return response.json()
         return []
 
+    def put_experiment(self, user, repo, commit, yaml):
+        response = requests.put(master_server_http('/job/{}/{}/{}'.format(user, repo, commit)),
+                                json={
+                                    'yaml': yaml
+                                })
+        return response
+
+

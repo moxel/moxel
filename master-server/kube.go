@@ -341,9 +341,11 @@ func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (stri
 	// Add assets
 	assetsInterface := config["assets"]
 
-	command = append(command, "--assets")
-	for _, asset := range assetsInterface.([]interface{}) {
-		command = append(command, asset.(string))
+	if assetsInterface != nil && len(assetsInterface.([]interface{})) > 0 {
+		command = append(command, "--assets")
+		for _, asset := range assetsInterface.([]interface{}) {
+			command = append(command, asset.(string))
+		}
 	}
 
 	// Add command.

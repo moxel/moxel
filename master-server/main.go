@@ -6,6 +6,7 @@ import (
 	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"gopkg.in/yaml.v2"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
@@ -297,6 +298,66 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("[POST] Deploying model using unknown action %s", data["action"])))
 }
 
+func putJob(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	repo := vars["repo"]
+	commit := vars["commit"]
+
+	fmt.Println(fmt.Sprintf("[PUT] Create a new experiment job %s/%s:%s",
+		user, repo, commit))
+
+	// Check if the job already exists.
+	_, err := models.GetJobById(db, models.JobId(user, repo, commit))
+	if err == nil {
+		http.Error(w, fmt.Sprintf("Experiment %s/%s:%s already exists",
+			user, repo, commit), 500)
+		return
+	}
+
+	// Extract parameters.
+	var params map[string]interface{}
+	err = json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	yamlString := params["yaml"].(string)
+	if yamlString == "" {
+		http.Error(w, "Experiment YAML not provided", 400)
+		return
+	}
+
+	// Launch job through Kubernetes controller.
+	_, err = CreateJobV1(kubeClient, commit, yamlString)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to create job %s", err.Error()), 500)
+		return
+	}
+
+	// Write experiment job to database.
+	var config map[string]interface{}
+	yaml.Unmarshal([]byte(yamlString), &config)
+
+	job := models.Job{
+		UserId: user,
+		Repo:   repo,
+		Commit: commit,
+		Name:   config["name"].(string),
+		Yaml:   yamlString,
+		Status: "PENDING",
+	}
+
+	err = models.AddJob(db, job)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
@@ -325,6 +386,7 @@ func main() {
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/model/{user}", listModel).Methods("GET")
+		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{

@@ -13,7 +13,7 @@ sys.path.append('./')
 
 import warpcli
 from warpcli.constants import model_id
-from warpcli.local import Repo, Deployment
+from warpcli.local import Repo, Deployment, Experiment
 from warpcli.remote import MasterRemote
 from warpcli.utils import (load_yaml, dump_yaml, query_yes_no, mkdir_if_not_exists,
                            ProgressBar, SpinCursor)
@@ -32,48 +32,22 @@ def current_repo_dir():
         repo_dir = abspath(join(repo_dir, '..'))
     return repo_dir
 
-
-@click.group()
-def cli(): pass
-
-
-@cli.command()
-@click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
-def upload(config_file):
-    """
-    Note: paths in yaml is relative to the yaml file.
-    """
-    # Load meta config.
-    root = current_repo_dir()
-    path = relpath(os.getcwd(), start=current_repo_dir())
-    user = current_user()
-    remote = MasterRemote()
-
-    # Gather local file information.
+def push_code(remote, user, root, deploy):
     repo = Repo(root)
-    config_path = join(os.getcwd(), config_file)
-    deploy = Deployment(root, config_path)
-    print('Uploading model: "{}"'.format(model_id(user, deploy.name, deploy.tag)))
 
-    # Check to see if model already exists.
-    status_code = remote.ping_model(user, deploy.name, deploy.tag)
-    if status_code == 200:
-        print('The model "{}" already exists'.format(model_id(user, deploy.name, deploy.tag)))
-        exit(1)
-
-    # Push code.
     try:
-        remote_url = remote.get_repo_url(user, deploy.name)
+        remote_url = remote.get_repo_url(user, deploy.repo)
         print('Push code => {}'.format(remote_url))
     except requests.exceptions.ConnectionError as e:
         print('Error: Unable to connect to the server.')
         exit(1)
 
     commit = repo.push(remote_url)
-    print('Commit:', commit)
+    return commit
 
-    # Push data.
-    cloud = 'gcloud'
+
+def push_data(remote, user, root, commit, deploy, cloud='gcloud'):
+    if len(deploy.assets) == 0: return
 
     # Calculate total asset sizes.
     total_size = 0.
@@ -137,6 +111,41 @@ def upload(config_file):
         accum_size += getsize(file_path)
         bar.update(round(accum_size / denom, 1))
 
+
+@click.group()
+def cli(): pass
+
+
+@cli.command()
+@click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
+def upload(config_file):
+    """
+    Note: paths in yaml is relative to the yaml file.
+    """
+    # Load meta config.
+    root = current_repo_dir()
+    path = relpath(os.getcwd(), start=current_repo_dir())
+    user = current_user()
+    remote = MasterRemote()
+
+    # Gather local file information.
+    config_path = join(os.getcwd(), config_file)
+    deploy = Deployment(root, config_path)
+    print('Uploading model: "{}"'.format(model_id(user, deploy.name, deploy.tag)))
+
+    # Check to see if model already exists.
+    status_code = remote.ping_model(user, deploy.name, deploy.tag)
+    if status_code == 200:
+        print('The model "{}" already exists'.format(model_id(user, deploy.name, deploy.tag)))
+        exit(1)
+
+    # Push code.
+    commit = push_code(remote, user, root, deploy)
+    print('Commit:', commit)
+
+    # Push data.
+    push_data(remote, user, root, commit, deploy, cloud='gcloud')
+
     # Register model.
     response = remote.put_model(user, deploy.name, deploy.tag, commit, deploy.yaml)
     if response.status_code == 200:
@@ -171,9 +180,34 @@ def teardown(model_id):
     print('Teardown model {}/{}:{}'.format(user, name, tag))
     response = remote.teardown_model(user, name, tag)
     if response.status_code == 200:
-        print('Successfully deployed the model')
+        print('Successfully teardown the model')
     else:
         print('Error: {}'.format(response.text))
+
+@cli.command()
+@click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
+@click.argument('cmd', nargs=-1)
+def run(config_file, cmd):
+    # Load meta config.
+    root = current_repo_dir()
+    path = relpath(os.getcwd(), start=current_repo_dir())
+    user = current_user()
+    remote = MasterRemote()
+
+    # Gather local file information.
+    config_path = join(os.getcwd(), config_file)
+    job = Experiment(root, config_path)
+
+    # Push code.
+    commit = push_code(remote, user, root, job)
+    print('Commit:', commit)
+
+    # Push data.
+    push_data(remote, user, root, commit, job, cloud='gcloud')
+
+    # Launch experiment job.
+    remote.put_experiment(user, job.repo, commit, job.yaml)
+
 
 @cli.command()
 def list():

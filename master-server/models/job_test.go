@@ -23,7 +23,7 @@ func TestAddJob(t *testing.T) {
 }
 
 func TestJobId(t *testing.T) {
-	uid := JobId(user, commit)
+	uid := JobId(user, repo, commit)
 	if len(uid) == 0 {
 		t.Errorf("JobId is not computed correctly.")
 	}
@@ -42,7 +42,7 @@ func TestListJobByUser(t *testing.T) {
 
 func TestGetJobById(t *testing.T) {
 	db := CreateDB()
-	uid := JobId(user, commit)
+	uid := JobId(user, repo, commit)
 	job, err := GetJobById(db, uid)
 	if err != nil {
 		t.Errorf("Cannot get job by id = %s. %s", uid, err.Error())
@@ -58,7 +58,7 @@ func TestGetJobById(t *testing.T) {
 
 func TestDeleteJob(t *testing.T) {
 	db := CreateDB()
-	uid := JobId(user, commit)
+	uid := JobId(user, repo, commit)
 	err := DeleteJob(db, uid)
 	if err != nil {
 		t.Errorf("Delete job failed: " + err.Error())

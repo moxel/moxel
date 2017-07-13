@@ -26,10 +26,12 @@ type Job struct {
 }
 
 // Compute the unique ID of the Job.
-func JobId(userId string, commit string) string {
+func JobId(userId string, repoId string, commit string) string {
 	hash := sha1.New()
 	io.WriteString(hash, userId)
 	io.WriteString(hash, "/")
+	io.WriteString(hash, repoId)
+	io.WriteString(hash, ":")
 	io.WriteString(hash, commit)
 	return base64.URLEncoding.EncodeToString(hash.Sum(nil))
 
@@ -37,14 +39,14 @@ func JobId(userId string, commit string) string {
 
 // Add a Job to the database.
 func AddJob(db *gorm.DB, job Job) error {
-	job.Uid = JobId(job.UserId, job.Commit)
+	job.Uid = JobId(job.UserId, job.Repo, job.Commit)
 	err := db.Create(&job).Error
 	return err
 }
 
 // Update the properties of a Job.
 func UpdateJob(db *gorm.DB, job Job) error {
-	job.Uid = JobId(job.UserId, job.Commit)
+	job.Uid = JobId(job.UserId, job.Repo, job.Commit)
 	err := db.Save(&job).Error
 	return err
 }
@@ -57,8 +59,8 @@ func GetJobById(db *gorm.DB, uid string) (Job, error) {
 }
 
 // Get Job by commit.
-func GetJobByCommit(db *gorm.DB, userId string, commit string) (Job, error) {
-	uid := JobId(userId, commit)
+func GetJobByCommit(db *gorm.DB, userId string, repoId string, commit string) (Job, error) {
+	uid := JobId(userId, repoId, commit)
 	job, err := GetJobById(db, uid)
 	return job, err
 }
