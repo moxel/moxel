@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"io"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
 	"testing"
 )
 
@@ -113,6 +115,29 @@ func TestCreateJobV1(t *testing.T) {
 		panic(err)
 	}
 	fmt.Printf("Created job %q.\n", name)
+}
+
+// Test getting a pod given a job name.
+func TestGetPodsByJobName(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	pods, err := GetPodsByJobName(client, "job-dummy-d7446c316595f4c462b86d8ba7f71a698f03e4cf")
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
+	fmt.Println(pods[0].GetObjectMeta().GetName())
+}
+
+// Test pod logging
+func TestStreamLogsFromPod(t *testing.T) {
+	podID := "job-dummy-d7446c316595f4c462b86d8ba7f71a698f03e4cf-122gt"
+	client := createClient(kubeconfig)
+
+	f := io.Writer(os.Stdout)
+	err := StreamLogsFromPod(client, podID, false, f)
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
 }
 
 // Test exposing a deployment as service

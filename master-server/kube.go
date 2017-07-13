@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"io"
 	"k8s.io/api/apps/v1beta1"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
@@ -14,8 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/pkg/api"
+	"strconv"
 	"strings"
 	"text/template"
+	"time"
 )
 
 const kubeNamespace string = v1.NamespaceDefault
@@ -389,6 +393,58 @@ func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (stri
 		return "", err
 	}
 	return result.GetObjectMeta().GetName(), nil
+}
+
+// Get the Pod based on the given job.
+func GetPodsByJobName(client *kube.Clientset, jobName string) ([]v1.Pod, error) {
+	podClient := client.CoreV1().Pods(kubeNamespace)
+	var options = metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("job-name=%s", jobName),
+	}
+	pods, err := podClient.List(options)
+	return pods.Items, err
+}
+
+// Stream logs from pod.
+// Reference implementation: https://github.com/kubernetes/kubernetes/blob/c2e90cd1549dff87db7941544ce15f4c8ad0ba4c/pkg/kubectl/cmd/log.go#L186
+func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io.Writer) error {
+	logOptions := api.PodLogOptions{
+		Container:  "main",
+		Follow:     follow,
+		Previous:   false,
+		Timestamps: true,
+	}
+
+	req := client.CoreV1().RESTClient().Get().
+		Namespace(kubeNamespace).
+		Name(podID).
+		Resource("pods").
+		SubResource("log").
+		Param("follow", strconv.FormatBool(logOptions.Follow)).
+		Param("container", logOptions.Container).
+		Param("previous", strconv.FormatBool(logOptions.Previous)).
+		Param("timestamps", strconv.FormatBool(logOptions.Timestamps))
+
+	if logOptions.SinceSeconds != nil {
+		req.Param("sinceSeconds", strconv.FormatInt(*logOptions.SinceSeconds, 10))
+	}
+	if logOptions.SinceTime != nil {
+		req.Param("sinceTime", logOptions.SinceTime.Format(time.RFC3339))
+	}
+	if logOptions.LimitBytes != nil {
+		req.Param("limitBytes", strconv.FormatInt(*logOptions.LimitBytes, 10))
+	}
+	if logOptions.TailLines != nil {
+		req.Param("tailLines", strconv.FormatInt(*logOptions.TailLines, 10))
+	}
+	readCloser, err := req.Stream()
+	if err != nil {
+		return err
+	}
+
+	defer readCloser.Close()
+	_, err = io.Copy(out, readCloser)
+	return err
 }
 
 func CreateService(client *kube.Clientset, deployName string) error {
