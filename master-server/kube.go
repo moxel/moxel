@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/google/uuid"
 	"io"
 	"k8s.io/api/apps/v1beta1"
@@ -180,7 +181,8 @@ func GetDeployName(user string, model string, tag string) string {
 }
 
 func GetJobName(user string, repo string, commit string) string {
-	return "job-" + user + "-" + repo + "-" + commit
+	jobId := models.JobId(user, repo, commit)
+	return "job-" + jobId
 }
 
 func CreateDeployV1(client *kube.Clientset, name string, image string, replica int) (string, error) {
@@ -360,7 +362,6 @@ func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (stri
 		cmd += line.(string) + " ; "
 	}
 	command = append(command, cmd)
-
 	fmt.Println("command", command)
 
 	jobName := GetJobName(user, repo, commit)
@@ -379,13 +380,15 @@ func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (stri
 		return "", err
 	}
 
-	fmt.Println(job.Spec.Template.Spec)
 	job.Spec.Template.Spec.Containers[0].Args = command
+	fmt.Println(job.Spec.Template.Spec)
 
 	// Create job.
 	jobClient := client.BatchV1().Jobs(kubeNamespace)
 
 	result, err := jobClient.Create(&job)
+	fmt.Println(result)
+	fmt.Println(err)
 
 	// Extract results.
 	if err != nil {

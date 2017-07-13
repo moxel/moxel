@@ -356,6 +356,7 @@ func putJob(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
+	w.Write([]byte(""))
 }
 
 func logJob(w http.ResponseWriter, r *http.Request) {
@@ -363,6 +364,9 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 	user := vars["user"]
 	repo := vars["repo"]
 	commit := vars["commit"]
+
+	fmt.Println(fmt.Sprintf("[PUT] Logging an experiment job %s/%s:%s",
+		user, repo, commit))
 
 	jobName := GetJobName(user, repo, commit)
 

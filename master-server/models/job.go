@@ -2,11 +2,12 @@ package models
 
 import (
 	"crypto/sha1"
-	"encoding/base64"
+	"encoding/base32"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func JobId(userId string, repoId string, commit string) string {
 	io.WriteString(hash, repoId)
 	io.WriteString(hash, ":")
 	io.WriteString(hash, commit)
-	return base64.URLEncoding.EncodeToString(hash.Sum(nil))
+	return strings.ToLower(base32.StdEncoding.EncodeToString(hash.Sum(nil)))
 
 }
 

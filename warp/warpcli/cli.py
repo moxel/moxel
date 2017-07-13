@@ -206,7 +206,8 @@ def run(config_file, cmd):
     push_data(remote, user, root, commit, job, cloud='gcloud')
 
     # Launch experiment job.
-    remote.put_experiment(user, job.repo, commit, job.yaml)
+    response = remote.put_experiment(user, job.repo, commit, job.yaml)
+    print(response, response.text)
 
 
 @cli.command()

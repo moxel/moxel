@@ -69,6 +69,5 @@ class MasterRemote(object):
         return response
 
     def log_experiment(self, user, repo, commit):
-        reponse = requests.get(master_server_http('/job/{}/{}/{}/log'.format(user, repo, commit)))
-        import pdb; pdb.set_trace();
+        response = requests.get(master_server_http('/job/{}/{}/{}/log'.format(user, repo, commit)))
         return response.text
