@@ -26,4 +26,5 @@ func MigrateDB(db *gorm.DB) {
 	fmt.Println("Migrating DB schemas")
 	db.Debug().AutoMigrate(&Model{})
 	db.Debug().AutoMigrate(&User{})
+	db.Debug().AutoMigrate(&Job{})
 }

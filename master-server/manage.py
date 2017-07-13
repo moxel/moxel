@@ -14,7 +14,7 @@ class BuildException(Exception):
 
 def main(command, args=[]):
     try:
-        build(command, args=args)
+        return build(command, args=args)
     except BuildException as e:
         sys.exit(e)
 
@@ -47,11 +47,18 @@ def build(command='build', args=[]):
 
         elif command == 'build':
             cmd = 'go build -i -o bin/master-server github.com/dummy-ai/mvp/master-server'
-            subprocess.call(cmd.split())
+            try:
+                subprocess.check_call(cmd.split())
+                return 0
+            except subprocess.CalledProcessError:
+                return 1
 
         elif command == 'test':
             cmd = 'go test -v {}'.format(' '.join(args))
-            subprocess.call(cmd.split())
+            try:
+                subprocess.check_call(cmd.split())
+            except subprocess.CalledProcessError:
+                return 1
 
 
 if __name__ == '__main__':
@@ -60,4 +67,4 @@ if __name__ == '__main__':
         exit(1)
 
     command = sys.argv[1]
-    main(command, args=sys.argv[2:])
+    exit(main(command, args=sys.argv[2:]))

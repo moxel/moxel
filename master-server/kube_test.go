@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"io"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
 	"testing"
 )
 
@@ -81,6 +83,61 @@ func TestCreateDeployV2(t *testing.T) {
 		panic(err)
 	}
 	fmt.Printf("Created deployment %q.\n", name)
+}
+
+// Test creating an experiment job.
+func TestCreateJobV1(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	data := map[string]interface{}{
+		"user":      "dummy",
+		"name":      "tf-object-detection",
+		"repo":      "tf-object-detection",
+		"tag":       "latest",
+		"image":     "dummyai/py3-tf-cpu",
+		"work_path": "object_detection",
+		"assets": []string{
+			"ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb",
+		},
+		"cmd": []string{
+			"ls /mnt",
+		},
+	}
+	yamlBytes, err := yaml.Marshal(&data)
+	if err != nil {
+		panic(err)
+	}
+	yamlString := string(yamlBytes)
+	fmt.Println("yaml", yamlString)
+
+	name, err := CreateJobV1(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", yamlString)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created job %q.\n", name)
+}
+
+// Test getting a pod given a job name.
+func TestGetPodsByJobName(t *testing.T) {
+	client := createClient(kubeconfig)
+
+	pods, err := GetPodsByJobName(client, "job-dummy-d7446c316595f4c462b86d8ba7f71a698f03e4cf")
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
+	fmt.Println(pods[0].GetObjectMeta().GetName())
+}
+
+// Test pod logging
+func TestStreamLogsFromPod(t *testing.T) {
+	podID := "job-dummy-d7446c316595f4c462b86d8ba7f71a698f03e4cf-122gt"
+	client := createClient(kubeconfig)
+
+	f := io.Writer(os.Stdout)
+	err := StreamLogsFromPod(client, podID, false, f)
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
 }
 
 // Test exposing a deployment as service

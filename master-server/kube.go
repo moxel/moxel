@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/google/uuid"
+	"io"
 	"k8s.io/api/apps/v1beta1"
+	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	v1beta1Extensions "k8s.io/api/extensions/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -13,8 +16,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
+	"strconv"
 	"strings"
 	"text/template"
+	"time"
 )
 
 const kubeNamespace string = v1.NamespaceDefault
@@ -46,7 +51,7 @@ spec:
 
 // V2 deployment template
 // Assume the user pushes code and assets.
-// We will create a container that mounts these resources.
+// Warpdrive creates a container that mounts these resources.
 const templateDeployV2 = `
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -90,18 +95,70 @@ spec:
           path: /dev/fuse
 `
 
+// experiment job template.
+// Assume the user already pushes code and asset
+// Warpdrive creates a job that
+// - mounts these resources in the container.
+// - executes the command.
+const templateJobV1 = `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Name}} 
+  labels:
+    owner: dummy
+spec:
+  replicas: 1
+  activeDeadlineSeconds: 86400 # in seconds
+  template:
+    metadata:
+      labels:
+        owner: nobody
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: {{.Image}}
+        ports:
+        - containerPort: 5900
+        tty: true
+        volumeMounts:
+        - name: nfs
+          mountPath: "/mnt/nfs"
+        - name: secrets
+          mountPath: "/secrets"
+        - name: fuse
+          mountPath: "/dev/fuse"
+        securityContext:
+          privileged: true
+          capabilities:
+          add:
+          - SYS_ADMIN
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs-east-claim
+      - name: secrets
+        configMap:
+          name: secrets
+      - name: fuse
+        hostPath:
+          path: /dev/fuse
+
+`
+
 func panicNil(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-func decodeYAML(yamlString string, output interface{}) {
+func decodeYAML(yamlString string, output interface{}) error {
 	reader := strings.NewReader(yamlString)
-	yaml.NewYAMLOrJSONDecoder(reader, 32).Decode(output)
+	return yaml.NewYAMLOrJSONDecoder(reader, 32).Decode(output)
 }
 
-func SpecFromTemplate(templateString string, data interface{}, output interface{}) {
+func SpecFromTemplate(templateString string, data interface{}, output interface{}) error {
 	template, err := template.New(uuid.New().String()).Parse(templateString)
 	panicNil(err)
 
@@ -112,14 +169,20 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 	specPod := buf.String()
 	fmt.Println(specPod)
 
-	decodeYAML(specPod, &output)
+	return decodeYAML(specPod, &output)
 }
 
 func GetDeployName(user string, model string, tag string) string {
-	return strings.Replace(user, "-", "--", -1) +
+	return "deploy-" +
+		strings.Replace(user, "-", "--", -1) +
 		"-" +
 		strings.Replace(model, "-", "--", -1) +
 		"-" + tag
+}
+
+func GetJobName(user string, repo string, commit string) string {
+	jobId := models.JobId(user, repo, commit)
+	return "job-" + jobId
 }
 
 func CreateDeployV1(client *kube.Clientset, name string, image string, replica int) (string, error) {
@@ -134,7 +197,10 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 		image,
 	}
 	var deployment v1beta1.Deployment
-	SpecFromTemplate(templateDeployV1, args, &deployment)
+	err := SpecFromTemplate(templateDeployV1, args, &deployment)
+	if err != nil {
+		return "", err
+	}
 
 	fmt.Println(deployment)
 
@@ -220,7 +286,10 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	}
 
 	var deployment v1beta1.Deployment
-	SpecFromTemplate(templateDeployV2, args, &deployment)
+	err = SpecFromTemplate(templateDeployV2, args, &deployment)
+	if err != nil {
+		return "", err
+	}
 
 	// https://godoc.org/k8s.io/api/core/v1#Container
 	deployment.Spec.Template.Spec.Containers[0].Args = command
@@ -236,6 +305,164 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 		return "", err
 	}
 	return result.GetObjectMeta().GetName(), nil
+}
+
+// TODO: Refractor needed. Code duplication with CreateDeployV2.
+func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (string, error) {
+	// Load YAML configuration.
+	var err error
+	var config map[string]interface{}
+	decodeYAML(yamlString, &config)
+
+	// Get basic properties.
+	user := config["user"].(string)
+	repo := config["repo"].(string)
+	image := config["image"].(string)
+	workPath := config["work_path"].(string)
+	// name := config["name"].(string)
+	// tag := config["tag"].(string)
+
+	// Create git worktree for the container.
+	err = CreateRepoMirror(user, repo, commit)
+	if err != nil {
+		fmt.Println("Error: " + err.Error())
+	}
+
+	// Command to run in container.
+	var command []string
+
+	// Add code root. This is where the code repo sits.
+	command = append(command, "--code_root")
+	command = append(command, GetRepoMirrorPath(user, repo, commit))
+
+	// Add asset root. This is where data / model weights sit.
+	command = append(command, "--asset_root")
+	command = append(command, GetAssetPath(user, repo, commit))
+
+	// Add working path.
+	command = append(command, "--work_path")
+	command = append(command, workPath)
+
+	// Add assets
+	assetsInterface := config["assets"]
+
+	if assetsInterface != nil && len(assetsInterface.([]interface{})) > 0 {
+		command = append(command, "--assets")
+		for _, asset := range assetsInterface.([]interface{}) {
+			command = append(command, asset.(string))
+		}
+	}
+
+	// Add command.
+	commandInterface := config["cmd"]
+	command = append(command, "--cmd")
+
+	var cmd string
+	for _, line := range commandInterface.([]interface{}) {
+		cmd += line.(string) + " ; "
+	}
+	command = append(command, cmd)
+	fmt.Println("command", command)
+
+	jobName := GetJobName(user, repo, commit)
+
+	args := struct {
+		Name  string
+		Image string
+	}{
+		jobName,
+		image,
+	}
+
+	var job batchv1.Job
+	err = SpecFromTemplate(templateJobV1, args, &job)
+	if err != nil {
+		return "", err
+	}
+
+	job.Spec.Template.Spec.Containers[0].Args = command
+	fmt.Println(job.Spec.Template.Spec)
+
+	// Create job.
+	jobClient := client.BatchV1().Jobs(kubeNamespace)
+
+	result, err := jobClient.Create(&job)
+	fmt.Println(result)
+	fmt.Println(err)
+
+	// Extract results.
+	if err != nil {
+		return "", err
+	}
+	return result.GetObjectMeta().GetName(), nil
+}
+
+// Get the Pod based on the given job.
+func GetPodsByJobName(client *kube.Clientset, jobName string) ([]v1.Pod, error) {
+	podClient := client.CoreV1().Pods(kubeNamespace)
+	var options = metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("job-name=%s", jobName),
+	}
+	pods, err := podClient.List(options)
+	return pods.Items, err
+}
+
+// Stream logs from a pod.
+// Reference implementation: https://github.com/kubernetes/kubernetes/blob/c2e90cd1549dff87db7941544ce15f4c8ad0ba4c/pkg/kubectl/cmd/log.go#L186
+func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io.Writer) error {
+	logOptions := v1.PodLogOptions{
+		Container:  "main",
+		Follow:     follow,
+		Previous:   false,
+		Timestamps: true,
+	}
+
+	req := client.CoreV1().RESTClient().Get().
+		Namespace(kubeNamespace).
+		Name(podID).
+		Resource("pods").
+		SubResource("log").
+		Param("follow", strconv.FormatBool(logOptions.Follow)).
+		Param("container", logOptions.Container).
+		Param("previous", strconv.FormatBool(logOptions.Previous)).
+		Param("timestamps", strconv.FormatBool(logOptions.Timestamps))
+
+	if logOptions.SinceSeconds != nil {
+		req.Param("sinceSeconds", strconv.FormatInt(*logOptions.SinceSeconds, 10))
+	}
+	if logOptions.SinceTime != nil {
+		req.Param("sinceTime", logOptions.SinceTime.Format(time.RFC3339))
+	}
+	if logOptions.LimitBytes != nil {
+		req.Param("limitBytes", strconv.FormatInt(*logOptions.LimitBytes, 10))
+	}
+	if logOptions.TailLines != nil {
+		req.Param("tailLines", strconv.FormatInt(*logOptions.TailLines, 10))
+	}
+	readCloser, err := req.Stream()
+	if err != nil {
+		return err
+	}
+
+	defer readCloser.Close()
+	_, err = io.Copy(out, readCloser)
+	return err
+}
+
+// Stream logs from a job.
+func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out io.Writer) error {
+	pods, err := GetPodsByJobName(client, jobName)
+	if err != nil {
+		return err
+	}
+
+	if len(pods) == 0 {
+		return errors.New(fmt.Sprintf("Cannot find job with given name: %s", jobName))
+	}
+
+	podID := pods[0].GetObjectMeta().GetName()
+
+	return StreamLogsFromPod(client, podID, follow, out)
 }
 
 func CreateService(client *kube.Clientset, deployName string) error {
