@@ -223,7 +223,15 @@ def list():
     for model in models:
         print(fmt.format('', model['name'], model['tag'], model['status']))
 
+@cli.command()
+@click.argument('repo')
+@click.argument('commit')
+def log(repo, commit):
+    user = current_user()
+    remote = MasterRemote()
 
+    text = remote.log_experiment(user, repo, commit)
+    print(text)
 
 
 

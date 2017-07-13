@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/pkg/api"
 	"strconv"
 	"strings"
 	"text/template"
@@ -180,8 +179,8 @@ func GetDeployName(user string, model string, tag string) string {
 		"-" + tag
 }
 
-func GetJobName(user string, commit string) string {
-	return "job-" + user + "-" + commit
+func GetJobName(user string, repo string, commit string) string {
+	return "job-" + user + "-" + repo + "-" + commit
 }
 
 func CreateDeployV1(client *kube.Clientset, name string, image string, replica int) (string, error) {
@@ -364,7 +363,7 @@ func CreateJobV1(client *kube.Clientset, commit string, yamlString string) (stri
 
 	fmt.Println("command", command)
 
-	jobName := GetJobName(user, commit)
+	jobName := GetJobName(user, repo, commit)
 
 	args := struct {
 		Name  string
@@ -405,10 +404,10 @@ func GetPodsByJobName(client *kube.Clientset, jobName string) ([]v1.Pod, error) 
 	return pods.Items, err
 }
 
-// Stream logs from pod.
+// Stream logs from a pod.
 // Reference implementation: https://github.com/kubernetes/kubernetes/blob/c2e90cd1549dff87db7941544ce15f4c8ad0ba4c/pkg/kubectl/cmd/log.go#L186
 func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io.Writer) error {
-	logOptions := api.PodLogOptions{
+	logOptions := v1.PodLogOptions{
 		Container:  "main",
 		Follow:     follow,
 		Previous:   false,
@@ -445,6 +444,22 @@ func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io
 	defer readCloser.Close()
 	_, err = io.Copy(out, readCloser)
 	return err
+}
+
+// Stream logs from a job.
+func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out io.Writer) error {
+	pods, err := GetPodsByJobName(client, jobName)
+	if err != nil {
+		return err
+	}
+
+	if len(pods) == 0 {
+		return errors.New(fmt.Sprintf("Cannot find job with given name: %s", jobName))
+	}
+
+	podID := pods[0].GetObjectMeta().GetName()
+
+	return StreamLogsFromPod(client, podID, follow, out)
 }
 
 func CreateService(client *kube.Clientset, deployName string) error {

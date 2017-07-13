@@ -358,6 +358,22 @@ func putJob(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func logJob(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	repo := vars["repo"]
+	commit := vars["commit"]
+
+	jobName := GetJobName(user, repo, commit)
+
+	w.WriteHeader(200)
+	err := StreamLogsFromJob(kubeClient, jobName, true, w)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+	}
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
@@ -387,6 +403,7 @@ func main() {
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/model/{user}", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
+		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{
