@@ -41,21 +41,21 @@
     "sass-loader": "^6.0.6"
   },
   "scripts": {
-    "start:server-dev": "babel-watch ./server/index.js",
-    "watch:build-server": "fswatch -o ./server | xargs -n1 -I{} npm run build-server",
-    "build-server": "babel -d ./server-build ./server -s",
-    "start:production": "NODE_ENV=production node ./server-build/index.js",
-    "test-web-server": "curl localhost:3001",
     "start:browser-dev": "react-scripts start",
+    "start:server-dev": "babel-watch ./server/index.js",
+    "start:production": "NODE_ENV=production node ./server-build/index.js",
+    "start:styleguide": "styleguidist server",
+    "build:server": "babel -d ./server-build ./server -s",
+    "build:styleguide": "styleguidist build",
+    "test:web-server": "curl localhost:3001",
+    "watch:build-server": "fswatch -o ./server | xargs -n1 -I{} npm run build:server",
+    "watch:flow": "flow:watch",
+    "test:flow": "flow",
+    "flow:start": "flow start",
+    "flow:stop": "flow stope",
     "cra:build": "react-scripts build",
     "cra:test": "react-scripts test --env=jsdom",
     "cra:eject": "react-scripts eject",
-    "flow": "flow",
-    "flow-watch": "flow-watch",
-    "flow:start": "flow start",
-    "flow:stop": "flow stope",
-    "styleguide": "styleguidist server",
-    "styleguide:build": "styleguidist build",
-    "setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git"
+    "deploy:setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git"
   }
 }
