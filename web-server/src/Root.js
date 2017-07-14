@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-// import {Route} from "react-router-dom";
+import {Route} from "react-router-dom";
 // import SearchViews from './pages/search-view';
 // import ModelViews from './pages/model-view';
 // import DatasetViews from './pages/dataset-view';
@@ -15,7 +15,11 @@ const StyledDiv = styled.div`
 `;
 export default function Root() {
     return (
-        <StyledDiv style={{color: "green"}}>test this 3</StyledDiv>
+        <div>
+            <Route exact path="/" component={() => <div>root page</div>}/>
+            <Route exact path="/test-1" component={() => <div>test-1 page</div>}/>
+        </div>
+        // <StyledDiv style={{color: "green"}}>test this 3</StyledDiv>
     );
 }
 {/*<PageLayout>*/}

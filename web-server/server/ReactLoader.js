@@ -5,7 +5,6 @@ import {StaticRouter} from "react-router-dom";
 import {ServerStyleSheet, StyleSheetManager} from 'styled-components'
 import Root from "../src/Root";
 import fs from 'fs';
-import Example from "./example";
 
 const HTML = fs.readFileSync(__dirname + '/../public/index.html').toString();
 
