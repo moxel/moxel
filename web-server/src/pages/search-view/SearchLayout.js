@@ -1,12 +1,32 @@
 import React from 'react';
 import {Flex, FlexItem} from "layout-components";
 import FixedWidthRow from "../../components/fixed-width-row";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../components/search-bar";
+import styled from "styled-components";
 
-import "./catalogue.css";
+const StyledSearchLayout = styled(Flex)`
+    height: 100%;
+
+    .catalogue-hero {
+      margin-bottom: 40px;
+      margin-top: 80px;
+    }
+
+    .catalogue-search-bar {
+      margin-bottom: 20px;
+    }
+
+    .catalogue-body-container {
+    }
+
+    .catalogue-body-container .model-snippet {
+      width: 100%;
+    }
+`;
+
 export default function SearchLayout(props) {
     return (
-        <Flex column className="catalogue-layout-container">
+        <StyledSearchLayout column className="catalogue-layout-container">
             <FixedWidthRow component="h1" className="catalogue-hero"
             >Search For Your Favorite Model</FixedWidthRow>
             <FixedWidthRow component={SearchBar}
@@ -20,6 +40,6 @@ export default function SearchLayout(props) {
                     justify="stretch"
                     height="100%">{child}</FixedWidthRow>)
             }</Flex>
-        </Flex>
+        </StyledSearchLayout>
     )
 }

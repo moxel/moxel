@@ -1,5 +1,6 @@
 // @flow
-import React from 'react';
+import React, {Component} from 'react';
+import "isomorphic-fetch";
 
 type Props = {
     /** GitHub username */
@@ -13,7 +14,7 @@ type Props = {
 type State = {
     id: string
 }
-export default class ProfileImage extends React.Component<void, Props, State> {
+export default class ProfileImage extends Component<void, Props, State> {
     state = {id: '0'};
 
     componentWillReceiveProps(prevProps: Props) {
