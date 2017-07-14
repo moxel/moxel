@@ -5,22 +5,30 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "compression": "^1.7.0",
+    "create-react-class": "^15.6.0",
     "express": "^4.15.3",
     "github-markdown-css": "^2.8.0",
     "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
     "markdown-it": "^8.3.1",
     "morgan": "^1.8.2",
+    "nextjs": "0.0.3",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-markdownit": "^2.5.0",
+    "react-primitives": "^0.4.3",
     "react-router": "^4.1.1",
-    "react-router-dom": "^4.1.1"
+    "react-router-dom": "^4.1.1",
+    "styled-components": "^2.1.1"
   },
   "devDependencies": {
+    "babel-plugin-transform-assets": "^0.2.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-watch": "^2.0.7",
     "flow-bin": "^0.49.1",
     "flow-typed": "^2.1.2",
     "flow-watch": "^1.1.1",
@@ -31,7 +39,7 @@
     "sass-loader": "^6.0.6"
   },
   "scripts": {
-    "start:dev": "babel-node ./server/index.js",
+    "start:dev": "babel-watch ./server/index.js",
     "watch:build-server": "fswatch -o ./server | xargs -n1 -I{} npm run build-server",
     "build-server": "babel -d ./server-build ./server -s",
     "start:production": "NODE_ENV=production node ./server-build/index.js",

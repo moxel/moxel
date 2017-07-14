@@ -14,7 +14,7 @@ type State = {
     id: string
 }
 export default class ProfileImage extends React.Component<void, Props, State> {
-    state = {id: '0'};
+    static state = {id: '0'};
 
     componentWillReceiveProps(prevProps: Props) {
         if (this.props.username && prevProps.username !== this.props.username)
