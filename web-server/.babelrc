@@ -4,11 +4,6 @@
     "stage-2",
     "es2015",
     "react"
-  ]//,
-  /*"plugins": [[
-    "transform-assets", {
-      "extensions": ["css"],
-      "name": "[name].[ext]"
-    }
-  ]]*/
+  ],
+  "plugins": ["transform-class-properties"]
 }

@@ -2,16 +2,23 @@ import React, {Component} from 'react';
 import {Flex} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
+import styled from "styled-components";
 
-import "./page-layout.css";
+// import "./page-layout.css";
+const PageBody = styled(Flex)`{
+    min-height: 600px;
+    ${PageBody} {
+        flex: 1 0 auto
+    }
+}`;
 class PageLayout extends Component {
     render() {
         return (
-            <Flex column>
+            <PageBody column>
                 <PageHeader/>
-                <div style={{flex: "1 0 auto"}} className="page-body">{this.props.children}</div>
+                <PageBody className="page-body">{this.props.children}</PageBody>
                 <PageFooter/>
-            </Flex>
+            </PageBody>
         );
     }
 }

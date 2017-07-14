@@ -3,9 +3,61 @@ import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import ProfileImage from "../profile-image/profile-image";
 import SimpleTag from "../simple-tag";
+import styled from "styled-components";
+// import "./model-snippet.css";
 
-import "./model-snippet.css";
+const StyledModelSnippet = styled(FlexItem)`
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: solid 1px #dddddd;
+    margin-bottom: 15px;
+    cursor: pointer;
 
+    :hover {
+        /*use header link as url in the future instead of the entire card.*/
+        box-shadow: rgb(136, 182, 255) 0 0 1px;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .snippet-title {
+        padding: 14px
+    }
+
+    h1.snippet-title {
+        margin: 0 0 0 0;
+        font-size: 1.7em;
+        font-weight: 400;
+        color: #f13770
+    }
+
+    .snippet-body {
+        padding: 14px;
+        padding-top: 0;
+    }
+
+    .snippet-body p:first-child {
+        margin-top: 0;
+    }
+
+    .snippet-body p:last-child {
+        margin-bottom: 0;
+    }
+
+    .snippet-footer {
+        background-color: rgba(240, 243, 248, 0.6);
+        padding: 14px;
+        border-bottom-right-radius: 7px;
+        border-bottom-left-radius: 7px;
+    }
+
+    .profile-snippet:not(:last-child) {
+        margin-right: 14px;
+    }
+`;
 type Props = {
     id: string,
     title: string,
@@ -27,14 +79,14 @@ export default function ModelSnippet({
                                          ..._props
                                      }: Props) {
     return (
-        <FlexItem component={Flex} column className="model-snippet">
+        <StyledModelSnippet component={Flex} column className="model-snippet">
             <a href={`/models/${id}`}
                onClick={onClick}>
                 <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
                 <FlexItem className="snippet-body">
                     <p>{details}</p>
                     <p>{
-                        tags.map((tag) => <SimpleTag href={`/list?tag=${tag}`}>{tag}</SimpleTag>)
+                        tags.map((tag, i) => <SimpleTag key={i} href={`/list?tag=${tag}`}>{tag}</SimpleTag>)
                     }</p>
                 </FlexItem>
                 <Flex row
@@ -50,6 +102,6 @@ export default function ModelSnippet({
                     <FlexItem>{stats.stars}</FlexItem>
                 </Flex>
             </a>
-        </FlexItem>
+        </StyledModelSnippet>
     )
 }
