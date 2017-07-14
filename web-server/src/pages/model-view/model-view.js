@@ -8,14 +8,27 @@ import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
 import 'markdown-it';
 import Markdown from 'react-markdownit';
+import styled from "styled-components";
 
-import "github-markdown-css";
-import "./model-view.css";
+// import "./model-view.css";
+
+const StyledModelLayout = styled(Flex)`
+    .model-snippet {
+        width: 100%;
+    }
+    
+    article.markdown-body {
+        margin-top: 20px;
+        padding-top: 20px;
+        width: 100%;
+        padding-bottom: 100px;
+    }`;
+
 function ModelView({match, ..._props}) {
     const {user, modelId} = match.params;
     const model = store.models.searchResult[0];
     return (
-        <Flex column className="catalogue-layout-container">
+        <StyledModelLayout column className="catalogue-layout-container">
             {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
             {/*>Search For Your Favorite Model</FixedWidthRow>*/}
             {/*<FixedWidthRow component={SearchBar}*/}
@@ -27,12 +40,13 @@ function ModelView({match, ..._props}) {
                   className="model-view">
                 <FixedWidthRow style={{marginTop: '30px'}}><ModelSnippet {...model}/></FixedWidthRow>
                 <TabButtonBar repoUrl={`https://github.com/${user}/${modelId}`}/>
-                <NotificationBanner>A new version of the model is being launched, click here to see the launch logs...</NotificationBanner>
+                <NotificationBanner>A new version of the model is being launched, click here to see the launch
+                    logs...</NotificationBanner>
                 <FixedWidthRow>
                     <Markdown tagName="article" source={model.readme} className="markdown-body"/>
                 </FixedWidthRow>
             </Flex>
-        </Flex>
+        </StyledModelLayout>
     );
 }
 ModelView.propTypes = {

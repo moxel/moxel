@@ -4,7 +4,7 @@ import {Route} from "react-router-dom";
 import {View, Text, StyleSheet} from 'react-primitives';
 import PageLayout from "./pages/layout/page-layout";
 import SearchViews from './pages/search-view';
-// import ModelViews from './pages/model-view';
+import ModelViews from './pages/model-view';
 // import DatasetViews from './pages/dataset-view';
 
 const StyledDiv = styled.div`
@@ -26,6 +26,7 @@ export default function Root() {
         <PageLayout>
             <Route exact path="/" component={() => <div>root page</div>}/>
             {SearchViews}
+            {ModelViews}
         </PageLayout>
         // <View>
         //     <StyledDiv style={{color: "green"}}>test this 3</StyledDiv>
@@ -33,8 +34,6 @@ export default function Root() {
         //     <Route exact path="/test-1" component={() => <Text>test-1 page</Text>}/>
         // </View>
     );
-}
-{/*{ModelViews}*/
 }
 {/*{DatasetViews}*/
 }
