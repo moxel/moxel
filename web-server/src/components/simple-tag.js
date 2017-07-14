@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-// import "./simple-tag.css"
 const StyledTag = styled('span')`
     cursor: pointer;
     border-radius: 4px;

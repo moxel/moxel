@@ -3,7 +3,6 @@ import React from 'react';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import FixedWidthRow from "../fixed-width-row";
 import styled from "styled-components";
-// import "./notification-banner.css";
 
 const StyledBanner = styled(FixedWidthRow)`
     box-sizing: border-box;

@@ -4,7 +4,6 @@ import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 import styled from "styled-components";
 
-// import "./page-layout.css";
 const PageBody = styled(Flex)`{
     min-height: 600px;
     ${PageBody} {

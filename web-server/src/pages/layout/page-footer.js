@@ -4,7 +4,6 @@ import HeaderButton from "./header-button";
 import FixedWidthRow from "../../components/fixed-width-row";
 import styled from "styled-components";
 
-// import "./page-footer.css";
 const StyledFooter = styled(FlexItem)`
     position: relative;
     top: 0;

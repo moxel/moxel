@@ -3,7 +3,6 @@ import {Flex, FlexItem} from "layout-components";
 import {Link} from "react-router-dom";
 import styled from "styled-components";
 
-// import "./header-button.css";
 const StyledButton = styled(Flex)`
     margin: 0;
     padding: 0 10px;

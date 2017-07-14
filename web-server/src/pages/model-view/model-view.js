@@ -10,7 +10,6 @@ import 'markdown-it';
 import Markdown from 'react-markdownit';
 import styled from "styled-components";
 
-// import "./model-view.css";
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {

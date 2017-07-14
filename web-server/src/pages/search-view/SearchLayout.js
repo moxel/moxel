@@ -4,7 +4,6 @@ import FixedWidthRow from "../../components/fixed-width-row";
 import SearchBar from "../../components/search-bar";
 import styled from "styled-components";
 
-// import "./catalogue.css";
 const StyledSearchLayout = styled(Flex)`
     height: 100%;
 

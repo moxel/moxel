@@ -1,8 +1,8 @@
 import React from 'react';
-import FixedWidthRow from './fixed-width-row';
 import styled from "styled-components";
+import {Flex, FlexItem, FlexSpacer} from "layout-components";
+import FixedWidthRow from './fixed-width-row';
 
-// import './tab-button-bar.css';
 const StyledTabBar = styled(FixedWidthRow)`
     border-radius: 8px;
     border: solid 1px #dddddd;
@@ -44,7 +44,6 @@ const StyledTabBar = styled(FixedWidthRow)`
         color: inherit;
     }
 `;
-import {Flex, FlexItem, FlexSpacer} from "layout-components";
 export default function TabButtonBar({children, repoUrl, ..._props}) {
     return (
         <StyledTabBar className="tab-button-group" align="stretch" justify="left" {..._props}>

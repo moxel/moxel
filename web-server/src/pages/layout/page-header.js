@@ -4,8 +4,9 @@ import HeaderButton from "./header-button";
 import ProfileImage from '../../components/profile-image/profile-image';
 import FixedWidthRow from "../../components/fixed-width-row";
 import styled from 'styled-components';
+import {Route} from "react-router-dom";
+import {store} from "../../mock-data";
 
-// import "./page-header.css";
 
 const StyledPageHeader = styled(FlexItem)`
     position: relative;
@@ -16,8 +17,6 @@ const StyledPageHeader = styled(FlexItem)`
         height: 100%;
     }
 `;
-import {store} from "../../mock-data";
-import {Route} from "react-router-dom";
 class PageHeader extends Component {
     render() {
         return (

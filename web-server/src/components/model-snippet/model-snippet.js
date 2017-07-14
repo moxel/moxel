@@ -4,7 +4,6 @@ import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import ProfileImage from "../profile-image/profile-image";
 import SimpleTag from "../simple-tag";
 import styled from "styled-components";
-// import "./model-snippet.css";
 
 const StyledModelSnippet = styled(FlexItem)`
     box-sizing: border-box;

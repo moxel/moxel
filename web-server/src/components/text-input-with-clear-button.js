@@ -1,7 +1,6 @@
 import React from "react";
 import {Flex, FlexItem} from "layout-components";
 import styled from "styled-components";
-// import "./text-input-with-clear-button.css";
 
 const StyledInput = styled(Flex)`
     position: relative;

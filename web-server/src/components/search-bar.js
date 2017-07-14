@@ -3,7 +3,6 @@ import TextInputWithClearButton from "./text-input-with-clear-button";
 import {Flex, FlexItem} from "layout-components";
 import styled from "styled-components";
 
-// import "./search-bar.css";
 const StyledSearchBar = styled(Flex)`
     > button {
         cursor: pointer;
