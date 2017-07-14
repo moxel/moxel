@@ -13,25 +13,20 @@ const HTML = fs.readFileSync(__dirname + '/../public/index.html').toString();
 export default function ReactLoader(req, res, next) {
     const location = req.url.toString();
 
-    // const sheet = new ServerStyleSheet();
-    // const html = renderToString(sheet.collectStyles(
-    //     <StaticRouter location={location} context={{}}>
-    //         <Root/>
-    //     </StaticRouter>
-    // ));
-    // const css = sheet.getStyleTags();
-    const html = renderToString(
+    const sheet = new ServerStyleSheet();
+    const html = renderToString(sheet.collectStyles(
         <StaticRouter location={location} context={{}}>
             <Root/>
         </StaticRouter>
-    );
-    const css = StyleSheet
+    ));
+    const styledComponentCSS = sheet.getStyleTags();
+    const reactPrimitiveCSS = StyleSheet
         .getStyleSheets()
         .map(({id, textContent}) => `<style id=${id}>${textContent}</style>`)
         .join('');
     res.status(200).send(
         HTML
-            .replace(/<!-- SSR:CSS -->/, css)
+            .replace(/<!-- SSR:CSS -->/, styledComponentCSS + reactPrimitiveCSS)
             .replace(/<!-- SSR:HTML -->/, html)
     );
 }

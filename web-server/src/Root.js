@@ -24,10 +24,10 @@ const TestStyle = StyleSheet.create({
 export default function Root() {
     return (
         <View>
+            <StyledDiv style={{color: "green"}}>test this 3</StyledDiv>
             <Route exact path="/" component={() => <Text style={TestStyle.foo}>root page</Text>}/>
             <Route exact path="/test-1" component={() => <Text>test-1 page</Text>}/>
         </View>
-        // <StyledDiv style={{color: "green"}}>test this 3</StyledDiv>
     );
 }
 {/*<PageLayout>*/
