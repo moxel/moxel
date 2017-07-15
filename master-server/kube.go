@@ -310,15 +310,15 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	// Set up resource specs.
 	container.Resources.Requests = make(v1.ResourceList)
 	if cpu, ok := resources["cpu"]; ok {
-		container.Resources.Requests["cpu"] = resource.MustParse(cpu.(string))
+		container.Resources.Requests["cpu"] = resource.MustParse(fmt.Sprintf("%v", cpu))
 	}
 
 	if memory, ok := resources["memory"]; ok {
-		container.Resources.Requests["memory"] = resource.MustParse(memory.(string))
+		container.Resources.Requests["memory"] = resource.MustParse(fmt.Sprintf("%v", memory))
 	}
 
 	if gpu, ok := resources["gpu"]; ok {
-		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(gpu.(string))
+		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
 	}
 
 	deployment.Spec.Template.Spec.Containers[0] = container // Update container spec.
