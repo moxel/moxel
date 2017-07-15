@@ -1,11 +1,15 @@
 # Dummy.ai MVP
 
+[![CircleCI](https://circleci.com/gh/dummy-ai/warpdrive.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/dummy-ai/warpdrive)
+
+
 > World's Best Models, Built by the Community.
 
 
 Dummy is a marketplace for machine learning models. Researchers deploy and publish models as "lambda function", paying a low cost of serving per request. Developers discover intereseting models and integrate them into applications through API.
 
-Links: [[Documentation]](http://docs.dummy.ai/)
+Links: [[Documentation]](http://docs.dummy.ai/)  
+
 
 
 
