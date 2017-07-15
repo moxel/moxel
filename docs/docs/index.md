@@ -29,9 +29,9 @@ As an example, users start with a git repo, such as `pytorch-mnist`. To launch a
 
     warp run [some cmd, such as python3 train.py]
 
-<center>
+<!--<center>
 <img src="https://www.dropbox.com/s/po3ua1zi2j96ys4/dummy-04-2017.gif?dl=1" width="800px">
-</center>
+</center>-->
 
 The system automatically creates a snapshot of the git worktree, and mounts the code into a docker container, and ship it through k8s for remote execution. User can use it on any cloud platform. The system also provides micro-service inspection tools, such as tensorboard, jupyter, etc.
 

@@ -13,6 +13,7 @@
 *.swo
 .ropeproject
 .build
+tags
 
 # Specific Paths
 /master-server/bin

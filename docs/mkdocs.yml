@@ -1,5 +1,5 @@
 site_name: Warpdrive
-theme_dir: cinder
+theme_dir: bootstrap
 pages:
 - 'index.md'
 - 'deploy.md'
