@@ -1,12 +1,5 @@
+# JetBrains IDE
 .idea
-
-# See https://help.github.com/ignore-files/ for more about ignoring files.
-
-# testing
-/coverage
-
-# production
-/build
 
 # misc
 .DS_Store
@@ -15,19 +8,11 @@
 .env.test.local
 .env.production.local
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# vim
+# Vim Temp Files
 *.swp
 *.swo
 .ropeproject
 .build
-package-lock.json
-tags
 
-# specific paths
+# Specific Paths
 /master-server/bin
-*.swp
-*.swo
