@@ -2,7 +2,13 @@
 
 > World's Best Models, Built by the Community.
 
+
 Dummy is a marketplace for machine learning models. Researchers deploy and publish models as "lambda function", paying a low cost of serving per request. Developers discover intereseting models and integrate them into applications through API.
+
+Links: [[Documentation]](http://docs.dummy.ai/)
+
+
+
 
 ## Objective
 
