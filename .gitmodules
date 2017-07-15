@@ -10,3 +10,6 @@
 [submodule "master-server/tests/tf-bare"]
 	path = master-server/tests/tf-bare
 	url = https://github.com/dummy-ai/tf-bare
+[submodule "kube/kube-gcloud"]
+	path = kube/gcloud
+	url = https://github.com/dummy-ai/kube-gcloud
