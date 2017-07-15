@@ -1,0 +1,23 @@
+{
+  "name": "warp-api.js",
+  "version": "0.0.0",
+  "description": "Universal Javascript Driver for warp.ai",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "warp-api",
+    "node",
+    "driver",
+    "browser",
+    "driver",
+    "fetch-api",
+    "driver"
+  ],
+  "author": "Ge Yang <yangge1987@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^20.0.4"
+  }
+}
