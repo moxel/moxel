@@ -1,4 +1,4 @@
-site_name: Dummy
+site_name: Warpdrive
 theme_dir: cinder
 pages:
 - 'index.md'

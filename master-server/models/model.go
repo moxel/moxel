@@ -3,6 +3,7 @@ package models
 import (
 	"crypto/sha1"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -17,20 +18,30 @@ type Model struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	// TODO: check size.
-	Name   string `gorm:"size:64"`
 	UserId string `gorm:"size:64"`
+	Name   string `gorm:"size:64"`
 	Tag    string
+	Repo   string
+	Commit string
 	Yaml   string
 	Status string
 }
 
 // Compute the unique ID of a Model.
-func ModelId(userId string, Name string, tag string) string {
-	hash := sha1.New()
-	io.WriteString(hash, userId)
-	io.WriteString(hash, Name)
-	io.WriteString(hash, tag)
-	return base64.URLEncoding.EncodeToString(hash.Sum(nil))
+func ModelId(userId string, name string, tag string) string {
+	const mode string = "NATURAL"
+
+	if mode == "SHA1" {
+		hash := sha1.New()
+		io.WriteString(hash, userId)
+		io.WriteString(hash, name)
+		io.WriteString(hash, tag)
+		return base64.URLEncoding.EncodeToString(hash.Sum(nil))
+	} else if mode == "NATURAL" {
+		return userId + "/" + name + ":" + tag
+	} else {
+		panic(errors.New(fmt.Sprintf("Unknown mode to compute ModelId: %s", mode)))
+	}
 }
 
 // AddModel inserts a row of Model into the database.
@@ -42,15 +53,32 @@ func AddModel(db *gorm.DB, model Model) error {
 	return err
 }
 
+// UpdateModel updates a row of Model based on ModelId.
+func UpdateModel(db *gorm.DB, model Model) error {
+	// compute uuid.
+	model.Uid = ModelId(model.UserId, model.Name, model.Tag)
+
+	err := db.Save(&model).Error
+	return err
+}
+
 // GetModelById retrieves the model by Uid
-func GetModelById(db *gorm.DB, modelId string) Model {
+func GetModelById(db *gorm.DB, modelId string) (Model, error) {
 	model := Model{Uid: modelId}
-	db.Where("uid = ?", modelId).First(&model)
-	return model
+	err := db.Where("uid = ?", modelId).First(&model).Error
+	return model, err
 }
 
 // DeleteModel removes a row of Model from the database.
 func DeleteModel(db *gorm.DB, modelId string) error {
 	model := Model{Uid: modelId}
 	return db.Delete(&model).Error
+}
+
+// ListModelByUser lists models that belong to UserId.
+func ListModelByUser(db *gorm.DB, userId string) ([]Model, error) {
+	var models []Model
+	err := db.Find(&models, "user_id = ?", userId).Error
+
+	return models, err
 }

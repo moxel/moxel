@@ -14,3 +14,6 @@ MASTER_PORT = 8080
 
 def master_server_http(path):
     return 'http://' + MASTER_URL + ':{}'.format(MASTER_PORT) + path
+
+def model_id(user, name, tag):
+    return '{}/{}:{}'.format(user, name, tag)
