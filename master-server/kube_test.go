@@ -37,7 +37,7 @@ func createClient(kubeconfig string) *kube.Clientset {
 func TestCreateDeployV1(t *testing.T) {
 	client := createClient(kubeconfig)
 
-	name, err := CreateDeployV1(client, deploymentTarget, "dummyai/tf-object-detection", 1)
+	name, err := CreateDeployV1(client, deploymentTarget, "tf-object-detection", 1)
 	if err != nil {
 		panic(err)
 	}
@@ -85,13 +85,55 @@ func TestCreateDeployV2(t *testing.T) {
 	fmt.Printf("Created deployment %q.\n", name)
 }
 
-// Test creating an experiment job.
-func TestCreateJobV1(t *testing.T) {
+// Test creating a deployment.
+func TestCreateDeployV2GPU(t *testing.T) {
 	client := createClient(kubeconfig)
 
 	data := map[string]interface{}{
 		"user":      "dummy",
 		"name":      "tf-object-detection",
+		"repo":      "tf-object-detection",
+		"tag":       "latest",
+		"image":     "dummyai/py3-tf-gpu",
+		"work_path": "object_detection",
+		"resources": map[string]string{
+			"cpu":    "1",
+			"memory": "512Mi",
+			"gpu":    "1",
+		},
+		"assets": []string{
+			"ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb",
+		},
+		"cmd": []string{
+			"cd ..",
+			"protoc object_detection/protos/*.proto --python_out=.",
+			"cd object_detection",
+			"pip install flask",
+			"python serve_model.py",
+		},
+	}
+	yamlBytes, err := yaml.Marshal(&data)
+	if err != nil {
+		panic(err)
+	}
+	yamlString := string(yamlBytes)
+	fmt.Println("yaml", yamlString)
+
+	name, err := CreateDeployV2(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", yamlString, 1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created deployment %q.\n", name)
+}
+
+// Test creating an experiment job.
+func TestCreateJobV1(t *testing.T) {
+	client := createClient(kubeconfig)
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+
+	data := map[string]interface{}{
+		"user":      "dummy",
+		"name":      deployName,
 		"repo":      "tf-object-detection",
 		"tag":       "latest",
 		"image":     "dummyai/py3-tf-cpu",

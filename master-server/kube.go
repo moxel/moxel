@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	v1beta1Extensions "k8s.io/api/extensions/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -78,6 +79,8 @@ spec:
           mountPath: "/secrets"
         - name: fuse
           mountPath: "/dev/fuse"
+        - name: nvidia
+          mountPath: "/usr/local/nvidia"
         securityContext:
           privileged: true
           capabilities:
@@ -93,6 +96,9 @@ spec:
       - name: fuse
         hostPath:
           path: /dev/fuse
+      - name: nvidia
+        hostPath:
+          path: /var/lib/nvidia-docker/volumes/nvidia_driver/375.26
 `
 
 // experiment job template.
@@ -129,6 +135,8 @@ spec:
           mountPath: "/secrets"
         - name: fuse
           mountPath: "/dev/fuse"
+        - name: nvidia
+          mountPath: "/usr/local/nvidia"
         securityContext:
           privileged: true
           capabilities:
@@ -144,7 +152,9 @@ spec:
       - name: fuse
         hostPath:
           path: /dev/fuse
-
+      - name: nvidia
+        hostPath:
+          path: /var/lib/nvidia-docker/volumes/nvidia_driver/375.26
 `
 
 func panicNil(err error) {
@@ -228,6 +238,7 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	repo := config["repo"].(string)
 	tag := config["tag"].(string)
 	image := config["image"].(string)
+	resources := config["resources"].(map[string]interface{})
 	workPath := config["work_path"].(string)
 
 	// Create git worktree for the container.
@@ -292,8 +303,25 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 	}
 
 	// https://godoc.org/k8s.io/api/core/v1#Container
-	deployment.Spec.Template.Spec.Containers[0].Args = command
+	container := deployment.Spec.Template.Spec.Containers[0]
+	container.Args = command
 	fmt.Println(deployment)
+
+	// Set up resource specs.
+	container.Resources.Requests = make(v1.ResourceList)
+	if cpu, ok := resources["cpu"]; ok {
+		container.Resources.Requests["cpu"] = resource.MustParse(cpu.(string))
+	}
+
+	if memory, ok := resources["memory"]; ok {
+		container.Resources.Requests["memory"] = resource.MustParse(memory.(string))
+	}
+
+	if gpu, ok := resources["gpu"]; ok {
+		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(gpu.(string))
+	}
+
+	deployment.Spec.Template.Spec.Containers[0] = container // Update container spec.
 
 	// Create deployment.
 	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
