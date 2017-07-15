@@ -4,7 +4,7 @@
 
 Dummy is a marketplace for machine learning models. Researchers deploy and publish models as "lambda function", paying a low cost of serving per request. Developers discover intereseting models and integrate them into applications through API.
 
-## Objective Function
+## Objective
 
 Our goal is to differentiate through the following competitve advantages:
 
@@ -17,28 +17,62 @@ Our goal is to differentiate through the following competitve advantages:
 
 ![](docs/dummy-arch.png)
 
-The dummy architecture is built to scale. We created microservice framework using open-source Kubernetes and Docker. Dummy is also designed to be "cloud-agnostic". 
+The dummy architecture is built to scale. We created microservice framework using open-source Kubernetes and Docker. Dummy is also designed with the following features in mind:
+
+* **Serverless**. The end user does not need to worry about server management and scaling. 
+* **Cloud-agnostic**. No vendor lock-in. Our system can run on Google Cloud, AWS, Azure, Alibaba Cloud. It also runs in multiple regions within each cloud vendor. 
 
 With features like Kubernetes Federation, we can not only deploy the cluster to Google Cloud, AWS, Azure or private cloud, but also join these clouds to provide unified interface.
 
 
-### Key Compoments
+## Compoments
+
+### Kubernetes Setup
+
+The first component is a pipeline based on packer and terraform to build and manage cloud infrasturcture. 
+
+Currently, it is tested on 
+
+| Vendor  |  Script | 
+|---|---|
+| Google Cloud  |  `kube/gcloud` |  
 
 
-#### Web Server
+### Web Server
 
 `web-server` is a node.js server to provide static contents and flashy webpages.
 
-#### Master Server
+TODO: add more description here.
 
-`master-server` is a performant server written in Go to control Kubernetes.
+### Master Server
 
-#### Ingress
+`master-server` is a performant server written in Go that 
 
-The Ingress is an nginx controller to redirect traffic to model API endpoints.
+- communicates with web server to serve content
+- manages user code, data, model in database and cloud storage
+- controller for computing resources in Kubernetes
 
-### Candiate Names for Launch
 
-- Monet
-- Moxel
-- Momart
+### Ingress
+
+The Ingress is an nginx controller to redirect traffic to model API endpoints. The configuration is managed by `master-server`. 
+
+To setup, go to `ingress` and run `make all`.
+
+### Warp
+
+`warp` is the CLI written in `python`. 
+
+### Other Minor Components
+
+**Documentation**. We use `mkdocs` to serve document pages. 
+
+To start the process, go to `docs/` and run 
+
+```
+mkdocs serve
+```
+
+**Docker**. A couple of model environments are provided, including python3, tensorflow, pytorch, etc.
+
+**Examples**. A few projects checked in as submodules. They are used as examples to show how `Warpdrive` can be used.
