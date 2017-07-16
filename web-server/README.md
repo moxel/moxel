@@ -1,6 +1,18 @@
 # model-server-mvp
 MVP for the model market place
 
+## Deployment
+
+First compile the code 
+```
+npm run buld:src
+npm run buld:server
+```
+Then when you launch, you can run
+```
+npm run start:production
+```
+
 ## Usage
 ### Install Packages
 ```sh
