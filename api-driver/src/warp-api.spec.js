@@ -2,9 +2,13 @@ import WarpAPI from "./warp-api";
 
 const api = new WarpAPI('test_token');
 
-test('get all models', function (done) {
-    api.listModels().then((data, err) => {
+test('Signup New User', function (done) {
+    api.signup({
+        username: "episodeyang",
+        password_hash: "$%#@$%@$%^@$%@"
+    }).then((data, err) => {
         expect(data).toBeDefined();
+        expect(data.access_token).toBeDefined();
         done()
     })
 });
