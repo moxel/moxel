@@ -45,6 +45,7 @@
     "start:server-dev": "babel-watch ./server/index.js",
     "start:production": "NODE_ENV=production node ./server-build/index.js",
     "start:styleguide": "styleguidist server",
+    "build:src": "babel -d ./build ./src -s",
     "build:server": "babel -d ./server-build ./server -s",
     "build:styleguide": "styleguidist build",
     "test:web-server": "curl localhost:3001",
