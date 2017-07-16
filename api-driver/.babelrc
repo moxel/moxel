@@ -3,5 +3,6 @@
     "flow",
     "stage-2",
     "es2015"
-  ]
+  ],
+  "plugins": ["transform-class-properties"]
 }
