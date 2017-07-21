@@ -12,7 +12,6 @@
     "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
     "markdown-it": "^8.3.1",
-    "materialize-stepper": "^2.1.4",
     "morgan": "^1.8.2",
     "nextjs": "0.0.3",
     "react": "^15.6.1",
@@ -24,7 +23,8 @@
     "react-primitives": "^0.4.3",
     "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1",
-    "styled-components": "^2.1.1"
+    "styled-components": "^2.1.1",
+    "react-stepper-horizontal": "^1.0.9"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
