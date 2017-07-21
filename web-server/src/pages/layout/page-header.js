@@ -8,6 +8,8 @@ import {Route} from "react-router-dom";
 import {store} from "../../mock-data";  
 import { Button, Card, Row, Col } from 'react-materialize';
 import SignupModal from "../home-view/signup-modal";
+import Mask from "../home-view/mask";
+
 
 const StyledPageHeader = styled(FlexItem)`
     position: relative;
@@ -36,6 +38,7 @@ class PageHeader extends Component {
     render() {
         return (
             <div>
+                <Mask show={this.state.isOpen}></Mask>
                 <SignupModal show={this.state.isOpen}
                   onClose={this.toggleModal}>
                 </SignupModal>

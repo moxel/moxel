@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {Flex} from "layout-components";
-import CSSModules from 'react-css-modules';
 import styles from './signup-modal.css';
 
 class SignupModal extends Component {
@@ -9,7 +8,9 @@ class SignupModal extends Component {
     if(!this.props.show) {
       return null;
     }
-    
+
+    const duration = 300;
+
     // The modal "window"
     const modalStyle = {
       backgroundColor: '#fff',
@@ -22,7 +23,7 @@ class SignupModal extends Component {
       position: 'fixed',
       display: 'block',
       zIndex: 9999,
-      overflow: "hidden"
+      overflow: "hidden",
     };
 
     return (
@@ -64,7 +65,6 @@ class SignupModal extends Component {
         </div>
         
       </div> 
-            
 
     );
   }
@@ -76,4 +76,4 @@ SignupModal.propTypes = {
   children: React.PropTypes.node
 };
 
-export default CSSModules(SignupModal, styles);
+export default SignupModal;
