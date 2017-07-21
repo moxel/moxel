@@ -22,6 +22,7 @@ class PageLayout extends Component {
         }else{
             pageHeader = <PageHeader/>;
         }
+        
         return (
             <PageBody column>
                 <PageHeader/>

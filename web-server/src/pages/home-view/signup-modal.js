@@ -1,8 +1,13 @@
 import React, {Component} from 'react';
 import {Flex} from "layout-components";
 import styles from './signup-modal.css';
+import AuthStore from "../../stores/AuthStore";
 
 class SignupModal extends Component {
+  signup() {
+    AuthStore.login();
+  }
+
   render() {
     // Render nothing if the "show" prop is false
     if(!this.props.show) {
@@ -68,7 +73,7 @@ class SignupModal extends Component {
               </div>
             </div>
 
-            <button style={{float: "right"}} className="waves-effect waves-light btn blue">Join</button> 
+            <button style={{float: "right"}} className="waves-effect waves-light btn blue" onClick={this.signup()}>Join</button> 
           </form>
         </div>
         

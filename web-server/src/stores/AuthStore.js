@@ -8,8 +8,12 @@ class AuthStoreClass {
     	return false;
   	}
 
-  	setUser() {
-  		localStorage.getItem('id_token', 'user'); 
+  	login() {
+  		localStorage.setItem('id_token', 'user'); 
+  	}
+
+  	logout() {
+  		localStorage.removeItem('id_token');	
   	}
 }
 
