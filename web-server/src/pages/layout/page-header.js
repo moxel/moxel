@@ -5,8 +5,8 @@ import ProfileImage from '../../components/profile-image/profile-image';
 import FixedWidthRow from "../../components/fixed-width-row";
 import styled from 'styled-components';
 import {Route} from "react-router-dom";
-import {store} from "../../mock-data";
-
+import {store} from "../../mock-data";  
+import { Button, Card, Row, Col } from 'react-materialize';
 
 const StyledPageHeader = styled(FlexItem)`
     position: relative;
@@ -17,7 +17,10 @@ const StyledPageHeader = styled(FlexItem)`
         height: 100%;
     }
 `;
-class PageHeader extends Component {
+
+
+class PageHeader extends Component {    
+      
     render() {
         return (
             <nav className="nav-extended">
@@ -41,15 +44,15 @@ class PageHeader extends Component {
                         <div className="tagline" style={{lineHeight: 6}}>
                             Dummy.ai is a platform to build and share machine intelligence.
                         <div>
-                        <button className="btn waves-effect waves-light blue">Upload Model</button> 
-                        &nbsp;&nbsp;&nbsp;&nbsp; 
-                        <button className="btn waves-effect waves-teal green ">Discover Model</button>
-                        &nbsp; 
+                            <Button waves="light" className="blue">Upload Model</Button> 
+                            &nbsp;&nbsp;&nbsp;&nbsp; 
+                            <Button waves="light" className="green">Discover Model</Button>
+                            &nbsp; 
+                        </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
 
-              </div>
             </nav>
 
            

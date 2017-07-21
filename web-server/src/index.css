@@ -7,11 +7,3 @@ body {
 html, body, body > #root, body > #root > [data-reactroot] {
     height: 100%;
 }
-
-button {
-    cursor: pointer
-}
-
-button:focus {
-    outline: none;
-}
