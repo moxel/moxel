@@ -37,7 +37,15 @@ class SignupModal extends Component {
           <span style={{float: "right"}}>
             <a className="waves-effect waves-teal btn-flat" onClick={this.props.onClose}><i className="material-icons">close</i></a>
           </span>
+          
+          
         </div>
+        {/*<br/><br/><br/>
+        <div className="row">
+          <span style={{marginLeft: "20px"}}>
+            Model is the new art.
+          </span>
+        </div>*/}
         <br/><br/><br/><br/>
         <div className="row">
           <form className="col s12">

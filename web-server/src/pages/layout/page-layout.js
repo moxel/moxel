@@ -3,6 +3,7 @@ import {Flex} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 import styled from "styled-components";
+import AuthStore from "../../stores/AuthStore";
 
 const PageBody = styled(Flex)`{
     min-height: 600px;
@@ -11,9 +12,16 @@ const PageBody = styled(Flex)`{
     }
 }`;
 class PageLayout extends Component {
-    
-
     render() {
+        var isLoggedIn = AuthStore.isAuthenticated();
+        console.log('is logged in? ', isLoggedIn);
+
+        let pageHeader = null;
+        if(isLoggedIn) {
+            pageHeader = <PageHeader/>;
+        }else{
+            pageHeader = <PageHeader/>;
+        }
         return (
             <PageBody column>
                 <PageHeader/>
