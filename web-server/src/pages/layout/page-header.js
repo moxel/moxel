@@ -39,7 +39,7 @@ class PageHeader extends Component {
                     <div className="nav-header center">
                         <h1>World's Best Models <br/> Built by the Community</h1>
                         <div className="tagline" style={{lineHeight: 6}}>
-                            Dummy.ai is a marketplace for machine learning. 
+                            Dummy.ai is a platform to build and share machine intelligence.
                         <div>
                         <button className="btn waves-effect waves-light blue">Upload Model</button> 
                         &nbsp;&nbsp;&nbsp;&nbsp; 

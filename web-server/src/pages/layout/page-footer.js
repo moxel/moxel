@@ -9,7 +9,8 @@ const StyledFooter = styled(FlexItem)`
     top: 0;
     bottom: 0;
     background-color: rgba(198, 202, 208, 0.18);
-    height: 200px;
+    height: 100px;
+
     > .page-footer-inner {
         height: 100%;
     }
@@ -19,6 +20,7 @@ const StyledFooter = styled(FlexItem)`
     .header-button:hover {
         color: #484848;
     }
+
 `;
 
 class PageFooter extends Component {
@@ -26,9 +28,10 @@ class PageFooter extends Component {
         return (
             <StyledFooter fixed width="100%" className="page-footer">
                 <FixedWidthRow row align="center" className="page-footer-inner">
-                    <HeaderButton fixed to="/">Dummy.ai</HeaderButton>
+                    <HeaderButton fixed to="/">(c) 2017, Dummy.ai</HeaderButton>
                     <FlexSpacer/>
-                    <HeaderButton fixed to="/blog">Blog</HeaderButton>
+                    <HeaderButton fixed to="/terms">Terms of Service</HeaderButton>
+                    <HeaderButton fixed to="/privacy">Privacy Policy</HeaderButton>
                     <HeaderButton fixed to="/about">About</HeaderButton>
                 </FixedWidthRow>
             </StyledFooter>
