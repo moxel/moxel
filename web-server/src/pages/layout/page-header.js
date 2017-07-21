@@ -20,20 +20,26 @@ const StyledPageHeader = styled(FlexItem)`
 class PageHeader extends Component {
     render() {
         return (
-            <StyledPageHeader fixed width="100%" height="50px" className="page-header">
-                <FixedWidthRow row align="center" className="page-header-inner">
-                    <Route exact path="/(.+)" component={() => (<HeaderButton exact fixed to="/">Home</HeaderButton>)}/>
-                    <HeaderButton fixed to="/list?category=models">Models</HeaderButton>
-                    <HeaderButton fixed to="/list?category=datasets">Datasets</HeaderButton>
-                    <HeaderButton fixed to="/blog">Blog</HeaderButton>
-                    <HeaderButton fixed to="/help">Help</HeaderButton>
-                    <FlexSpacer/>
-                    <HeaderButton fixed to="/account"><FlexItem fixed component={ProfileImage} size={32}
-                                                                username="strin"
-                                                                style={{marginRight: "5px"}}/>{store.account.name}
-                    </HeaderButton>
-                </FixedWidthRow>
-            </StyledPageHeader>
+            <nav className="nav-extended">
+                <div className="nav-background">
+                    <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
+                </div>
+
+                <div className="nav-wrapper container">
+                    <a href="index.html" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
+                    <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
+                    <ul className="right hide-on-med-and-down">
+                      <li className="active"><a href="index.html">Models</a></li>
+                      <li><a href="Warpdrive.html">Warpdrive</a></li>
+                      <li><a href="blog.html">Blog</a></li>
+                      <li><a href="http://docs.dummy.ai/">Docs</a></li>
+                      <li><a className='dropdown-button' href='#' data-activates='feature-dropdown' data-belowOrigin="true" data-constrainWidth="false">About<i className="material-icons right">arrow_drop_down</i></a></li>
+                    </ul>
+                </div>
+
+             
+            </nav>
+           
         )
     }
 }
