@@ -35,10 +35,23 @@ class PageHeader extends Component {
                       <li><a href="http://docs.dummy.ai/">Docs</a></li>
                       <li><a className='dropdown-button' href='#' data-activates='feature-dropdown' data-belowOrigin="true" data-constrainWidth="false">About<i className="material-icons right">arrow_drop_down</i></a></li>
                     </ul>
+
+                    <div className="nav-header center">
+                        <h1>World's Best Models <br/> Built by the Community</h1>
+                        <div className="tagline" style={{lineHeight: 6}}>
+                            Dummy.ai is a marketplace for machine learning. 
+                        <div>
+                        <button className="btn waves-effect waves-light blue">Upload Model</button> 
+                        &nbsp;&nbsp;&nbsp;&nbsp; 
+                        <button className="btn waves-effect waves-teal green ">Discover Model</button>
+                        &nbsp; 
+                    </div>
+                  </div>
                 </div>
 
-             
+              </div>
             </nav>
+
            
         )
     }
