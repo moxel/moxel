@@ -15,6 +15,10 @@ class AuthStoreClass {
   	logout() {
   		localStorage.removeItem('id_token');	
   	}
+
+    username() {
+      return "strin";
+    }
 }
 
 const AuthStore = new AuthStoreClass();

@@ -10,9 +10,10 @@ import 'markdown-it';
 import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import Stepper from 'react-stepper-horizontal';
+import { withRouter } from 'react-router';
 import DropzoneComponent from 'react-dropzone-component';
-import "react-dropzone-component/styles/filepicker.css"
-import "dropzone/dist/min/dropzone.min.css"
+import "react-dropzone-component/styles/filepicker.css";
+import "dropzone/dist/min/dropzone.min.css";
 
 var componentConfig = {
     iconFiletypes: ['.zip', 'Folder'],
@@ -30,10 +31,17 @@ const StyledDropzone = styled(Flex)`
     `;
 
 class UploadView extends Component {
+    static propTypes = {
+        match: PropTypes.object.isRequired,
+        location: PropTypes.object.isRequired,
+        history: PropTypes.object.isRequired
+    }
+
     constructor() {
         super()
+
         this.state = {
-            step: 1,
+            step: 0,
             uploaded: false,
             stepEnabled: true
         }
@@ -55,6 +63,8 @@ class UploadView extends Component {
     }
 
     render() {
+        console.log("router props", this.props.match)
+
         let content = null;
         switch(this.state.step) {
             case 0: // Wrap Your Model.
@@ -156,8 +166,5 @@ class UploadView extends Component {
         );
     }
 }
-UploadView.propTypes = {
-    
-};
 
-export default UploadView;
+export default withRouter(UploadView);
