@@ -57,8 +57,13 @@ class UploadView extends Component {
 
     nextStep() {
         console.log('changing state', this.state.step)
+        var stepEnabled = true;
+        if(this.state.step == 0) {
+            stepEnabled = this.state.uploaded;
+        }
         this.setState({
-            step: this.state.step + 1
+            step: this.state.step + 1,
+            stepEnabled: stepEnabled
         })
     }
 
@@ -113,11 +118,6 @@ class UploadView extends Component {
                 )
                 break; 
             case 1: // Upload Your Model.
-                if(!this.state.uploaded) {
-                    this.setState({
-                        stepEnabled: false
-                    })
-                }
                 content = (
                     <StyledDropzone>
                         <div className="row">
