@@ -14,14 +14,22 @@ import { withRouter } from 'react-router';
 import DropzoneComponent from 'react-dropzone-component';
 import "react-dropzone-component/styles/filepicker.css";
 import "dropzone/dist/min/dropzone.min.css";
+import request from "superagent"
 
 var componentConfig = {
-    iconFiletypes: ['.zip', 'Folder'],
+    iconFiletypes: ['.zip'],
     showFiletypeIcon: true,
-    postUrl: '/uploadHandler'
+    postUrl: 'no-url'
 };
 
-var djsConfig = {};
+var djsConfig = {
+    method: 'put',
+    headers: {
+        'Content-Type': 'application/octet-stream',
+        'Cache-Control': null,
+        'X-Requested-With': null
+    }
+};
 
 
 const StyledDropzone = styled(Flex)`
@@ -41,17 +49,63 @@ class UploadView extends Component {
         super()
 
         this.state = {
-            step: 0,
+            step: 1,
             uploaded: false,
             stepEnabled: true
         }
 
         this.nextStep = this.nextStep.bind(this);
+        this.upload = this.upload.bind(this);
+
+        
         this.uploadEventHandlers = { 
             addedfile: (file) => {
-                console.log(file) 
+                console.log(componentConfig.postUrl);
+                this.upload(file);
             }
         }
+    }
+
+    upload(file) {
+        console.log('file', file)
+
+
+        
+        //     console.log('changing', url);
+        //     componentConfig.postUrl = url;
+        //     return;
+        //     console.log('url', url)
+
+        //     request
+        //       .put(url)
+        //       .set('Content-Type','application/octet-stream')
+        //       .send(file)
+        //       .on('progress', e => {
+        //         console.log('Percentage done: ', e.percent);
+        //       })
+        //       .end((error, res) => {
+        //         if(error) return console.error('error',error)
+        //         if(res.statusCode !== 200) return console.error('Wrong status code')
+
+        //         //...success
+        //       });
+            
+        // })
+    }
+
+    componentDidMount() {
+        var params = this.props.match.params;
+        var commit = "test";
+        var reader  = new FileReader();
+
+        fetch(`/api/url/data?user=${params.user}&name=${params.modelId}&cloud=gcloud&path=${commit}&verb=PUT`).then((response)=>{
+            return response.json();
+        }).then(function(data) {
+            console.log(data);
+
+            componentConfig.postUrl = data.url;
+        });
+
     }
 
 
@@ -68,8 +122,6 @@ class UploadView extends Component {
     }
 
     render() {
-        var params = this.props.match.params;
-
         let content = null;
         switch(this.state.step) {
             case 0: // Wrap Your Model.
