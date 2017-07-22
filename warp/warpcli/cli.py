@@ -99,7 +99,7 @@ def push_data(remote, user, root, commit, deploy, cloud='gcloud'):
         file_path = os.path.join(root, deploy.work_path, asset)
         asset_path = relpath(file_path, start=root)
 
-        asset_remote_path = join(user, deploy.name, commit, asset_path)
+        asset_remote_path = join(commit, asset_path)
         asset_url = remote.get_asset_url(user, deploy.name,
                                          cloud, 'PUT', asset_remote_path)
 

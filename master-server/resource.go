@@ -127,7 +127,9 @@ func GetGCloudStorageURL(user string, name string, path string, verb string) (st
 	method := verb
 	expires := time.Now().Add(time.Second * 3600)
 
-	url, err := gcs.SignedURL(gcsBucket, path, &gcs.SignedURLOptions{
+	gcsPath := user + "/" + name + "/" + path
+
+	url, err := gcs.SignedURL(gcsBucket, gcsPath, &gcs.SignedURLOptions{
 		GoogleAccessID: gcsAccessID,
 		PrivateKey:     []byte(gcsAccessKey),
 		Method:         method,
