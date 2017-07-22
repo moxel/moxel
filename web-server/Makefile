@@ -13,7 +13,7 @@ run:
 	docker run -p 3001:3001 -it $(URL)
 
 dev:
-	docker run -v `pwd`:/app -p 3000:3000 -p 3001:3001 -ti $(URL)
+	docker run -v `pwd`:/app -p 3000:3000 -p 3001:3001 -ti $(URL) npm run start:browser-dev
 
 push: build
 	docker push $(URL)

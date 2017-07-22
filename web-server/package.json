@@ -8,6 +8,7 @@
     "create-react-class": "^15.6.0",
     "express": "^4.15.3",
     "github-markdown-css": "^2.8.0",
+    "http-proxy": "^1.16.2",
     "isomorphic-fetch": "^2.2.1",
     "lato-font": "^3.0.0",
     "layout-components": "^2.7.1",
@@ -16,14 +17,15 @@
     "nextjs": "0.0.3",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
+    "react-dropzone-component": "^2.0.0",
     "react-floating-label": "^1.0.0",
     "react-markdownit": "^2.5.0",
     "react-material-modal": "0.0.2",
     "react-materialize": ">=0.14.0",
     "react-primitives": "^0.4.3",
+    "react-redux": "^5.0.5",
     "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1",
-    "styled-components": "^2.1.1",
     "react-stepper-horizontal": "^1.0.9"
   },
   "devDependencies": {
@@ -63,5 +65,6 @@
     "cra:test": "react-scripts test --env=jsdom",
     "cra:eject": "react-scripts eject",
     "deploy:setup-gh-pages": "git remote add gh-pages https://github.com/dummy-ai/dummy-ai.github.io.git"
-  }
+  },
+  "proxy": "http://localhost:8080"
 }
