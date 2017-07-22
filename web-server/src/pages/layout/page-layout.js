@@ -26,7 +26,7 @@ class PageLayout extends Component {
         return (
             <PageBody column>
                 <PageHeader/>
-                {/*<PageBody className="page-body">{this.props.children}</PageBody>*/}
+                <PageBody className="page-body">{this.props.children}</PageBody>
                 <PageFooter/>
             </PageBody>
         );

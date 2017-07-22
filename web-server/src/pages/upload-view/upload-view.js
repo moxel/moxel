@@ -63,7 +63,7 @@ class UploadView extends Component {
     }
 
     render() {
-        console.log("router props", this.props.match)
+        var params = this.props.match.params;
 
         let content = null;
         switch(this.state.step) {

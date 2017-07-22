@@ -27,6 +27,7 @@ export default function Root() {
             <Route exact path="/new" component={() => 
                 <CreateView/>
             }/>
+            
             {UploadViews}
             {SearchViews}
             {ModelViews}
