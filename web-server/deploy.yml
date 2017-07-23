@@ -1,18 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: mvp
+  name: web-server
 spec:
   replicas: 1
   template:
     metadata:
-      name: mvp
+      name: web-server
       labels:
-        app: mvp
+        app: web-server
     spec:
       containers:
       - name: main
-        image: dummyai/mvp
+        image: dummyai/web-server
+        command: 
+        - npm 
+        - run
+        - start:browser-dev
         ports:
         - containerPort: 3000
         tty: true
