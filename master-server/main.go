@@ -3,7 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/auth0/go-jwt-middleware"
+	"github.com/codegangsta/negroni"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/dummy-ai/mvp/master-server/models"
+	//"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
@@ -393,12 +397,33 @@ func main() {
 
 		models.MigrateDB(db)
 	} else if command == "start" {
+		// Database.
 		db = models.CreateDB()
 		kubeClient = CreateClient(KubeConfig)
 		defer db.Close()
 
+		// Authorization.
+		jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
+			ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+				// https://github.com/dgrijalva/jwt-go/issues/147
+				// Need to parse RSA public key first.
+				key, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(JWT_PUBLIC_KEY_CLI))
+				return key, nil
+			},
+			// When set, the middleware verifies that tokens are signed with the specific signing algorithm
+			// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
+			// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+			SigningMethod: jwt.SigningMethodRS256,
+			ErrorHandler:  AuthenticationError,
+		})
+
+		// HTTP Router.
 		router := mux.NewRouter()
 
+		router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, negroni.New(
+			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
+			negroni.Wrap(requestHandler()),
+		))
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
