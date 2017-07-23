@@ -7,6 +7,7 @@ import (
 	"golang.org/x/oauth2"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 func CallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,4 +64,9 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Logged in successfully!"))
 
 	fmt.Println("Logged in successfully!")
+
+	go func() {
+		time.Sleep(3.)
+		StopServer(r.Context())
+	}()
 }
