@@ -7,7 +7,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dummy-ai/mvp/master-server/models"
-	//"github.com/gorilla/context"
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
@@ -20,6 +20,13 @@ import (
 
 var db *gorm.DB
 var kubeClient *kube.Clientset
+
+func AuthenticationError(w http.ResponseWriter, r *http.Request, err string) {
+	fmt.Println("header", r.Header)
+	fmt.Println("[Authentication] Error: ", err)
+	w.WriteHeader(400)
+	w.Write([]byte("Authorization Error: " + err))
+}
 
 func CreateClient(kubeconfig string) *kube.Clientset {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -40,6 +47,16 @@ func GetModelPath(user string, name string, tag string) string {
 }
 
 func sayHello(w http.ResponseWriter, r *http.Request) {
+	response, _ := json.Marshal(map[string]string{
+		"status": "OK",
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
+func ping(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user")
+	fmt.Println("user", user)
 	response, _ := json.Marshal(map[string]string{
 		"status": "OK",
 	})
@@ -430,6 +447,7 @@ func main() {
 			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 			negroni.Wrap(GetGitRequestHandler()),
 		))
+		router.Handle("/ping", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
@@ -440,11 +458,11 @@ func main() {
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 
-		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterePort))
+		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{
 			Handler:      router,
-			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterePort),
+			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterPort),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		}

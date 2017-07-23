@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"os/user"
 	"strconv"
 )
@@ -12,6 +14,23 @@ const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiI
 const CALLBACK_PORT = 15900
 
 const USER_CONFIG = ".dummy"
+
+var MasterAddress = "http://beta.dummy.ai/api"
+
+func InitGlobal() {
+	env := os.Getenv("ENV")
+	fmt.Println("ENV", env)
+	if env == "dev" {
+		// Run in dev mode.
+		MasterAddress = "http://0.0.0.0:8080"
+	} else {
+		// default: Production.
+	}
+}
+
+func MasterEndpoint(path string) string {
+	return MasterAddress + path
+}
 
 func GetUserConfigPath() string {
 	usr, err := user.Current()

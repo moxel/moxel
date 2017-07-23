@@ -363,8 +363,3 @@ func hdrCacheForever(w http.ResponseWriter) {
 	w.Header().Set("Expires", fmt.Sprintf("%d", expires))
 	w.Header().Set("Cache-Control", "public, max-age=31536000")
 }
-
-func AuthenticationError(w http.ResponseWriter, r *http.Request, err string) {
-	fmt.Println("header", r.Header)
-	fmt.Println("Authentication Error", err)
-}

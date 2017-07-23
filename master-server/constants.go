@@ -6,7 +6,7 @@ import (
 )
 
 const KubeConfig = "secrets/admin.conf"
-const MasterePort = 8080
+const MasterPort = 8080
 
 const JWT_PUBLIC_KEY_CLI = `
 -----BEGIN CERTIFICATE-----
@@ -38,7 +38,7 @@ func InitGlobal() {
 	fmt.Println("ENV", env)
 	if env == "DEV" {
 		// Run in dev mode.
-		GitRegistry = fmt.Sprintf("localhost:%d", MasterePort)
+		GitRegistry = fmt.Sprintf("localhost:%d", MasterPort)
 		GitRoot = "/tmp/code"
 	} else {
 		// default: Production.
