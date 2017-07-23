@@ -173,14 +173,22 @@ class UploadView extends Component {
                 content = (
                     <StyledDropzone>
                         <div className="row">
-                            <div id="test-swipe-1" className="col s12 offset-m2 m8">
-                                <br/>
-                                <h5>Upload Your Model Here</h5>
-                                <br/>
-                                <DropzoneComponent config={componentConfig}
-                                   eventHandlers={this.uploadEventHandlers}
-                                   djsConfig={djsConfig} />
-                                <br/>
+                            <ul id="tabs-swipe-demo" className="tabs">
+                                <li className="tab col s3"><a className="active" href="#test-swipe-1">Command Line Tools</a></li>
+                                <li className="tab col s3"><a href="#test-swipe-2">Drag and Drop</a></li>
+                            </ul>
+                            <div id="test-swipe-1" className="col s12">
+                            </div>
+                            <div id="test-swipe-2" className="col s12">
+                                <div id="test-swipe-1" className="col s12 offset-m2 m8">
+                                    <br/>
+                                    <h5>Upload Your Model Here</h5>
+                                    <br/>
+                                    <DropzoneComponent config={componentConfig}
+                                       eventHandlers={this.uploadEventHandlers}
+                                       djsConfig={djsConfig} />
+                                    <br/>
+                                </div>
                             </div>
                         </div>
                     </StyledDropzone>

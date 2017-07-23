@@ -44,7 +44,7 @@ class PageHeader extends Component {
                     <div className="tagline" style={{lineHeight: 6}}>
                         Dummy.ai is a platform to build and share machine intelligence.
                         <div>
-                            <Button waves="light" className="blue" onClick={this.toggleModal}>Upload Model</Button> 
+                            <Button waves="light" className="blue" onClick={() => AuthStore.login('/new')}>Upload Model</Button> 
                             &nbsp;&nbsp;&nbsp;&nbsp; 
                             <Button waves="light" className="green">Discover Model</Button>
                             &nbsp; 
@@ -75,7 +75,7 @@ class PageHeader extends Component {
             <div>
                 <Mask show={this.state.isOpen}></Mask>
                 <SignupModal show={this.state.isOpen}
-                  onClose={this.toggleModal}>
+                  onClose={this.toggleModal} useAuth0="true">
                 </SignupModal>
 
                 <nav className="nav-extended">

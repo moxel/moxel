@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "auth0-js": "^8.8.0",
+    "auth0-lock": "^10.19.0",
     "body-parser": "^1.17.2",
     "compression": "^1.7.0",
     "create-react-class": "^15.6.0",
