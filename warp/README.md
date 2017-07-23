@@ -1,27 +1,20 @@
-# Warpdrive CLI
+# Auth0 + Go Web App Sample
 
-Migrated from `strin/warpdrive`, with focus on machine learning deployment.
+## Running the App
 
+To run the app, make sure you have **go** and **goget** installed.
 
-## Development
+Rename the `.env.example` file to `.env` and provide your Auth0 credentials.
 
-Install python dependencies first:
+```bash
+# .env
 
-```
-sudo pip install -r requirements.txt
-```
-
-Then install `warp` in environment mode:
-
-```
-sudo pip install -e .
+AUTH0_CLIENT_ID=84cuFhHnQOO9hqlXZdTl9F4vvXWa0Vgt
+AUTH0_DOMAIN=dummyai.auth0.com
+AUTH0_CLIENT_SECRET=_Ml_mDFwcwsMAONLIRfCRCKCJTKdlhC9OG0FzwirpRMTJ7LshG6ZoJ2AnRlT47_G
+AUTH0_CALLBACK_URL=http://localhost:3000/callback
 ```
 
-### Set Up Secrets
+Once you've set your Auth0 credentials in the `.env` file, run `go get .` to install the Go dependencies.
 
-`warp` relies on ssh keys to work. We save the keys under `secrets/` folder.
-
-
-## Future Work
-
-The CLI is written in python now. Consider using Go in the future for easier binary deployment.
+Run `go run main.go server.go` to start the app and navigate to [http://localhost:3000/](http://localhost:3000/)

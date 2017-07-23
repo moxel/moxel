@@ -1,6 +1,0 @@
-GitPython
-dateparser
-click
-boto3
-progressive
-pytest

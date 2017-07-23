@@ -1,12 +1,18 @@
-default:
-	make install
-	make setup
+URL='dummyai/warp'
+
+docker-build:
+	docker build -t $(URL):`cat VERSION` .
+	docker tag $(URL):`cat VERSION` $(URL):latest
 
 install:
-	pip install -r requirements.txt
+	./manage.py install	
 
-setup:
-	pip install -e .
+build:
+	./manage.py build
+
+clean:
+	./manage.py clean
 
 test:
-	py.test tests
+	./manage.py test ${ARGS}
+
