@@ -383,6 +383,11 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var err error
+
+	// Initialize Global Constants based on environment variable.
+	InitGlobal()
+
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
 		return
@@ -416,13 +421,14 @@ func main() {
 			SigningMethod: jwt.SigningMethodRS256,
 			ErrorHandler:  AuthenticationError,
 		})
+		fmt.Println(jwtMiddleware)
 
 		// HTTP Router.
 		router := mux.NewRouter()
 
 		router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, negroni.New(
 			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
-			negroni.Wrap(requestHandler()),
+			negroni.Wrap(GetGitRequestHandler()),
 		))
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
@@ -434,14 +440,19 @@ func main() {
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 
+		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterePort))
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{
 			Handler:      router,
-			Addr:         "0.0.0.0:8080",
+			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterePort),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		}
-		server.ListenAndServe()
+		err = server.ListenAndServe()
+		if err != nil {
+			panic(err)
+		}
+
 	} else {
 		panic("Unknown command " + command)
 	}

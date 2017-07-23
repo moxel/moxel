@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-const gitRegistry string = "master-dev.dummy.ai"
-const gitRoot string = "/mnt/nfs/code"
-
 const gcsBucket string = "dummy-dev"
 const gcsCredentials string = "secrets/dummy-87bbacfcb748.json"
 
@@ -48,12 +45,12 @@ func GitAddWorktree(srcPath string, destPath string, branch string) error {
 
 // Get the repo path given user and project name
 func GetRepoPath(user string, repo string) string {
-	return path.Join(gitRoot, user, repo, "main")
+	return path.Join(GitRoot, user, repo, "main")
 }
 
 // Get the repo mirror path given user, project name and commit
 func GetRepoMirrorPath(user string, repo string, commit string) string {
-	return path.Join(gitRoot, user, repo, "mirror", commit)
+	return path.Join(GitRoot, user, repo, "mirror", commit)
 }
 
 // Get the path to asset.
@@ -95,7 +92,7 @@ func GetRepoURL(user string, name string) (string, error) {
 		}
 	}
 
-	return "ssh://warp@" + gitRegistry + ":" + gitPath, nil
+	return "ssh://warp@" + GitRegistry + ":" + gitPath, nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/context"
 	"io"
@@ -58,10 +59,25 @@ var services = map[string]Service{
 	"(.*?)/objects/pack/pack-[0-9a-f]{40}\\.idx$":  Service{"GET", getIdxFile, ""},
 }
 
-// Request handling function
+func CheckAndRewriteGitURL(path string) (string, error) {
+	if strings.Index(path, "/git") != 0 {
+		return "", errors.New("Cannot find path /git in requested URL")
+	}
 
-func requestHandler() http.HandlerFunc {
+	return strings.Replace(path, "/git", "", 1), nil
+}
+
+// Request handling function
+func GetGitRequestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: separate path rewrite out of handler.
+		var err error
+		r.URL.Path, err = CheckAndRewriteGitURL(r.URL.Path)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
 		user := context.Get(r, "user")
 		//fmt.Fprintf(w, "This is an authenticated request")
 		//fmt.Fprintf(w, "Claim content:\n")

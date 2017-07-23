@@ -1,6 +1,12 @@
 package main
 
+import (
+	"fmt"
+	"os"
+)
+
 const KubeConfig = "secrets/admin.conf"
+const MasterePort = 8080
 
 const JWT_PUBLIC_KEY_CLI = `
 -----BEGIN CERTIFICATE-----
@@ -23,3 +29,18 @@ Nb01fCtaX0uzLOfGzZ2ZZX0V63C/OR6nSLkJKnItxAJEFJogNr6Fi3dxLNYWbeaM
 3g==
 -----END CERTIFICATE-----
 `
+
+var GitRegistry string = "master-dev.dummy.ai"
+var GitRoot string = "/mnt/nfs/code"
+
+func InitGlobal() {
+	env := os.Getenv("ENV")
+	fmt.Println("ENV", env)
+	if env == "DEV" {
+		// Run in dev mode.
+		GitRegistry = fmt.Sprintf("localhost:%d", MasterePort)
+		GitRoot = "/tmp/code"
+	} else {
+		// default: Production.
+	}
+}

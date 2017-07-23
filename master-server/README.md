@@ -16,12 +16,12 @@ The client `warp`
 
 ### Accessing the Code
 
-It defines a constant `gitRoot = /mnt/nfs/code`. The Git repo is stored under `<gitRoot>/<user>/<repo>/repo`. 
+It defines a constant `GitRoot = /mnt/nfs/code`. The Git repo is stored under `<GitRoot>/<user>/<repo>/repo`. 
 
 When using a branch of the repo for training / deployment, the master server first uses Git-Worktree to create a mirror under 
 
 ```
-<gitRoot>/<user>/<repo>/mirror/<commit>
+<GitRoot>/<user>/<repo>/mirror/<commit>
 ```
 
 
@@ -31,7 +31,7 @@ When using a branch of the repo for training / deployment, the master server fir
 ### Run the Server
 
 ```
-make build && make run
+make build && make run ENV=dev
 ```
 
 ### Migrate DB Schema
@@ -67,6 +67,7 @@ make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
 
 Make sure kubeconfig `admin.conf` is available in this directory.
 
+## Production
 
 
 ## Useful Kube Commands
