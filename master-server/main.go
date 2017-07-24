@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dummy-ai/mvp/master-server/models"
+	"github.com/dummy-ai/warpdrive/master-server/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
