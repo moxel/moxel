@@ -44,6 +44,8 @@ def build(command='build', args=[]):
 
         if command == 'install':
             os.system('cd .build/src/github.com/dummy-ai/mvp/warp && go get -t && go install')
+            # Use custom go-git
+            os.system('cd .build/src/gopkg.in/src-d/go-git.v4 && (git remote add -f dummy https://github.com/dummy-ai/go-git || git pull dummy v4)')
 
         elif command == 'build':
             cmd = 'go build -i -o bin/warp github.com/dummy-ai/mvp/warp'

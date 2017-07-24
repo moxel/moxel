@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/elazarl/goproxy"
 	"github.com/levigross/grequests"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/urfave/cli"
-	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -47,9 +44,15 @@ func main() {
 					},
 				})
 
+				fmt.Println("hi", resp.String(), resp.StatusCode)
+
 				// internal server error
-				if err != nil || resp.StatusCode == 500 {
+				if err != nil {
 					fmt.Println("Error: ", err.Error())
+					return nil
+				}
+
+				if resp.StatusCode == 500 {
 					fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
 					return nil
 				}
@@ -69,15 +72,6 @@ func main() {
 			Name:  "clone",
 			Usage: "add a task to the list",
 			Action: func(c *cli.Context) error {
-				proxy := goproxy.NewProxyHttpServer()
-				proxy.Verbose = true
-				proxy.OnRequest().DoFunc(
-					func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
-						r.Header.Set("Authorization", userToken)
-						return r, nil
-					})
-				log.Fatal(http.ListenAndServe(":15901", proxy))
-
 				return nil
 			},
 		},
@@ -94,7 +88,8 @@ func main() {
 			Action: func(c *cli.Context) error {
 				file := c.String("file")
 
-				_, err := GetWorkingRepo()
+				// Load configuration.
+				repo, err := GetWorkingRepo()
 				if err != nil {
 					fmt.Printf("Error: %s\n", err.Error())
 					return nil
@@ -110,6 +105,8 @@ func main() {
 					return nil
 				}
 
+				// Push code to git registry.
+				repo.PushCode(userToken, "http://localhost:8080/git/dummy/tf-bare")
 				return nil
 			},
 		},
