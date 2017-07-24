@@ -16,6 +16,9 @@ func main() {
 	// Initialize Global Constants based on environment variable.
 	InitGlobal()
 
+	userConfig := LoadUserConfig()
+	userToken := "Bearer " + userConfig["JWT"].(string)
+
 	// Start application.
 	app := cli.NewApp()
 
@@ -31,8 +34,6 @@ func main() {
 		},
 	}
 
-	token := "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UTTBNMFpHT0RrM01qUTBNVFUyTmtZeU16STNPRFpFTVRFM1JEZEVSREU0TkRreE56VkRPQSJ9.eyJpc3MiOiJodHRwczovL2R1bW15YWkuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU5NzQ0MjIzMTNmNDBiMDg0ODVjNDYxMSIsImF1ZCI6IjBoSXRrTjFpUlZxWkd0VTJva3BpeVRKbXNpUjQ5SzlmIiwiZXhwIjoxNTAwODgzMzI3LCJpYXQiOjE1MDA4NDczMjd9.ojrlwpmM2vcpM0mz0jwApLNYKtBQQqx3wE8BrF-E9qpmDgdTAf5Hu0JR8xjyLogEwRAXmu83l5iN3JkmKfIM_jRscZYsnfjpKiTsATuMB6kvxzKCVSsj6mH2Zi08YmV8tpd_cR8m1yliCvHjAkGRaraiaV0tZMJNmUvQAnrbygunp-wtXkT1lC4DuoDoGnqZTShVYn5NZrp_SErCiq9ov_TVNfD_qFrOYNmD9P8q9PqEUyW2NqABKrL1dOBzGkIx6IbFeNoBwJTtc06QcRX4aAYcuQAx5Tdt_WkFcL1Y60swhQS2KzZSzh7_lISXeURd6lBxwQqe79edry6t7i8q5w"
-
 	app.Commands = []cli.Command{
 		{
 			Name:  "login",
@@ -40,12 +41,18 @@ func main() {
 			Action: func(c *cli.Context) error {
 				resp, err := grequests.Get(MasterEndpoint("/ping"), &grequests.RequestOptions{
 					Headers: map[string]string{
-						"Authorization": token,
+						"Authorization": userToken,
 					},
 				})
-				fmt.Println(resp)
 
-				if err == nil {
+				// internal server error
+				if err != nil || resp.StatusCode == 500 {
+					fmt.Println("Error: ", err.Error())
+					fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
+					return nil
+				}
+
+				if resp.Ok {
 					fmt.Println("Already logged in.")
 					return nil
 				}
@@ -64,7 +71,7 @@ func main() {
 				proxy.Verbose = true
 				proxy.OnRequest().DoFunc(
 					func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
-						r.Header.Set("Authorization", token)
+						r.Header.Set("Authorization", userToken)
 						return r, nil
 					})
 				log.Fatal(http.ListenAndServe(":15901", proxy))

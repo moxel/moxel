@@ -20,19 +20,7 @@ func UpdateUserConfig(newConfig map[string]interface{}) {
 		defer file.Close()
 	}
 
-	// Load existing config.
-	config := make(map[string]interface{})
-	data, err := ioutil.ReadFile(GetUserConfigPath())
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		return
-	}
-
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		fmt.Println("Error:", err.Error())
-		return
-	}
+	config := LoadUserConfig()
 
 	for k, v := range newConfig {
 		config[k] = v
@@ -43,4 +31,22 @@ func UpdateUserConfig(newConfig map[string]interface{}) {
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 	}
+}
+
+func LoadUserConfig() map[string]interface{} {
+	// Load existing config.
+	config := make(map[string]interface{})
+	data, err := ioutil.ReadFile(GetUserConfigPath())
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return config
+	}
+
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return config
+	}
+
+	return config
 }

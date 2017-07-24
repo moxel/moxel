@@ -1,5 +1,7 @@
 URL='dummyai/warp'
 
+.PHONY: bulid, test
+
 docker-build:
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest

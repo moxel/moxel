@@ -18,3 +18,17 @@ AUTH0_CALLBACK_URL=http://localhost:3000/callback
 Once you've set your Auth0 credentials in the `.env` file, run `go get .` to install the Go dependencies.
 
 Run `go run main.go server.go` to start the app and navigate to [http://localhost:3000/](http://localhost:3000/)
+
+### Testing
+
+To run all test cases,
+
+```
+make build && make test
+```
+
+To run testing on just one function, for example `Func`, use 
+
+```
+make test ARGS=github.com/dummy-ai/mvp/warp -run [Func]
+```
