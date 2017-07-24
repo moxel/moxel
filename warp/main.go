@@ -81,20 +81,46 @@ func main() {
 		},
 		{
 			Name:  "init",
-			Usage: "warp init [model name]",
+			Usage: "warp init model -f [file] -n [name]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: "dummy.yml",
+					Usage: "The YAML filename",
+				},
+				cli.StringFlag{
+					Name:  "name, n",
+					Value: "no-name-model",
+					Usage: "The name of the model",
+				},
+			},
 			Action: func(c *cli.Context) error {
-				name := c.Args().Get(0)
-				repo, err := GetWorkingRepo()
-				if err != nil {
-					fmt.Printf("Error: %s\n", err.Error())
-					return nil
+				kind := c.Args().Get(0)
+
+				if kind == "model" {
+
+					name := c.String("name")
+					file := c.String("file")
+
+					//repo, err := GetWorkingRepo()
+					//if err != nil {
+					//	fmt.Printf("Error: %s\n", err.Error())
+					//	return nil
+					//}
+
+					config := InitModelConfig(name)
+					err := SaveYAML(file, config)
+					if err != nil {
+						fmt.Printf("Failed to create YAML file %s", file)
+						return nil
+					}
+
+					fmt.Printf("Model %s successfully initialized at %s.\n", name, file)
+
+				} else {
+					fmt.Printf("Unknown resource kind %s\n", kind)
 				}
-				err = repo.AddModel(InitModelConfig(name))
-				if err != nil {
-					fmt.Printf("Error: %s\n", err.Error())
-					return nil
-				}
-				fmt.Println(fmt.Sprintf("Model %s successfully initialized.", name))
+
 				return nil
 			},
 		},
