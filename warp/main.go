@@ -79,6 +79,25 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name:  "init",
+			Usage: "warp init [model name]",
+			Action: func(c *cli.Context) error {
+				name := c.Args().Get(0)
+				repo, err := GetWorkingRepo()
+				if err != nil {
+					fmt.Printf("Error: %s\n", err.Error())
+					return nil
+				}
+				err = repo.AddModel(InitModelConfig(name))
+				if err != nil {
+					fmt.Printf("Error: %s\n", err.Error())
+					return nil
+				}
+				fmt.Println(fmt.Sprintf("Model %s successfully initialized.", name))
+				return nil
+			},
+		},
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

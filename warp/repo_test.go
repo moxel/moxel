@@ -38,3 +38,12 @@ func TestLoadSaveYAML(t *testing.T) {
 		t.Error("Error in saving YAML: " + err.Error())
 	}
 }
+
+func TestAddModel(t *testing.T) {
+	repo, err := GetRepo("test/tf-bare")
+
+	err = repo.AddModel(InitModelConfig("tf-bare-extra"))
+	if err != nil {
+		t.Error("Error: ", err.Error())
+	}
+}
