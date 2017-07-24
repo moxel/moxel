@@ -53,7 +53,8 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UpdateUserConfig(map[string]interface{}{
+	user := User{}
+	user.UpdateUserConfig(map[string]interface{}{
 		"JWT":         token.Extra("id_token"),
 		"AccessToken": token.AccessToken,
 		"profile":     profile,

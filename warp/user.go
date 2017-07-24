@@ -7,12 +7,14 @@ import (
 	"os"
 )
 
-func UpdateUserConfig(newConfig map[string]interface{}) {
+type User struct{}
+
+func (user *User) UpdateUserConfig(newConfig map[string]interface{}) {
 	// create dummy file if not exists
 	_, err := os.Stat(GetUserConfigPath())
 	if os.IsNotExist(err) {
 		fmt.Println("not exist")
-		var file, err = os.Create(GetUserConfigPath())
+		var file, err = os.Create(user.GetConfigPath())
 		if err != nil {
 			fmt.Println("Error:", err.Error())
 			return
@@ -20,23 +22,34 @@ func UpdateUserConfig(newConfig map[string]interface{}) {
 		defer file.Close()
 	}
 
-	config := LoadUserConfig()
+	config := user.LoadUserConfig()
 
 	for k, v := range newConfig {
 		config[k] = v
 	}
 
 	configJSON, _ := json.Marshal(config)
-	err = ioutil.WriteFile(GetUserConfigPath(), configJSON, 0644)
+	err = ioutil.WriteFile(user.GetConfigPath(), configJSON, 0644)
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 	}
 }
 
-func LoadUserConfig() map[string]interface{} {
+func (user *User) Username() string {
+	config := user.LoadUserConfig()
+	profile := config["profile"].(map[string]interface{})
+	return profile["username"].(string)
+}
+
+func (user *User) JWT() string {
+	config := user.LoadUserConfig()
+	return config["JWT"].(string)
+}
+
+func (user *User) LoadUserConfig() map[string]interface{} {
 	// Load existing config.
 	config := make(map[string]interface{})
-	data, err := ioutil.ReadFile(GetUserConfigPath())
+	data, err := ioutil.ReadFile(user.GetConfigPath())
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 		return config
@@ -49,4 +62,8 @@ func LoadUserConfig() map[string]interface{} {
 	}
 
 	return config
+}
+
+func (user *User) GetConfigPath() string {
+	return GetUserConfigPath()
 }

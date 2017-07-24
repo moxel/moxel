@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 type Repo struct {
@@ -35,6 +36,8 @@ func GetRepo(repoPath string) (*Repo, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	repoPath, _ = filepath.Abs(repoPath)
 
 	repo := Repo{
 		Path:    repoPath,
@@ -68,6 +71,7 @@ func SaveYAML(yamlPath string, config map[string]interface{}) error {
 
 func InitModelConfig(name string) map[string]interface{} {
 	return map[string]interface{}{
+		"type":        "model",
 		"name":        name,
 		"description": "A gorgeous model",
 		"tag":         "0.0.0",

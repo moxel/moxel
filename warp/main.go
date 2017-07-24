@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sort"
 )
 
@@ -16,8 +17,9 @@ func main() {
 	// Initialize Global Constants based on environment variable.
 	InitGlobal()
 
-	userConfig := LoadUserConfig()
-	userToken := "Bearer " + userConfig["JWT"].(string)
+	user := User{}
+	fmt.Println("Logged in as: ", user.Username())
+	userToken := "Bearer " + user.JWT()
 
 	// Start application.
 	app := cli.NewApp()
@@ -75,6 +77,38 @@ func main() {
 						return r, nil
 					})
 				log.Fatal(http.ListenAndServe(":15901", proxy))
+
+				return nil
+			},
+		},
+		{
+			Name:  "create",
+			Usage: "warp create -f [file]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: "dummy.yml",
+					Usage: "The YAML filename",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				file := c.String("file")
+
+				_, err := GetWorkingRepo()
+				if err != nil {
+					fmt.Printf("Error: %s\n", err.Error())
+					return nil
+				}
+
+				cwd, _ := os.Getwd()
+				cwd, _ = filepath.Abs(cwd)
+
+				config, err := LoadYAML(file)
+				fmt.Println(config)
+				if err != nil {
+					fmt.Printf("Failed to load YAML file %s", file)
+					return nil
+				}
 
 				return nil
 			},

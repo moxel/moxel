@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path"
 	"testing"
 )
 
@@ -28,22 +29,13 @@ func TestLoadSaveYAML(t *testing.T) {
 		t.Error("Git cannot open tf-bare")
 	}
 
-	err = repo.LoadYAML()
+	config, err := LoadYAML(path.Join(repo.Path, "dummy.yml"))
 	if err != nil {
 		t.Error("Error in loading YAML: " + err.Error())
 	}
 
-	err = repo.SaveYAML()
+	err = SaveYAML(path.Join(repo.Path, "dummy.yml"), config)
 	if err != nil {
 		t.Error("Error in saving YAML: " + err.Error())
-	}
-}
-
-func TestAddModel(t *testing.T) {
-	repo, err := GetRepo("test/tf-bare")
-
-	err = repo.AddModel(InitModelConfig("tf-bare-extra"))
-	if err != nil {
-		t.Error("Error: ", err.Error())
 	}
 }
