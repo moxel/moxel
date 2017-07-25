@@ -450,7 +450,7 @@ func main() {
 		))
 
 		// No authentication. For debugging.
-		// router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, GetGitRequestHandler())
+		//router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, GetGitRequestHandler())
 
 		router.Handle("/ping", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
 		router.HandleFunc("/", sayHello).Methods("GET")
