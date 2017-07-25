@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/google/uuid"
+	"github.com/levigross/grequests"
+	"gopkg.in/cheggaaa/pb.v1"
 	"gopkg.in/src-d/go-billy.v3"
 	"gopkg.in/src-d/go-billy.v3/osfs"
 	"gopkg.in/src-d/go-git.v4"
@@ -17,6 +21,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 	gitioutil "gopkg.in/src-d/go-git.v4/utils/ioutil"
 	"io"
+	"io/ioutil"
 	"strings"
 	"time"
 
@@ -226,14 +231,12 @@ func (w *Worktree) addOrUpdateFileToIndex(filename string, h plumbing.Hash, idx 
 	if err != nil && err != index.ErrEntryNotFound {
 		return err
 	}
-	fmt.Println("filename", filename)
 	if err == index.ErrEntryNotFound {
 		fmt.Println("Add")
 		if err := w.doAddFileToIndex(idx, filename, h); err != nil {
 			return err
 		}
 	} else {
-		fmt.Println("Update")
 		if err := w.doUpdateFileToIndex(e, filename, h); err != nil {
 			return err
 		}
@@ -361,12 +364,6 @@ func (repo *Repo) SilentCommit(opts *git.CommitOptions) (plumbing.Hash, error) {
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
-	type fsBased interface {
-		Filesystem() billy.Filesystem
-	}
-	fs, _ := r.Storer.(fsBased)
-	fmt.Println("filesystem", fs.Filesystem())
-
 	w := &Worktree{
 		Worktree: *oldW,
 		fs:       osfs.New(repo.Path),
@@ -397,7 +394,7 @@ func (repo *Repo) SilentCommit(opts *git.CommitOptions) (plumbing.Hash, error) {
 }
 
 // Push code to remote registry.
-func (repo *Repo) PushCode(token string, url string) error {
+func (repo *Repo) PushCode(token string, url string) (string, error) {
 	//// Implementation based on Proxy Server
 	//// Deprecated because go-git does not support proxy easily.
 	//Port := 15900
@@ -440,9 +437,8 @@ func (repo *Repo) PushCode(token string, url string) error {
 		},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Println("commit", commit)
 
 	// Create branch.
 	branchRef := "refs/heads/" + commit.String()
@@ -466,11 +462,10 @@ func (repo *Repo) PushCode(token string, url string) error {
 	}()
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	auth := gitHTTP.NewTokenAuth(token)
-	fmt.Println("auth", auth)
 	options := git.PushOptions{
 		RemoteName: remoteName,
 		Auth:       auth,
@@ -482,8 +477,120 @@ func (repo *Repo) PushCode(token string, url string) error {
 
 	err = repo.GitRepo.Push(&options)
 	if err != nil {
-		return err
+		return "", err
 	}
+
+	return commit.String(), nil
+}
+
+// ChunckedReader for showing smoother progressbar.
+const ReaderChunckSize = 1024
+
+type ChunckedReaderCallback func(bytesRead int)
+
+type ChunckedReader struct {
+	b        *bytes.Buffer
+	callback ChunckedReaderCallback
+}
+
+func NewChunckedReader(buf []byte, callback ChunckedReaderCallback) *ChunckedReader {
+	reader := ChunckedReader{
+		b:        bytes.NewBuffer(buf),
+		callback: callback,
+	}
+	return &reader
+}
+
+func (reader *ChunckedReader) Read(p []byte) (n int, err error) {
+	totalRead := 0
+	for i := 0; i < len(p); {
+		chunckSize := ReaderChunckSize
+		if len(p)-i < ReaderChunckSize {
+			chunckSize = len(p) - i
+		}
+		newBytes := reader.b.Next(chunckSize)
+		if len(newBytes) == 0 {
+			return totalRead, io.EOF
+		}
+		chunckSize = len(newBytes)
+
+		for j := i; j < i+chunckSize; j++ {
+			p[j] = newBytes[j-i]
+		}
+		if reader.callback != nil {
+			reader.callback(chunckSize)
+		}
+		i += chunckSize
+		totalRead += chunckSize
+	}
+	return totalRead, nil
+}
+
+// Push data to cloud storage given paths to assets in the repo.
+func (repo *Repo) PushData(assets []string, user string, name string, commit string) error {
+	if len(assets) == 0 {
+		return nil
+	}
+
+	// Calculate total size of the assets in Bytes.
+	var totalSize int64 = 0
+
+	for _, asset := range assets {
+		filePath := filepath.Join(repo.Path, asset)
+
+		fi, err := os.Stat(filePath)
+		if err != nil {
+			return err
+		}
+
+		totalSize += fi.Size()
+	}
+
+	bar := pb.New64(totalSize).Format(strings.Join([]string{
+		color.GreenString("["),
+		color.New(color.BgGreen).SprintFunc()(" "),
+		color.New(color.BgHiGreen).SprintFunc()(" "),
+		color.New(color.BgBlack).SprintFunc()(" "),
+		color.GreenString("]"),
+	}, "\x00"))
+	bar.SetRefreshRate(1 * time.Millisecond)
+	bar.ShowPercent = true
+	bar.ShowBar = true
+	bar.SetWidth(80)
+	bar.SetUnits(pb.U_BYTES)
+	bar.Start()
+
+	api := MasterAPI{}
+
+	var totalRead int64 = 0
+	for _, asset := range assets {
+		url, err := api.GetAssetURL(user, name, commit, asset, "PUT")
+		if err != nil {
+			return err
+		}
+
+		data, err := ioutil.ReadFile(asset)
+		if err != nil {
+			return err
+		}
+
+		callback := func(bytesRead int) {
+			totalRead += int64(bytesRead)
+			bar.Set64(totalRead)
+		}
+
+		_, err = grequests.Put(url,
+			&grequests.RequestOptions{
+				RequestBody: NewChunckedReader(data, callback),
+				Headers: map[string]string{
+					"Content-Type": "application/octet-stream",
+				},
+			})
+
+	}
+
+	bar.Finish()
+	fmt.Println("Done!")
 
 	return nil
 }

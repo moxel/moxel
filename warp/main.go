@@ -20,7 +20,7 @@ func main() {
 	var userToken string
 
 	if user.Initialized() {
-		fmt.Println("Logged in as: ", user.Username())
+		fmt.Println("User: ", user.Username())
 		userToken = "Bearer " + user.JWT()
 		userName = user.Username()
 
@@ -107,12 +107,14 @@ func main() {
 				cwd, _ = filepath.Abs(cwd)
 
 				config, err := LoadYAML(file)
-				fmt.Println(config)
 				if err != nil {
 					return err
 				}
 
 				projectName := config["name"].(string)
+				tag := config["tag"].(string)
+
+				fmt.Printf("Uploading model %s:%s\n", projectName, tag)
 
 				// Push code to git registry.
 				url, err := api.GetRepoURL(userName, projectName)
@@ -120,11 +122,29 @@ func main() {
 					fmt.Printf("Failed to reach remote repo: %s\n", err.Error())
 					return nil
 				}
-				fmt.Println("url", url)
-				err = repo.PushCode(userToken, url)
+
+				commit, err := repo.PushCode(userToken, url)
 				if err != nil {
 					fmt.Printf("Failed to push code: ", err.Error())
 					return nil
+				}
+
+				fmt.Println("Commit:", commit)
+
+				// Push assets to cloud storage.
+				if assets, ok := config["assets"]; ok {
+					// Normalize the asset paths.
+					var assetPaths []string
+					for _, asset := range assets.([]interface{}) {
+						assetPath, _ := filepath.Abs(asset.(string))
+						assetPath, _ = filepath.Rel(repo.Path, assetPath)
+						assetPaths = append(assetPaths, assetPath)
+					}
+					// Push data to cloud.
+					err = repo.PushData(assetPaths, userName, projectName, commit)
+					if err != nil {
+						fmt.Println("Failed to push data:", err.Error())
+					}
 				}
 				return nil
 			},
