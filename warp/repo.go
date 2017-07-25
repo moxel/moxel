@@ -22,6 +22,7 @@ import (
 	gitioutil "gopkg.in/src-d/go-git.v4/utils/ioutil"
 	"io"
 	"io/ioutil"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -447,9 +448,10 @@ func (repo *Repo) PushCode(token string, url string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	defer func() { // Remove branch after done.
+	removeBranch := func() { // Remove branch after done.
 		repo.GitRepo.Storer.RemoveReference(plumbing.ReferenceName(branchRef))
-	}()
+	}
+	defer removeBranch()
 
 	// Create remote.
 	remoteName := "warpdrive-f683ed0a23" // any name.
@@ -457,8 +459,21 @@ func (repo *Repo) PushCode(token string, url string) (string, error) {
 		Name: remoteName,
 		URL:  url,
 	})
-	defer func() { // Remove remote after done.
+	removeRemote := func() { // Remove remote after done.
 		repo.GitRepo.DeleteRemote(remoteName)
+	}
+	defer removeRemote()
+
+	// Allow clean up after Ctrl-C.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			fmt.Println("sig INT", sig)
+			removeBranch()
+			removeRemote()
+			os.Exit(1)
+		}
 	}()
 
 	if err != nil {
@@ -563,13 +578,17 @@ func (repo *Repo) PushData(assets []string, user string, name string, commit str
 	api := MasterAPI{}
 
 	var totalRead int64 = 0
+	cwd, _ := os.Getwd()
+
 	for _, asset := range assets {
 		url, err := api.GetAssetURL(user, name, commit, asset, "PUT")
 		if err != nil {
 			return err
 		}
 
-		data, err := ioutil.ReadFile(asset)
+		assetRel, _ := filepath.Rel(cwd, filepath.Join(repo.Path, asset))
+
+		data, err := ioutil.ReadFile(assetRel)
 		if err != nil {
 			return err
 		}
