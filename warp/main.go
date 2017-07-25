@@ -146,6 +146,18 @@ func main() {
 						fmt.Println("Failed to push data:", err.Error())
 					}
 				}
+
+				// Create model in the database.
+				yamlString, _ := SaveYAMLToString(config)
+				resp, err := api.PutModel(userName, projectName, tag, commit, yamlString)
+				if err != nil {
+					return err
+				}
+				if resp.StatusCode != 200 {
+					fmt.Println("Cannot save model:", resp.String())
+					os.Exit(1)
+				}
+
 				return nil
 			},
 		},

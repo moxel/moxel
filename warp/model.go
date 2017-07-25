@@ -5,6 +5,11 @@ import (
 	"io/ioutil"
 )
 
+func SaveYAMLToString(config map[string]interface{}) (string, error) {
+	data, err := yaml.Marshal(config)
+	return string(data), err
+}
+
 func LoadYAML(yamlPath string) (map[string]interface{}, error) {
 	data, err := ioutil.ReadFile(yamlPath)
 	config := make(map[string]interface{})

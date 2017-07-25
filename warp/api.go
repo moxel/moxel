@@ -64,3 +64,13 @@ func (api *MasterAPI) GetAssetURL(user string, name string, commit string, relpa
 	url := result["url"].(string)
 	return url, err
 }
+
+func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, yaml string) (*grequests.Response, error) {
+	return grequests.Put(MasterEndpoint(fmt.Sprintf("/model/%s/%s/%s", user, name, tag)), &grequests.RequestOptions{
+		JSON: map[string]string{
+			"commit": commit,
+			"yaml":   yaml,
+		},
+	})
+
+}

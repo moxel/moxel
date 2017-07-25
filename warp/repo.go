@@ -469,7 +469,7 @@ func (repo *Repo) PushCode(token string, url string) (string, error) {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for sig := range c {
-			fmt.Println("sig INT", sig)
+			fmt.Println(sig)
 			removeBranch()
 			removeRemote()
 			os.Exit(1)
