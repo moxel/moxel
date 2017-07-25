@@ -81,18 +81,19 @@ func GetRepoURL(user string, name string) (string, error) {
 		return "", errors.New("Project name cannot be nil or empty")
 	}
 
-	gitPath := GetRepoPath(user, name)
+	gitPath := user + "/" + name
+	gitFilePath := GetRepoPath(user, name)
 
-	if _, err := os.Stat(gitPath); os.IsNotExist(err) {
+	if _, err := os.Stat(gitFilePath); os.IsNotExist(err) {
 		// Create an empty git repo if it does not exist.
 		// isBare: false
-		_, err := git.PlainInit(gitPath, false)
+		_, err := git.PlainInit(gitFilePath, false)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return "ssh://warp@" + GitRegistry + ":" + gitPath, nil
+	return GitRegistry + "/" + gitPath + "/main", nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets

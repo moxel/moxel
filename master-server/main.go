@@ -443,10 +443,15 @@ func main() {
 		// HTTP Router.
 		router := mux.NewRouter()
 
+		// Authentication based on JWT.
 		router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, negroni.New(
 			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 			negroni.Wrap(GetGitRequestHandler()),
 		))
+
+		// No authentication. For debugging.
+		// router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, GetGitRequestHandler())
+
 		router.Handle("/ping", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")

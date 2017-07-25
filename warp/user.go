@@ -9,6 +9,13 @@ import (
 
 type User struct{}
 
+func (user *User) Initialized() bool {
+	if _, err := os.Stat(user.GetConfigPath()); err == nil {
+		return true
+	}
+	return false
+}
+
 func (user *User) UpdateUserConfig(newConfig map[string]interface{}) {
 	// create dummy file if not exists
 	_, err := os.Stat(GetUserConfigPath())

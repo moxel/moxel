@@ -24,8 +24,6 @@ type Service struct {
 }
 
 type Config struct {
-	ProjectRoot string
-	GitBinPath  string
 	UploadPack  bool
 	ReceivePack bool
 }
@@ -39,8 +37,6 @@ type HandlerReq struct {
 }
 
 var config Config = Config{
-	ProjectRoot: "/tmp",
-	GitBinPath:  "/usr/bin/git",
 	UploadPack:  true,
 	ReceivePack: true,
 }
@@ -136,7 +132,7 @@ func serviceRpc(hr HandlerReq) {
 	w.WriteHeader(http.StatusOK)
 
 	args := []string{rpc, "--stateless-rpc", dir}
-	cmd := exec.Command(config.GitBinPath, args...)
+	cmd := exec.Command(GitBin, args...)
 	cmd.Dir = dir
 	in, err := cmd.StdinPipe()
 	if err != nil {
@@ -225,7 +221,7 @@ func sendFile(content_type string, hr HandlerReq) {
 }
 
 func getGitDir(file_path string) (string, error) {
-	root := config.ProjectRoot
+	root := GitRoot
 
 	if root == "" {
 		cwd, err := os.Getwd()
@@ -299,7 +295,7 @@ func updateServerInfo(dir string) []byte {
 }
 
 func gitCommand(dir string, args ...string) []byte {
-	command := exec.Command(config.GitBinPath, args...)
+	command := exec.Command(GitBin, args...)
 	command.Dir = dir
 	out, err := command.Output()
 

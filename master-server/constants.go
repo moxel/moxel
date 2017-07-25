@@ -30,15 +30,16 @@ Nb01fCtaX0uzLOfGzZ2ZZX0V63C/OR6nSLkJKnItxAJEFJogNr6Fi3dxLNYWbeaM
 -----END CERTIFICATE-----
 `
 
-var GitRegistry string = "master-dev.dummy.ai"
+var GitRegistry string = "http://master-dev.dummy.ai/git"
 var GitRoot string = "/mnt/nfs/code"
+var GitBin = "/usr/bin/git"
 
 func InitGlobal() {
 	env := os.Getenv("ENV")
 	fmt.Println("ENV", env)
-	if env == "DEV" {
+	if env == "dev" {
 		// Run in dev mode.
-		GitRegistry = fmt.Sprintf("localhost:%d", MasterPort)
+		GitRegistry = fmt.Sprintf("http://localhost:%d/git", MasterPort)
 		GitRoot = "/tmp/code"
 	} else {
 		// default: Production.

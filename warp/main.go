@@ -14,9 +14,41 @@ func main() {
 	// Initialize Global Constants based on environment variable.
 	InitGlobal()
 
+	// Get user profile.
 	user := User{}
-	fmt.Println("Logged in as: ", user.Username())
-	userToken := "Bearer " + user.JWT()
+	var userName string
+	var userToken string
+
+	if user.Initialized() {
+		fmt.Println("Logged in as: ", user.Username())
+		userToken = "Bearer " + user.JWT()
+		userName = user.Username()
+
+		// Check if user has logged in.
+		resp, err := grequests.Get(MasterEndpoint("/ping"), &grequests.RequestOptions{
+			Headers: map[string]string{
+				"Authorization": userToken,
+			},
+		})
+
+		// Internal server error
+		if err != nil {
+			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
+			return
+		}
+
+		if resp.StatusCode == 500 {
+			fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
+			fmt.Println("Please login first. Run `warp login`")
+			return
+		}
+	} else {
+		fmt.Println("Please login first. Run `warp login`")
+		return
+	}
+
+	// Create API remote.
+	api := MasterAPI{}
 
 	// Start application.
 	app := cli.NewApp()
@@ -38,29 +70,6 @@ func main() {
 			Name:  "login",
 			Usage: "Login to dummy.ai",
 			Action: func(c *cli.Context) error {
-				resp, err := grequests.Get(MasterEndpoint("/ping"), &grequests.RequestOptions{
-					Headers: map[string]string{
-						"Authorization": userToken,
-					},
-				})
-
-				fmt.Println("hi", resp.String(), resp.StatusCode)
-
-				// internal server error
-				if err != nil {
-					fmt.Println("Error: ", err.Error())
-					return nil
-				}
-
-				if resp.StatusCode == 500 {
-					fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
-					return nil
-				}
-
-				if resp.Ok {
-					fmt.Println("Already logged in.")
-					return nil
-				}
 
 				open.Run(GetAuthorizeURL())
 				StartServer()
@@ -91,8 +100,7 @@ func main() {
 				// Load configuration.
 				repo, err := GetWorkingRepo()
 				if err != nil {
-					fmt.Printf("Error: %s\n", err.Error())
-					return nil
+					return err
 				}
 
 				cwd, _ := os.Getwd()
@@ -101,12 +109,23 @@ func main() {
 				config, err := LoadYAML(file)
 				fmt.Println(config)
 				if err != nil {
-					fmt.Printf("Failed to load YAML file %s", file)
-					return nil
+					return err
 				}
 
+				projectName := config["name"].(string)
+
 				// Push code to git registry.
-				repo.PushCode(userToken, "http://localhost:8080/git/dummy/tf-bare")
+				url, err := api.GetRepoURL(userName, projectName)
+				if err != nil {
+					fmt.Printf("Failed to reach remote repo: %s\n", err.Error())
+					return nil
+				}
+				fmt.Println("url", url)
+				err = repo.PushCode(userToken, url)
+				if err != nil {
+					fmt.Printf("Failed to push code: ", err.Error())
+					return nil
+				}
 				return nil
 			},
 		},
