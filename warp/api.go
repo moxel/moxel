@@ -72,5 +72,42 @@ func (api *MasterAPI) PutModel(user string, name string, tag string, commit stri
 			"yaml":   yaml,
 		},
 	})
+}
 
+func (api *MasterAPI) DeployModel(user string, name string, tag string) (*grequests.Response, error) {
+	return grequests.Post(MasterEndpoint(fmt.Sprintf("/model/%s/%s/%s", user, name, tag)), &grequests.RequestOptions{
+		JSON: map[string]string{
+			"action": "deploy",
+		},
+	})
+}
+
+func (api *MasterAPI) StopDeployModel(user string, name string, tag string) (*grequests.Response, error) {
+	return grequests.Post(MasterEndpoint(fmt.Sprintf("/model/%s/%s/%s", user, name, tag)), &grequests.RequestOptions{
+		JSON: map[string]string{
+			"action": "teardown",
+		},
+	})
+}
+
+func (api *MasterAPI) ListDeployModel(user string) ([]map[string]interface{}, error) {
+	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/model/%s", user)), &grequests.RequestOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var results []map[string]interface{}
+
+	if resp.StatusCode == 200 {
+		var data interface{}
+		err = resp.JSON(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		interfaces := data.([]interface{})
+		for _, item := range interfaces {
+			results = append(results, item.(map[string]interface{}))
+		}
+	}
+	return results, nil
 }

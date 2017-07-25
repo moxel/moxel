@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/skratchdot/open-golang/open"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 func main() {
@@ -78,10 +80,56 @@ func main() {
 			},
 		},
 		{
-			Name:  "clone",
-			Usage: "add a task to the list",
+			Name:  "deploy",
+			Usage: "warp deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
+				nameAndTag := c.Args().Get(0)
+				entries := strings.Split(nameAndTag, ":")
+
+				if len(entries) != 2 {
+					return errors.New(fmt.Sprintf("Unrecognized format %s", nameAndTag))
+				}
+
+				projectName := entries[0]
+				tag := entries[1]
+
+				resp, err := api.DeployModel(userName, projectName, tag)
+				if err != nil {
+					return err
+				}
+
+				if resp.StatusCode != 200 {
+					fmt.Println("Error:", resp.String())
+					return nil
+				}
+
+				fmt.Println("successfully deployed", nameAndTag)
 				return nil
+
+			},
+		},
+		{
+			Name:  "list",
+			Usage: "warp list [deploy/run]",
+			Action: func(c *cli.Context) error {
+				kind := c.Args().Get(0)
+
+				if kind == "deploy" {
+					format := "%40s | %20s | %10s\n"
+					results, err := api.ListDeployModel(userName)
+					if err != nil {
+						return err
+					}
+
+					fmt.Printf(format, "Name", "Tag", "Status")
+					fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
+					for _, result := range results {
+						fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+					}
+					return nil
+				} else {
+					return errors.New(fmt.Sprintf("Unknown command %s", kind))
+				}
 			},
 		},
 		{
