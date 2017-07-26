@@ -51,12 +51,12 @@ class UploadView extends Component {
 
         this.state = {
             step: 0,
-            uploaded: false,
-            stepEnabled: true
+            uploaded: false
         }
 
         this.nextStep = this.nextStep.bind(this);
         this.backStep = this.backStep.bind(this);
+        this.finalizeStep = this.finalizeStep.bind(this);
         this.upload = this.upload.bind(this);
 
         
@@ -66,6 +66,9 @@ class UploadView extends Component {
                 this.upload(file);
             }
         }
+
+        this.steps = [{title: 'Install Warpdrive'}, {title: 'Wrap Your Model'}, {title: 'Deploy Your Model'}, {title: 'Finish'}] 
+        
     }
 
     upload(file) {
@@ -105,39 +108,64 @@ class UploadView extends Component {
 
         //     componentConfig.postUrl = data.url;
         // });
+        let params = this.props.match.params
+        this.user = params.user
+        this.modelId = params.modelId
+        this.tag = "latest"
+        // Thread to check if the model is uploaded.
+        var modelProbe = function() {
+            fetch(`/api/model/${this.user}/${this.modelId}/${this.tag}`).then((response)=>{
+                return response.json();
+            }).then(function(data) {
+                console.log(data);
+                if(data.status != "UNKNOWN") { // model has been successfully uploaded.
+                    this.setState({
+                        step: this.steps.length - 1
+                    })
+                }else{
+                    setTimeout(modelProbe, 1000);
+                }
+            }.bind(this))
+        }.bind(this);
 
+        setTimeout(modelProbe, 1000);
     }
 
+    // Finished flow. Redirect user to model page.
+    finalizeStep() {
+        console.log('finalize')
+        window.location.href = "/models";
+    }
 
     nextStep() {
-        var stepEnabled = true;
-        // if(this.state.step == 0) {
-        //     stepEnabled = this.state.uploaded;
-        // }
-        if(this.state.step == 4) return
+        console.log('step', this.state.step)
+        if(this.state.step == 3) {
+            this.finalizeStep()
+            return
+        }
         this.setState({
-            step: this.state.step + 1,
-            stepEnabled: stepEnabled
+            step: this.state.step + 1
         })
     }
 
     backStep() {
-        var stepEnabled = true;
-        // if(this.state.step == 0) {
-        //     stepEnabled = this.state.uploaded;
-        // }
         if(this.state.step == 0) return
         this.setState({
-            step: this.state.step - 1,
-            stepEnabled: stepEnabled
+            step: this.state.step - 1
         })
     }
 
     render() {
         let content = null;
-        let params = this.props.match.params
-        let user = params.user
-        let modelId = params.modelId
+
+        this.nextStepEnabled = true;
+        this.backStepEnabled = true;
+        if(this.state.step == 0) {
+            this.backStepEnabled = false;
+        }
+        if(this.state.step == 2) {
+            this.nextStepEnabled = false;
+        }
 
         switch(this.state.step) {
             case 0: // Install Warpdrive.
@@ -164,7 +192,7 @@ class UploadView extends Component {
                             
                             <div className="row">
                                 <div className="col s12 offset-m1 m8">
-                                    <input id="warp-install" value="curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/warp && chmod 777 /usr/local/bin/warp" readonly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                    <input id="warp-install" value="curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/warp && chmod 777 /usr/local/bin/warp" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
                                     <ClipboardButton className="btn-flat" data-clipboard-target="#warp-install">
@@ -183,7 +211,7 @@ class UploadView extends Component {
                             <div className="row">
 
                                 <div className="col s12 offset-m1 m8">
-                                        <input id="warp-login" value="warp login" readonly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id="warp-login" value="warp login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
                                     <ClipboardButton className="btn-flat" data-clipboard-target="#warp-login">
@@ -248,11 +276,11 @@ class UploadView extends Component {
                 )
                 break; 
             case 2: // Deploy Your Model.
-                let yaml = ("user: " + user + "\n" +
-                            "name: " + modelId + "\n" +
-                            "tag: latest\n" +
+                let yaml = (`user: ${this.user}\n` +
+                            `name: ${this.modelId}\n` +
+                            `tag: ${this.tag}\n` +
                             "image: dummyai/py3-tf-gpu\n" +
-                            "description: " + localStorage.getItem(user + "/" + modelId) + "\n" +
+                            "description: " + localStorage.getItem(this.user + "/" + this.modelId) + "\n" +
                             "assets:\n" +
                             "- (path to weight file)\n" +
                             "cmd:\n" +
@@ -309,7 +337,7 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                        <input id="warp-create" value="warp create -f dummy.yml" readonly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id="warp-create" value="warp create -f dummy.yml" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                     </div>
                                     <div className="col s12 m2">
                                         <ClipboardButton className="btn-flat" data-clipboard-target="#warp-create">
@@ -326,7 +354,7 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                        <input id="warp-deploy" value={"warp deploy " + modelId + ":latest"} readonly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id="warp-deploy" value={`warp deploy ${this.modelId}:${this.tag}`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                     </div>
                                     <div className="col s12 m2">
                                         <ClipboardButton className="btn-flat" data-clipboard-target="#warp-deploy">
@@ -358,13 +386,34 @@ class UploadView extends Component {
                     </StyledDropzone>
                 )
                 break;
+            case 3:
+                content = (
+                    <div>
+                        <div className="row">
+                        </div>
+
+                        <div className="row">
+                            <div className="col s12 m12" style={{textAlign: "center"}}>
+                                <img style={{height: "300px", width: "auto"}} src="/images/check.png"></img>
+                            </div>
+                        </div>
+
+                        <div className="row" style={{display: "block"}}>
+                            <div className="col s12 m12" style={{textAlign: "center"}}>
+                                <h4>Model <b>{`${this.user}/${this.modelId}`}</b> is now live!</h4>
+                            </div>
+                        </div>
+
+                    </div>
+                )
+                break;
         }
 
         return (
             <div>
                 <div className="row">
                     <div className="col s12 offset-m2 m8">
-                        <Stepper steps={ [{title: 'Install Warpdrive'}, {title: 'Wrap Your Model'}, {title: 'Deploy Your Model'}, {title: 'Finish'}] } activeStep={ this.state.step } />
+                        <Stepper steps={this.steps} activeStep={ this.state.step } />
                     </div>
                 </div>
                 <div className="row">
@@ -374,14 +423,14 @@ class UploadView extends Component {
 
                             <div className="row">
                                 <div className="col s2 m2 offset-s8 offset-m8">
-                                    <button className="waves-effect waves-light btn grey" disabled={!this.state.stepEnabled}  style={{float: "right"}}
+                                    <button className="waves-effect waves-light btn grey" disabled={!this.backStepEnabled}  style={{float: "right"}}
                                         onClick={this.backStep}>
                                         Back
                                     </button> 
                                 </div>
                                 <div className="col s2 m2">
 
-                                    <button className="waves-effect waves-light btn blue" disabled={!this.state.stepEnabled} 
+                                    <button className="waves-effect waves-light btn blue" disabled={!this.nextStepEnabled} 
                                         onClick={this.nextStep}>
                                         Next
                                     </button> 
