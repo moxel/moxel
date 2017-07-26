@@ -16,6 +16,8 @@ class CreateView extends Component {
         var username = AuthStore.username();
         var modelId = document.querySelector('#modelId').value;
         var modelDescription = document.querySelector('#modelDescription').value;
+        // caching the description.
+        localStorage.setItem(username + "/" + modelId, modelDescription)
         window.location.href = "/" + username + "/" + modelId  + "/upload";
         return false;
     }
