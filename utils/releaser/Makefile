@@ -19,10 +19,10 @@ push: build
 	docker push $(URL)
 
 deploy:
-	kc create -f deploy.yml
+	kubectl create -f deploy.yml
 	kubectl expose deploy releaser --name=releaser --type="LoadBalancer"
 
 teardown:
-	kc delete -f deploy.yml
-	kc delete service releaser
+	kubectl delete -f deploy.yml
+	kubectl delete service releaser
 
