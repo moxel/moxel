@@ -114,7 +114,9 @@ class UploadView extends Component {
         this.tag = "latest"
         // Thread to check if the model is uploaded.
         var modelProbe = function() {
-            fetch(`/api/model/${this.user}/${this.modelId}/${this.tag}`).then((response)=>{
+            fetch(`/api/model/${this.user}/${this.modelId}/${this.tag}`, {
+                "method": "GET"
+            }).then((response)=>{
                 return response.json();
             }).then(function(data) {
                 console.log(data);

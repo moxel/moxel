@@ -3,6 +3,6 @@ import {Route} from "react-router-dom";
 import Main from './main';
 
 const SearchViews = [
-    <Route exact path="/list" key="/list" component={Main}/>,
+    <Route exact path="/models" key="/models" component={Main}/>,
 ];
 export default SearchViews;

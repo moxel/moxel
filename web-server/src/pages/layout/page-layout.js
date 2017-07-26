@@ -16,16 +16,14 @@ class PageLayout extends Component {
         var isLoggedIn = AuthStore.isAuthenticated();
         console.log('is logged in? ', isLoggedIn);
 
-        let pageHeader = null;
-        if(isLoggedIn) {
-            pageHeader = <PageHeader/>;
-        }else{
-            pageHeader = <PageHeader/>;
+        let showBanner = false;
+        if(!isLoggedIn && window.location.pathname == '/') {
+            showBanner = true;
         }
-        
+
         return (
             <PageBody column>
-                <PageHeader/>
+                <PageHeader showBanner={showBanner}/>
                 <PageBody className="page-body">{this.props.children}</PageBody>
                 <PageFooter/>
             </PageBody>

@@ -30,7 +30,7 @@ const StyledModelSnippet = styled(FlexItem)`
         margin: 0 0 0 0;
         font-size: 1.7em;
         font-weight: 400;
-        color: #f13770
+        color: #black;
     }
 
     .snippet-body {

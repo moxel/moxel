@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {FlexItem, FlexSpacer} from "layout-components";
+import PropTypes from "prop-types";
 import HeaderButton from "./header-button";
 import ProfileImage from '../../components/profile-image/profile-image';
 import FixedWidthRow from "../../components/fixed-width-row";
@@ -37,7 +38,7 @@ class PageHeader extends Component {
 
     render() {
         let banner = null;
-        if(!AuthStore.isAuthenticated()) {
+        if(!AuthStore.isAuthenticated() && this.props.showBanner) {
             banner = (
                 <div className="nav-header center">
                     <h1>World's Best Models <br/> Built by the Community</h1>
@@ -46,7 +47,7 @@ class PageHeader extends Component {
                         <div>
                             <Button waves="light" className="blue" onClick={() => AuthStore.login('/new')}>Upload Model</Button> 
                             &nbsp;&nbsp;&nbsp;&nbsp; 
-                            <Button waves="light" className="green">Discover Model</Button>
+                            <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
                             &nbsp; 
                         </div>
                     </div>
@@ -57,7 +58,7 @@ class PageHeader extends Component {
         if(!AuthStore.isAuthenticated()) {
             menu = (
                 <ul className="right hide-on-med-and-down">
-                  <li className="active"><a href="index.html">Models</a></li>
+                  <li className="active"><a href="/models">Models</a></li>
                   <li><a href="Warpdrive.html">Warpdrive</a></li>
                   <li><a href="blog.html">Blog</a></li>
                   <li><a href="http://docs.dummy.ai/">Docs</a></li>
@@ -83,7 +84,7 @@ class PageHeader extends Component {
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
                     </div>
                     <div className="nav-wrapper container">
-                        <a href="index.html" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
+                        <a href="/" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
                         <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
                         {menu}
                         {banner}
@@ -95,5 +96,9 @@ class PageHeader extends Component {
         )
     }
 }
+
+PageHeader.propTypes = {
+    showBanner: PropTypes.bool
+};
 
 export default PageHeader;
