@@ -1,6 +1,6 @@
 URL='dummyai/warp'
 
-.PHONY: bulid, test
+.PHONY: bulid, test, install, release
 
 docker-build:
 	docker build -t $(URL):`cat VERSION` .
@@ -18,3 +18,11 @@ clean:
 test:
 	./manage.py test ${ARGS}
 
+release: build
+	gsutil cp bin/warp gs://dummy-release/cli/`cat VERSION`/
+	@echo "Distribute the following link:"
+	@echo
+	@echo "curl -o warp https://beta.dummy.ai/release/cli/`cat VERSION`/warp"
+
+
+	

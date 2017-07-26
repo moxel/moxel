@@ -19,6 +19,22 @@ Once you've set your Auth0 credentials in the `.env` file, run `go get .` to ins
 
 Run `go run main.go server.go` to start the app and navigate to [http://localhost:3000/](http://localhost:3000/)
 
+### Release
+
+First change `VERSION` file to be the version to be released.
+
+Then run
+
+```
+make release
+```
+
+The pipeline will returned a command such as 
+
+```
+curl -o warp https://beta.dummy.ai/release/cli/0.0.0-alpha/warp
+```
+
 ### Testing
 
 To run all test cases,
