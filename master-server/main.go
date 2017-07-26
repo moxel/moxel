@@ -226,6 +226,42 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	fmt.Printf("[GET] Querying the state of the model %s/%s:%s\n",
+		user, name, tag)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get ModelId based on user, model name and tag.
+	modelId := models.ModelId(user, name, tag)
+	fmt.Printf("modelId = %s\n", modelId)
+
+	model, err := models.GetModelById(db, modelId)
+
+	status := "UNKNOWN"
+	yamlString := ""
+
+	if err == nil {
+		fmt.Println(model)
+
+		status = model.Status
+		yamlString = model.Yaml
+	}
+
+	results := map[string]string{
+		"status": status,
+		"yaml":   yamlString,
+	}
+
+	response, _ := json.Marshal(results)
+	w.Write(response)
+}
+
 func postModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -456,6 +492,7 @@ func main() {
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
+		router.HandleFunc("/model/{user}/{model}/{tag}", getModel).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
