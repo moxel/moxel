@@ -1,12 +1,28 @@
-default:
-	make install
-	make setup
+URL='dummyai/warp'
+
+.PHONY: bulid, test, install, release
+
+docker-build:
+	docker build -t $(URL):`cat VERSION` .
+	docker tag $(URL):`cat VERSION` $(URL):latest
 
 install:
-	pip install -r requirements.txt
+	./manage.py install	
 
-setup:
-	pip install -e .
+build:
+	./manage.py build
+
+clean:
+	./manage.py clean
 
 test:
-	py.test tests
+	./manage.py test ${ARGS}
+
+release: build
+	gsutil cp bin/warp gs://dummy-release/cli/`cat VERSION`/
+	@echo "Distribute the following link:"
+	@echo
+	@echo "curl -o warp https://beta.dummy.ai/release/cli/`cat VERSION`/warp"
+
+
+	

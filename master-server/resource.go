@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-const gitRegistry string = "master-dev.dummy.ai"
-const gitRoot string = "/mnt/nfs/code"
-
 const gcsBucket string = "dummy-dev"
 const gcsCredentials string = "secrets/dummy-87bbacfcb748.json"
 
@@ -48,12 +45,12 @@ func GitAddWorktree(srcPath string, destPath string, branch string) error {
 
 // Get the repo path given user and project name
 func GetRepoPath(user string, repo string) string {
-	return path.Join(gitRoot, user, repo, "main")
+	return path.Join(GitRoot, user, repo, "main")
 }
 
 // Get the repo mirror path given user, project name and commit
 func GetRepoMirrorPath(user string, repo string, commit string) string {
-	return path.Join(gitRoot, user, repo, "mirror", commit)
+	return path.Join(GitRoot, user, repo, "mirror", commit)
 }
 
 // Get the path to asset.
@@ -84,18 +81,19 @@ func GetRepoURL(user string, name string) (string, error) {
 		return "", errors.New("Project name cannot be nil or empty")
 	}
 
-	gitPath := GetRepoPath(user, name)
+	gitPath := user + "/" + name
+	gitFilePath := GetRepoPath(user, name)
 
-	if _, err := os.Stat(gitPath); os.IsNotExist(err) {
+	if _, err := os.Stat(gitFilePath); os.IsNotExist(err) {
 		// Create an empty git repo if it does not exist.
 		// isBare: false
-		_, err := git.PlainInit(gitPath, false)
+		_, err := git.PlainInit(gitFilePath, false)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return "ssh://warp@" + gitRegistry + ":" + gitPath, nil
+	return GitRegistry + "/" + gitPath + "/main", nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets
@@ -127,7 +125,9 @@ func GetGCloudStorageURL(user string, name string, path string, verb string) (st
 	method := verb
 	expires := time.Now().Add(time.Second * 3600)
 
-	url, err := gcs.SignedURL(gcsBucket, path, &gcs.SignedURLOptions{
+	gcsPath := user + "/" + name + "/" + path
+
+	url, err := gcs.SignedURL(gcsBucket, gcsPath, &gcs.SignedURLOptions{
 		GoogleAccessID: gcsAccessID,
 		PrivateKey:     []byte(gcsAccessKey),
 		Method:         method,

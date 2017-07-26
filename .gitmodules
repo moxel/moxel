@@ -13,3 +13,6 @@
 [submodule "kube/kube-gcloud"]
 	path = kube/gcloud
 	url = https://github.com/dummy-ai/kube-gcloud
+[submodule "warp/test/tf-bare"]
+	path = warp/test/tf-bare
+	url = https://github.com/dummy-ai/tf-bare

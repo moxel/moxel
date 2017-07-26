@@ -3,7 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/auth0/go-jwt-middleware"
+	"github.com/codegangsta/negroni"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/dummy-ai/mvp/master-server/models"
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
@@ -16,6 +20,13 @@ import (
 
 var db *gorm.DB
 var kubeClient *kube.Clientset
+
+func AuthenticationError(w http.ResponseWriter, r *http.Request, err string) {
+	fmt.Println("header", r.Header)
+	fmt.Println("[Authentication] Error: ", err)
+	w.WriteHeader(400)
+	w.Write([]byte("Authorization Error: " + err))
+}
 
 func CreateClient(kubeconfig string) *kube.Clientset {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -36,6 +47,16 @@ func GetModelPath(user string, name string, tag string) string {
 }
 
 func sayHello(w http.ResponseWriter, r *http.Request) {
+	response, _ := json.Marshal(map[string]string{
+		"status": "OK",
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
+func ping(w http.ResponseWriter, r *http.Request) {
+	user := context.Get(r, "user")
+	fmt.Println("user", user)
 	response, _ := json.Marshal(map[string]string{
 		"status": "OK",
 	})
@@ -203,6 +224,42 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+}
+
+func getModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	fmt.Printf("[GET] Querying the state of the model %s/%s:%s\n",
+		user, name, tag)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get ModelId based on user, model name and tag.
+	modelId := models.ModelId(user, name, tag)
+	fmt.Printf("modelId = %s\n", modelId)
+
+	model, err := models.GetModelById(db, modelId)
+
+	status := "UNKNOWN"
+	yamlString := ""
+
+	if err == nil {
+		fmt.Println(model)
+
+		status = model.Status
+		yamlString = model.Yaml
+	}
+
+	results := map[string]string{
+		"status": status,
+		"yaml":   yamlString,
+	}
+
+	response, _ := json.Marshal(results)
+	w.Write(response)
 }
 
 func postModel(w http.ResponseWriter, r *http.Request) {
@@ -379,6 +436,11 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var err error
+
+	// Initialize Global Constants based on environment variable.
+	InitGlobal()
+
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: master-server [migrate / start]")
 		return
@@ -393,15 +455,44 @@ func main() {
 
 		models.MigrateDB(db)
 	} else if command == "start" {
+		// Database.
 		db = models.CreateDB()
 		kubeClient = CreateClient(KubeConfig)
 		defer db.Close()
 
+		// Authorization.
+		jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
+			ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+				// https://github.com/dgrijalva/jwt-go/issues/147
+				// Need to parse RSA public key first.
+				key, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(JWT_PUBLIC_KEY_CLI))
+				return key, nil
+			},
+			// When set, the middleware verifies that tokens are signed with the specific signing algorithm
+			// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
+			// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+			SigningMethod: jwt.SigningMethodRS256,
+			ErrorHandler:  AuthenticationError,
+		})
+		fmt.Println(jwtMiddleware)
+
+		// HTTP Router.
 		router := mux.NewRouter()
 
+		// Authentication based on JWT.
+		router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, negroni.New(
+			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
+			negroni.Wrap(GetGitRequestHandler()),
+		))
+
+		// No authentication. For debugging.
+		//router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, GetGitRequestHandler())
+
+		router.Handle("/ping", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
+		router.HandleFunc("/model/{user}/{model}/{tag}", getModel).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
@@ -409,14 +500,19 @@ func main() {
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 
+		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))
 		fmt.Println("Starting HTTP master server")
 		server := &http.Server{
 			Handler:      router,
-			Addr:         "0.0.0.0:8080",
+			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterPort),
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 		}
-		server.ListenAndServe()
+		err = server.ListenAndServe()
+		if err != nil {
+			panic(err)
+		}
+
 	} else {
 		panic("Unknown command " + command)
 	}

@@ -27,11 +27,11 @@ const StyledSearchLayout = styled(Flex)`
 export default function SearchLayout(props) {
     return (
         <StyledSearchLayout column className="catalogue-layout-container">
-            <FixedWidthRow component="h1" className="catalogue-hero"
-            >Search For Your Favorite Model</FixedWidthRow>
-            <FixedWidthRow component={SearchBar}
+            <FixedWidthRow component="h4" className="catalogue-hero"
+            >Discover Models</FixedWidthRow>
+            {/*<FixedWidthRow component={SearchBar}
                            className="catalogue-search-bar"
-                           placeholder="Search 15,291 models"/>
+                           placeholder="Search 15,291 models"/>*/}
             <Flex component={FlexItem}
                   fluid
                   width="100%"

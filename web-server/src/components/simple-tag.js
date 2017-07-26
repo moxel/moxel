@@ -8,8 +8,8 @@ const StyledTag = styled('span')`
     font-size: 0.8em;
     font-weight: 100;
     color: #4c0e07;
-    border: 1px solid #ff8e95;
-    background-color: #ffb5b5;
+    border: 1px solid #666;
+    background-color: #eee;
     padding: 2px 4px;
 
     :not(:last-child) {
