@@ -16,6 +16,7 @@
     "layout-components": "^2.7.1",
     "markdown-it": "^8.3.1",
     "morgan": "^1.8.2",
+    "neal-react": "^0.2.5",
     "nextjs": "0.0.3",
     "react": "^15.6.1",
     "react-clipboard.js": "^1.1.2",

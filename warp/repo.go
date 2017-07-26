@@ -571,7 +571,7 @@ func (repo *Repo) PushData(assets []string, user string, name string, commit str
 	bar.SetRefreshRate(1 * time.Millisecond)
 	bar.ShowPercent = true
 	bar.ShowBar = true
-	bar.SetWidth(80)
+	bar.SetWidth(60)
 	bar.SetUnits(pb.U_BYTES)
 	bar.Start()
 
@@ -609,7 +609,6 @@ func (repo *Repo) PushData(assets []string, user string, name string, commit str
 	}
 
 	bar.Finish()
-	fmt.Println("Done!")
 
 	return nil
 }

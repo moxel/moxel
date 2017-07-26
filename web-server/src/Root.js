@@ -5,6 +5,7 @@ import UploadViews from './pages/upload-view';
 import SearchViews from './pages/search-view';
 import ModelViews from './pages/model-view';
 import CreateView from './pages/create-view';
+import LandingPage from './pages/home-view/landing-page';
 import AuthStore from "./stores/AuthStore";
 
 export default function Root() {
@@ -18,7 +19,7 @@ export default function Root() {
 			}}/>
             <Route exact path="/" component={() => {
             	if(!AuthStore.isAuthenticated()) {
-            		return (<div>root page</div>)
+            		return (<LandingPage/>)
             	}else{
             		return <Redirect to="/new"/>
             	}

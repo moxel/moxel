@@ -22,7 +22,7 @@ func main() {
 	var userToken string
 
 	if user.Initialized() {
-		fmt.Println("User: ", user.Username())
+		// fmt.Println("User: ", user.Username())
 		userToken = "Bearer " + user.JWT()
 		userName = user.Username()
 
@@ -162,7 +162,7 @@ func main() {
 				projectName := config["name"].(string)
 				tag := config["tag"].(string)
 
-				fmt.Printf("Uploading model %s:%s\n", projectName, tag)
+				fmt.Printf("> Model %s:%s\n", projectName, tag)
 
 				// Push code to git registry.
 				url, err := api.GetRepoURL(userName, projectName)
@@ -171,14 +171,16 @@ func main() {
 					return nil
 				}
 
+				fmt.Println("> Pushing code...")
 				commit, err := repo.PushCode(userToken, url)
 				if err != nil {
 					fmt.Printf("Failed to push code: ", err.Error())
 					return nil
 				}
 
-				fmt.Println("Commit:", commit)
+				fmt.Println("> Commit ", commit)
 
+				fmt.Println("> Uploading weight files...")
 				// Push assets to cloud storage.
 				if assets, ok := config["assets"]; ok {
 					// Normalize the asset paths.
@@ -205,6 +207,7 @@ func main() {
 					fmt.Println("Cannot save model:", resp.String())
 					os.Exit(1)
 				}
+				fmt.Println("> Done!")
 
 				return nil
 			},

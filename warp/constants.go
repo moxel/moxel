@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"log"
 	"os"
 	"os/user"
@@ -20,7 +20,7 @@ var MasterAddress = "http://beta.dummy.ai/api"
 
 func InitGlobal() {
 	env := os.Getenv("ENV")
-	fmt.Println("Env:", env)
+	// fmt.Println("Env:", env)
 	if env == "dev" {
 		// Run in dev mode.
 		MasterAddress = "http://0.0.0.0:8080"

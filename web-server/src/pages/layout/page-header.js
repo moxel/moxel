@@ -41,15 +41,18 @@ class PageHeader extends Component {
         if(!AuthStore.isAuthenticated() && this.props.showBanner) {
             banner = (
                 <div className="nav-header center">
-                    <h1>World's Best Models <br/> Built by the Community</h1>
+                    <br/>
+                    <h1 style={{fontSize: "70px"}}>World's Best Models <br/> Built by the Community</h1>
                     <div className="tagline" style={{lineHeight: 6}}>
                         Dummy.ai is a platform to build and share machine intelligence.
+                        <br/>
                         <div>
                             <Button waves="light" className="blue" onClick={() => AuthStore.login('/new')}>Upload Model</Button> 
                             &nbsp;&nbsp;&nbsp;&nbsp; 
                             <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
                             &nbsp; 
                         </div>
+                        <br/>
                     </div>
                 </div>
             )
