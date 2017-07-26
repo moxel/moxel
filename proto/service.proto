@@ -1,0 +1,182 @@
+// MVP service model: a user can have many projects, a project can have many models and many deployments and jobs.
+
+syntax = "proto3";
+
+package dummy;
+
+import "google/api/annotations.proto";
+
+message Project {  
+  string user = 1;
+  string name = 2; // project name
+}
+
+message GetRepositoryURLRequest {
+  string user = 1;
+  Project project = 2;
+}
+
+message GetRepositoryURLResponse {
+  string url = 1; // url of git repository
+}
+
+// A user can create a project, and we'll prepare a git repository for use.
+// When creating Models, we upload local code and create references on the remote repository.
+// (caveat: make sure local repository correspond to correct project and repo)
+service Project {
+  // Return the code repo for given project.
+  rpc GetRepositoryURL(GetRepositoryURLRequest) returns (GetRepositoryURLResponse) {
+    option (google.api.http) = {
+      post: "/v1/project/repo"
+      body: "*"
+    };
+  }
+}
+
+// A user can create a dataset and be used in uesr's projects.
+// In the future:
+// . A user can create dataset, and authorize use of dataset for project use
+// . Dataset can also be shared with other users, giving what access level? (can share for training but not for download; and can they share?)
+// . Maybe also versioning on the dataset, can workaround with creating multiple datasets.
+message Dataset {
+  string id = 1;
+  string url = 2; // signed url for accessing the dataset
+  string description = 3;
+}
+
+message CreateDatasetRequest {
+  Dataset dataset = 1;
+  string user = 2;
+  string cloud = 3; // cloud provider: gcloud
+  string verb = 4; // HTTP verb: PUT | GET
+  string path = 5; // path to object
+}
+
+service Dataset {
+  rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {
+    option (google.api.http) = {
+      post: "/v1/dataset/url"
+      body: "*"
+    };
+  }
+  rpc CreateDataset(CreateDatasetRequest) returns (Dataset) {
+    option (google.api.http) = {
+      post: "/v1/dataset/url"
+      body: "*"
+    };
+  }
+  rpc DeleteDataset(DeleteDatasetRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/dataset/url"
+      body: "*"
+    };
+  }
+}
+
+// Model is a version of the model being developed in a project
+message Model {
+	string uid = 1;
+	string name = 1;
+	string tag = 1;
+	string yaml = 1;
+	string commit = 1;
+	string status = 1;
+}
+
+
+message ListModelsRequest {
+  string user = 1;
+}
+
+message ListModelsResponse {
+  repeated Model models = 1;
+}
+
+message CreateModelRequest {
+  Model model = 1;
+}
+
+message CreateModelRequest {
+  Model model = 1;
+}
+
+message DeleteModelRequest {
+  string user = 1;
+  string model = 1;
+  string tag = 1;
+}
+
+message PublishModelsRequest {
+  string user = 1;
+  string model = 1;
+  string tag = 1;
+}
+
+service Model {
+  // ListModels list all models for a given user.
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse) {
+    option (google.api.http) = {
+      get: "/v1/model"
+    };
+  }
+  // CreateModel creates a model.
+  rpc CreateModel(CreateModelRequest) returns (Model) {
+    option (google.api.http) = {
+      post: "/v1/model/{user}/{model}/{tag}"
+      body: "*"
+    };
+  }
+  // DeleteModel deltes 
+  rpc DeleteModel(DeleteModelRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/v1/model/{user}/{model}/{tag}"
+    };
+  }
+}
+
+// Deployment of a Model
+message Deployment {
+  Model model = 1;
+  string status = 2; // TODO: change to enum
+  string endpoint = 3; // accessing endpoint
+  // TODO: consider metrics and other stuff
+}
+
+service Deployment {
+  rpc ListDeployments(ListDeploymentsRequest) returns (ListDeploymentsResponse) {
+    option (google.api.http) = {
+      get: "/v1/model"
+    };
+  }
+  // CreateDeployment publishes one model.
+  rpc CreateDeployment(CreateDeploymentRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/deploy/{user}/{model}/{tag}:publish"
+      body: "*"
+    };
+  }
+  rpc GetDeployment(GetDeploymentRequest) returns (Deployment) {
+    option (google.api.http) = {
+      post: "/v1/deploy/{user}/{model}/{tag}"
+      body: "*"
+    };
+  }
+  rpc DeleteDeployment(DeleteDeploymentRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/deploy/{user}/{model}/{tag}:publish"
+      body: "*"
+    };
+  }
+}
+
+// Job is the training task of a model
+message Job {
+	string uid = 1;
+  Model model = 2;
+  create google.protobuf.Timestamp = 3;
+	update google.protobuf.Timestamp = 4;
+	string status = 5;
+}
+
+service Job {
+}
