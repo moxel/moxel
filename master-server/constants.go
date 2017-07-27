@@ -5,7 +5,10 @@ import (
 	"os"
 )
 
-const KubeConfig = "secrets/admin.conf"
+var KubeConfig = "secrets-prod/admin.conf"
+var gcsBucket string = "dummy-dev"
+var gcsCredentials string = "secrets-prod/dummy-87bbacfcb748.json"
+
 const MasterPort = 8080
 
 const JWT_PUBLIC_KEY_CLI = `
@@ -30,7 +33,7 @@ Nb01fCtaX0uzLOfGzZ2ZZX0V63C/OR6nSLkJKnItxAJEFJogNr6Fi3dxLNYWbeaM
 -----END CERTIFICATE-----
 `
 
-var GitRegistry string = "http://master-dev.dummy.ai/git"
+var GitRegistry string = "http://beta.dummy.ai/git"
 var GitRoot string = "/mnt/nfs/code"
 var GitBin = "/usr/bin/git"
 
@@ -41,6 +44,8 @@ func InitGlobal() {
 		// Run in dev mode.
 		GitRegistry = fmt.Sprintf("http://localhost:%d/git", MasterPort)
 		GitRoot = "/tmp/code"
+		KubeConfig = "secrets-dev/admin.conf"
+		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
 	} else {
 		// default: Production.
 	}

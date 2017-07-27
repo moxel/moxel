@@ -11,13 +11,6 @@ metadata:
     #    rewrite .* / permanent;
     kubernetes.io/ingress.global-static-ip-name: "dummy-ingress"
 spec:
-  rules:
-  - http:
-      paths:
-      - path: /tensorflow/object-detection
-        backend:
-          serviceName: tf-object-detection
-          servicePort: 5900
   backend:
     serviceName: default-http-backend
     servicePort: 80

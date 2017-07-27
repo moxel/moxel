@@ -8,7 +8,7 @@ controller:
 	kubectl create -f ./controller.yml
 
 ingress:
-	kubectl apply -f ingress.yml
+	# kubectl apply -f ingress.yml
 
 default-backend:
 	kubectl create -f default-backend.yml
@@ -24,7 +24,7 @@ clean-controller:
 	kubectl delete configmap kubeconfig
 	
 clean-ingress:
-	kubectl delete ing dummy-ing
+	# kubectl delete ing dummy-ing
 
 expose-nginx:
-	kubectl expose deployment nginx-ingress-controller --type=LoadBalancer --name=nginx-ingress-controller
+	# kubectl expose deployment nginx-ingress-controller --type=LoadBalancer --name=nginx-ingress-controller

@@ -15,9 +15,6 @@ import (
 	"time"
 )
 
-const gcsBucket string = "dummy-dev"
-const gcsCredentials string = "secrets/dummy-87bbacfcb748.json"
-
 var gcsAccessID string
 var gcsAccessKey string
 

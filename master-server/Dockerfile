@@ -1,10 +1,12 @@
 FROM golang
 
-COPY . /app
+COPY ./bin/master-server /app/master-server
+COPY ./secrets-prod /app/secrets-prod
+COPY ./secrets-dev /app/secrets-dev
 
 WORKDIR /app
 
-RUN make install \
-  && make build
+ENTRYPOINT ["/app/master-server"]
+
 
 
