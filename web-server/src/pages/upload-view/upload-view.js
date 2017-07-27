@@ -16,6 +16,7 @@ import "react-dropzone-component/styles/filepicker.css";
 import "dropzone/dist/min/dropzone.min.css";
 import ClipboardButton from 'react-clipboard.js';
 import request from "superagent"
+import {Tabs, Tab} from 'react-materialize'
 
 var componentConfig = {
     iconFiletypes: ['.zip'],
@@ -171,17 +172,13 @@ class UploadView extends Component {
 
         switch(this.state.step) {
             case 0: // Install Warpdrive.
-                content = (
-                    <div>
-                        <ul id="tabs-swipe-install" className="tabs">
-                            <li className="tab col s3"><a className="active" href="#install-swipe-1">Mac&nbsp;OS</a></li>
-                            <li className="tab col s3"><a href="#install-swipe-2">Linux</a></li>
-                        </ul>
-                        <div id="install-swipe-1" className="col s12">
+                var instructionByOS = function(os) {
+                    return (
+                        <div>
                             <div className="row">
                                 <br/>
                             </div>
-                                
+                                    
                             <div className="row">
                                 <div className="col s12 offset-m1 m10">
                                      Warpdrive is a Command Line Tool (CLI) to help you upload models. 
@@ -194,10 +191,10 @@ class UploadView extends Component {
                             
                             <div className="row">
                                 <div className="col s12 offset-m1 m8">
-                                    <input id="warp-install" value="curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/warp && chmod 777 /usr/local/bin/warp" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                    <input id={`warp-install-${os}`} value={`sudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/${os}/warp && sudo chmod 777 /usr/local/bin/warp`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
-                                    <ClipboardButton className="btn-flat" data-clipboard-target="#warp-install">
+                                    <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-install-${os}`}>
                                         <i className="material-icons">content_copy</i>
                                     </ClipboardButton>    
                                 </div>
@@ -213,67 +210,79 @@ class UploadView extends Component {
                             <div className="row">
 
                                 <div className="col s12 offset-m1 m8">
-                                        <input id="warp-login" value="warp login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id={`warp-login-${os}`} value="warp login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
-                                    <ClipboardButton className="btn-flat" data-clipboard-target="#warp-login">
+                                    <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-login-${os}`}>
                                         <i className="material-icons">content_copy</i>
                                     </ClipboardButton>    
                                 </div>
                                 
                             </div>
-
                         </div>
-                        <div id="install-swipe-2" className="col s12">
-                            TODO: Not Implemented.
-                        </div>
+                    )
+                }
+                content = (
+                    <div>
+                        <Tabs className='tab-demo' >
+                            <Tab title="OS X" active>
+                                {instructionByOS("osx")}
+                            </Tab>
+                            <Tab title="Linux">
+                                {instructionByOS("linux")}
+                            </Tab>
+                            <Tab title="Windows">
+                                {instructionByOS("windows")}
+                            </Tab>
+                        </Tabs>
                     </div>
                 )
                 break; 
             case 1: // Wrap Your Model.
                 content = (
                     <div>
-                        <ul id="tabs-swipe-wrap" className="tabs">
-                            <li className="tab col s3"><a className="active" href="#wrap-swipe-1">Python Flask</a></li>
-                            <li className="tab col s3"><a href="#wrap-swipe-2">Python Tornado</a></li>
-                        </ul>
-                        <div id="wrap-swipe-1" className="col s12">
-                            <FixedWidthRow>
-                                <Markdown tagName="instruction" className="markdown-body">
+                        <Tabs className='tab-demo'>
+                            <Tab title="Python Flask" active>
+                                <FixedWidthRow>
+                                    <Markdown tagName="instruction" className="markdown-body">
+                                    <br/>
+                                    {`   
+                                        The first step is to wrap your model in a python Flask server. Let's use \`server.py\`.
+
+                                        The server has two endpoints: 
+
+                                        \`\`\`python
+                                        from flask import Flask, jsonify
+                                        app = Flask(__name__)
+
+                                        @app.route('/', methods=['GET'])
+                                        def healthcheck():
+                                            return 'OK'
+
+                                        @app.route('/', methods=['POST'])
+                                        def predict():
+                                            data = request.json
+                                            ...
+                                            return jsonify(result)
+
+                                        app.run(port=5900, host='0.0.0.0')
+                                        \`\`\`
+
+                                        The \`GET\` endpoint is a probe for the health status of the model. 
+
+                                        The \`POST\` endpoint is where model prediction happens. You need to wrap input and ouput as JSON.
+
+                                    `}
+                                    </Markdown>                            
+                                </FixedWidthRow>
                                 <br/>
-                                {`   
-                                    The first step is to wrap your model in a python Flask server. Let's use \`server.py\`.
+                            </Tab>
+                            <Tab title="Python Tornado">
 
-                                    The server has two endpoints: 
-
-                                    \`\`\`python
-                                    from flask import Flask, jsonify
-                                    app = Flask(__name__)
-
-                                    @app.route('/', methods=['GET'])
-                                    def healthcheck():
-                                        return 'OK'
-
-                                    @app.route('/', methods=['POST'])
-                                    def predict():
-                                        data = request.json
-                                        ...
-                                        return jsonify(result)
-
-                                    app.run(port=5900, host='0.0.0.0')
-                                    \`\`\`
-
-                                    The \`GET\` endpoint is a probe for the health status of the model. 
-
-                                    The \`POST\` endpoint is where model prediction happens. You need to wrap input and ouput as JSON.
-
-                                `}
-                                </Markdown>                            
-                            </FixedWidthRow>
-                            <br/>
-                        </div>
-                        <div id="wrap-swipe-2" className="col s12">
-                        </div>
+                            </Tab>
+                        </Tabs>
+                        
+                        
                     </div>
                 )
                 break; 
