@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/levigross/grequests"
-	"github.com/skratchdot/open-golang/open"
 	"github.com/urfave/cli"
 	"os"
 	"path/filepath"
@@ -12,15 +11,8 @@ import (
 	"strings"
 )
 
-func main() {
-	// Initialize Global Constants based on environment variable.
-	InitGlobal()
-
-	// Get user profile.
+func CheckLogin() {
 	user := User{}
-	var userName string
-	var userToken string
-
 	if user.Initialized() {
 		// fmt.Println("User: ", user.Username())
 		userToken = "Bearer " + user.JWT()
@@ -48,6 +40,11 @@ func main() {
 		fmt.Println("Please login first. Run `warp login`")
 		return
 	}
+}
+
+func main() {
+	// Initialize Global Constants based on environment variable.
+	InitGlobal()
 
 	// Create API remote.
 	api := MasterAPI{}
@@ -71,10 +68,16 @@ func main() {
 		{
 			Name:  "login",
 			Usage: "Login to dummy.ai",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "debug",
+					Usage: "Show debugging information",
+				},
+			},
 			Action: func(c *cli.Context) error {
+				GlobalContext = c
 
-				open.Run(GetAuthorizeURL())
-				StartServer()
+				StartLoginFlow()
 
 				return nil
 			},
@@ -83,6 +86,9 @@ func main() {
 			Name:  "deploy",
 			Usage: "warp deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
+				GlobalContext = c
+				CheckLogin()
+
 				nameAndTag := c.Args().Get(0)
 				entries := strings.Split(nameAndTag, ":")
 
@@ -112,6 +118,9 @@ func main() {
 			Name:  "list",
 			Usage: "warp list [deploy/run]",
 			Action: func(c *cli.Context) error {
+				GlobalContext = c
+				CheckLogin()
+
 				kind := c.Args().Get(0)
 
 				if kind == "deploy" {
@@ -143,6 +152,9 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
+				GlobalContext = c
+				CheckLogin()
+
 				file := c.String("file")
 
 				// Load configuration.
@@ -228,6 +240,9 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
+				GlobalContext = c
+				CheckLogin()
+
 				kind := c.Args().Get(0)
 
 				if kind == "model" {

@@ -11,6 +11,8 @@ import (
 )
 
 func CallbackHandler(w http.ResponseWriter, r *http.Request) {
+	Debugln("Server callback")
+
 	domain := AUTH0_DOMAIN
 
 	conf := &oauth2.Config{
@@ -68,6 +70,6 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		time.Sleep(3.)
-		StopServer(r.Context())
+		StopLoginFlow(r.Context())
 	}()
 }
