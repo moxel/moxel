@@ -27,6 +27,9 @@ class PageHeader extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            width: window.innerWidth,
+        };
         this.state = { isOpen: false };
       }
 
@@ -35,6 +38,19 @@ class PageHeader extends Component {
             isOpen: !this.state.isOpen
         });
     }
+
+    componentWillMount() {
+        this.setState({ width: window.innerWidth });
+        window.addEventListener('resize', this.handleWindowSizeChange);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleWindowSizeChange);
+    }
+
+    handleWindowSizeChange = () => {
+        this.setState({ width: window.innerWidth });
+    };
 
     landing(e) {
         console.log('landing', e);
@@ -51,13 +67,16 @@ class PageHeader extends Component {
 
 
     render() {
+        const screenWidth = this.state.width;
+        const isMobile = screenWidth <= 900;    
+
         let banner = null;
         if(!AuthStore.isAuthenticated() && this.props.showBanner) {
             banner = (
                 <div className="nav-header center">
                     <br/>
-                    <h1 style={{fontSize: "65px", fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
-                    <div className="tagline" style={{lineHeight: 6, fontSize: 20}}>
+                    <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
+                    <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
                         Dummy.ai is a platform to build and share machine intelligence.
                     </div>
                      <div className="row">
@@ -65,10 +84,10 @@ class PageHeader extends Component {
                             <form id="mc_embed_signup" onSubmit={(e) => this.landing()}>
                                 <div id="mc_embed_signup_scroll">
                                     <div className="row">
-                                        <div className="col s6 offset-s2">
-                                            <input type="submit" onKeyPress={(e) => {console.log("keycode", e.keyCode); if(e.keyCode == 13) {this.landing(e); e.preventDefault();}}} id="email" style={{border: "none", borderRadius: "5px", width: "100%", height: "40px", backgroundColor: "white", color: "black"}} type="email" name="EMAIL" className="email validate" placeholder="Email Address"/>
+                                        <div className="col s6 offset-s1 m6 offset-m2">
+                                            <input type="submit" onKeyPress={(e) => {if(e.keyCode == 13) {this.landing(e); e.preventDefault();}}} id="email" style={{border: "none", borderRadius: "5px", width: "100%", height: "40px", backgroundColor: "white", color: "black"}} type="email" name="EMAIL" className="email validate" placeholder="Email Address"/>
                                         </div>
-                                        <div className="col s2" style={{lineHeight: "0px", marginLeft: "20px"}}>
+                                        <div className="col s3 m2" style={{lineHeight: "0px", marginLeft: (isMobile ? "10px" : "20px")}}>
                                             <input type="submit" value="Sign Up" name="subscribe" id="mc-embedded-subscribe" className="btn btn-wavs green" style={{paddingLeft: "0px", paddingRight: "0px", lineHeight: "0px", margin: "0px", height: "40px"}}/>
                                         </div>
                                     </div>
