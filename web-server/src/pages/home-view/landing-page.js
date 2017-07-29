@@ -21,6 +21,7 @@ class LandingPage extends Component {
     })
   }
 
+  
   render() {
 
     return (
@@ -37,8 +38,8 @@ class LandingPage extends Component {
                 With one line of command.
               </div>
               <div style={{fontSize: "20px", textAlign: "center", marginTop: "20px"}}>
-                <a href="#"> Sign Up</a> &nbsp; &nbsp; &nbsp; 
-                <a href="#"> Learn More</a>
+                {/*<a href="#"> Sign Up</a> &nbsp; &nbsp; &nbsp; */}
+                {/*<a href="#"> Learn More</a>*/}
               </div>
             </div>
             <div className="col s4 m5 ">

@@ -1,4 +1,4 @@
-URL='dummyai/web-server'
+URL='dummyai/web-server-landing'
 
 .PHONY: build
 
@@ -19,9 +19,9 @@ push:
 	docker push $(URL)
 
 deploy: 
-	kubectl delete service web-server || true
+	kubectl delete service web-server-landing || true
 	kubectl delete -f deploy.yml || true
 	kubectl create -f deploy.yml
-	kubectl expose deploy web-server --name=web-server --type="LoadBalancer" 
+	kubectl expose deploy web-server-landing --name=web-server-landing --type="LoadBalancer" 
 
 
