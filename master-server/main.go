@@ -154,6 +154,30 @@ func listModel(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+func postLanding(w http.ResponseWriter, r *http.Request) {
+	// Read request JSON.
+	var data map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Unable to read the HTTP request body", 400)
+		return
+	}
+
+	fmt.Println("[POST] A new user is landing", data)
+
+	landing := models.Landing{
+		Email: data["email"].(string),
+	}
+
+	err = models.AddLanding(db, landing)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 func putModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -494,6 +518,7 @@ func main() {
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", getModel).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
+		router.HandleFunc("/landing", postLanding).Methods("POST")
 		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/model/{user}", listModel).Methods("GET")
