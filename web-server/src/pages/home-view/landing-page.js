@@ -29,7 +29,7 @@ class LandingPage extends Component {
     
         <div className="row" style={{paddingTop: "100px", paddingBottom: "0px", marginBottom: "0px"}}>
             <div className="col s4 m5 offset-m1">
-              <div style={{height: "100px"}}>
+              <div style={{height: "150px"}}>
               </div>
               <div style={{fontSize: "40px", textAlign: "center"}}>
                 Deploy Your <br/> Machine Learning Model
