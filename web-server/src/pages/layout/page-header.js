@@ -66,7 +66,7 @@ class PageHeader extends Component {
                                 <div id="mc_embed_signup_scroll">
                                     <div className="row">
                                         <div className="col s6 offset-s2">
-                                            <input id="email" style={{border: "none", borderRadius: "5px", width: "100%", height: "40px", backgroundColor: "white", color: "black"}} type="email" name="EMAIL" className="email validate" placeholder="Email Address"/>
+                                            <input type="submit" onKeyPress={(e) => {console.log("keycode", e.keyCode); if(e.keyCode == 13) {this.landing(e); e.preventDefault();}}} id="email" style={{border: "none", borderRadius: "5px", width: "100%", height: "40px", backgroundColor: "white", color: "black"}} type="email" name="EMAIL" className="email validate" placeholder="Email Address"/>
                                         </div>
                                         <div className="col s2" style={{lineHeight: "0px", marginLeft: "20px"}}>
                                             <input type="submit" value="Sign Up" name="subscribe" id="mc-embedded-subscribe" className="btn btn-wavs green" style={{paddingLeft: "0px", paddingRight: "0px", lineHeight: "0px", margin: "0px", height: "40px"}}/>
