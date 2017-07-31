@@ -20,6 +20,32 @@ gsutil cors set cors/enable-gcloud.json gs://dummy-dev
 ```
 
 
+## Deployment
+
+First, build the docker container,
+
+```
+make build
+```
+
+Then push the container to registry
+
+```
+make push
+```
+
+Finally, deploy the container to Kube cluster,
+
+```
+make deploy
+```
+
+
+
+
+
+
+
 =======
 ## Deployment
 

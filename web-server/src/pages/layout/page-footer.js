@@ -30,9 +30,9 @@ class PageFooter extends Component {
                 <FixedWidthRow row align="center" className="page-footer-inner">
                     <HeaderButton fixed to="/">(c) 2017, Dummy.ai</HeaderButton>
                     <FlexSpacer/>
-                    <HeaderButton fixed to="/terms">Terms of Service</HeaderButton>
+                    {/*<HeaderButton fixed to="/terms">Terms of Service</HeaderButton>
                     <HeaderButton fixed to="/privacy">Privacy Policy</HeaderButton>
-                    <HeaderButton fixed to="/about">About</HeaderButton>
+                    <HeaderButton fixed to="/about">About</HeaderButton>*/}
                 </FixedWidthRow>
             </StyledFooter>
         )

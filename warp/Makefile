@@ -24,8 +24,12 @@ build-windows:
 	mkdir -p bin/release/windows
 	cp -f bin/warp bin/release/windows/warp
 
-build:  build-linux build-windows build-osx
+build-release:  build-linux build-windows build-osx
 	@echo "All versions built".
+
+build:
+	./manage.py build
+
 	
 clean:
 	./manage.py clean

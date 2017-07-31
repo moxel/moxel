@@ -72,5 +72,7 @@ func (user *User) LoadUserConfig() map[string]interface{} {
 }
 
 func (user *User) GetConfigPath() string {
-	return GetUserConfigPath()
+	configPath := GetUserConfigPath()
+	Debugln("User configPath = ", configPath)
+	return configPath
 }
