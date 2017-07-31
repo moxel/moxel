@@ -79,33 +79,32 @@ class PageHeader extends Component {
                     <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
                         Dummy.ai is a platform to build and share machine intelligence.
                     </div>
-                     <div className="row">
-                        <div className="col s10 offset-s1" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" className="validate" target="_blank" noValidate>
-                            <form id="mc_embed_signup" onSubmit={(e) => this.landing()}>
-                                <div id="mc_embed_signup_scroll">
-                                    <div className="row">
-                                        <div className="col s6 offset-s1 m6 offset-m2">
-                                            <input type="submit" onKeyPress={(e) => {if(e.keyCode == 13) {this.landing(e); e.preventDefault();}}} id="email" style={{border: "none", borderRadius: "5px", width: "100%", height: "40px", backgroundColor: "white", color: "black"}} type="email" name="EMAIL" className="email validate" placeholder="Email Address"/>
-                                        </div>
-                                        <div className="col s3 m2" style={{lineHeight: "0px", marginLeft: (isMobile ? "10px" : "20px")}}>
-                                            <input type="submit" value="Sign Up" name="subscribe" id="mc-embedded-subscribe" className="btn btn-wavs green" style={{paddingLeft: "0px", paddingRight: "0px", lineHeight: "0px", margin: "0px", height: "40px"}}/>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                    <div>
+                        <Button waves="light" className="blue" onClick={() => AuthStore.login('/new')}>Upload Model</Button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
+                        &nbsp;
+                    </div> 
+                    
                     <br/>
                 </div>
             )
         }
-        var menu = (
-            <ul className="right hide-on-med-and-down">
-              <li className="active"><a href="/">Models</a></li>
-              {/*<li><a href="warpdrive.html">Warpdrive</a></li>
-               <li><a href="http://docs.dummy.ai/">Docs</a></li>*/}
+
+        var menu = null;
+        if(!AuthStore.isAuthenticated) {
+            menu = (
+                <ul className="right hide-on-med-and-down">
+                  <li className="active"><a href="/">Models</a></li>
+                  <li><a href="warpdrive.html">Warpdrive</a></li>
+                   <li><a href="http://docs.dummy.ai/">Docs</a></li>
+                </ul>
+            )
+        }else{
+            menu = <ul className="right hide-on-med-and-down">
+              <li><a href="/logout">Logout</a></li>
             </ul>
-        )
+        }
         return (
             <div>
                 <Mask show={this.state.isOpen}></Mask>
@@ -119,8 +118,8 @@ class PageHeader extends Component {
                     </div>
                     <div className="nav-wrapper container">
                         <a href="/" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
-                        {/*<a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>*/}
-                        {/*menu*/}
+                        <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
+                        {menu}
                         {banner}
                     </div>
                 </nav>
