@@ -60,9 +60,10 @@ class LandingPage extends Component {
     );
 
     var deployVideo = (
+
       <div className={isMobile ? "col s10 offset-s1" : "col s4 m5 "}>
         <div style={{width: ((isMobile ? 1200 : 650) / 1436 * screenWidth) + "px", overflow:"hidden"}}> 
-          <video width={(isMobile ? 1436 : 800) / 1436 * screenWidth } autoPlay loop style={{marginLeft: (isMobile ? -118 : -65) / 1436 * screenWidth + "px"}}>
+          <video width={(isMobile ? 1436 : 800) / 1436 * screenWidth } autoPlay muted playsInline loop style={{marginLeft: (isMobile ? -118 : -65) / 1436 * screenWidth + "px"}}>
             <source src="/videos/demo-medium.mp4" type="video/mp4"/>
           </video>
         </div>

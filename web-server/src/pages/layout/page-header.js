@@ -120,7 +120,7 @@ class PageHeader extends Component {
                     <div className="nav-wrapper container">
                         <a href="/" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
                         <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
-                        {menu}
+                        {/*menu*/}
                         {banner}
                     </div>
                 </nav>
