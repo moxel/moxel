@@ -176,6 +176,34 @@ func main() {
 
 				fmt.Printf("> Model %s:%s\n", projectName, tag)
 
+				// Check to see if model already exists.
+				var modelData map[string]string
+				resp, err := GlobalAPI.GetModel(userName, projectName, tag)
+				if err != nil {
+					fmt.Printf("Failed to get model data: %s\n", err.Error())
+					return nil
+				}
+				if resp.StatusCode != 200 {
+					resp.JSON(&modelData)
+					if modelData["status"] != "UNKNOWN" {
+						fmt.Printf("Model already exists. Overwrite? [y/n]\t")
+						isYes := AskForConfirmation()
+						if isYes {
+							resp, err = GlobalAPI.DeleteModel(userName, projectName, tag)
+							if err != nil {
+								fmt.Println("Error: ", err.Error())
+							}
+
+							if resp.StatusCode != 200 {
+								fmt.Println("Error: ", resp.String())
+							}
+							return nil
+						} else {
+							return nil
+						}
+					}
+				}
+
 				// Push code to git registry.
 				url, err := GlobalAPI.GetRepoURL(userName, projectName)
 				if err != nil {
@@ -211,7 +239,7 @@ func main() {
 
 				// Create model in the database.
 				yamlString, _ := SaveYAMLToString(config)
-				resp, err := GlobalAPI.PutModel(userName, projectName, tag, commit, yamlString)
+				resp, err = GlobalAPI.PutModel(userName, projectName, tag, commit, yamlString)
 				if err != nil {
 					return err
 				}

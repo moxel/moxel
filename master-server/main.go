@@ -238,8 +238,7 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 func deleteModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	fmt.Println(fmt.Sprintf("[DELETE] Removing a model %s/%s:%s",
-		vars["user"], vars["model"], vars["tag"]))
+	printRequest(r, fmt.Sprintf("Deleting model %s/%s:%s", vars["user"], vars["model"], vars["tag"]))
 
 	// Get ModelId based on user, model name and tag.
 	modelId := models.ModelId(vars["user"], vars["model"], vars["tag"])
@@ -271,8 +270,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	name := vars["model"]
 	tag := vars["tag"]
 
-	fmt.Printf("[GET] Querying the state of the model %s/%s:%s\n",
-		user, name, tag)
+	printRequest(r, fmt.Sprintf("Get model %s/%s:%s", user, name, tag))
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -534,9 +532,9 @@ func main() {
 		router.HandleFunc("/model/{user}/{model}/{tag}", getModel).Methods("GET")
 		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/landing", postLanding).Methods("POST")
-		router.HandleFunc("/model/{user}/{model}/{tag}", deleteModel).Methods("DELETE")
-		router.HandleFunc("/model/{user}/{model}/{tag}", postModel).Methods("POST")
-		router.HandleFunc("/model/{user}", listModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
+		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 
