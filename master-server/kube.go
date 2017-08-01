@@ -89,7 +89,7 @@ spec:
       volumes:
       - name: nfs
         persistentVolumeClaim:
-          claimName: nfs-east-claim
+          claimName: nfs-claim
       - name: secrets
         configMap:
           name: secrets
@@ -145,7 +145,7 @@ spec:
       volumes:
       - name: nfs
         persistentVolumeClaim:
-          claimName: nfs-east-claim
+          claimName: nfs-claim
       - name: secrets
         configMap:
           name: secrets

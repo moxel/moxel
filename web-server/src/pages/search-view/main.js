@@ -17,7 +17,7 @@ class Main extends Component {
 	componentDidMount() {
 		var user = AuthStore.username();
 
-		fetch(`/api/model/${user}`, {
+		fetch(`/api/users/${user}/models`, {
 			"method": "GET"
 		}).then((response)=>{
             return response.json();

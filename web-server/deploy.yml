@@ -1,18 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: web-server-landing
+  name: web-server
 spec:
   replicas: 1
   template:
     metadata:
-      name: web-server-landing
+      name: web-server
       labels:
-        app: web-server-landing
+        app: web-server
     spec:
       containers:
       - name: main
-        image: dummyai/web-server-landing
+        image: dummyai/web-server
         command: 
         - npm 
         - run
@@ -24,7 +24,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: dummy-web-server-landing
+  name: dummy-web-server
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
     kubernetes.io/ingress.class: "nginx"
@@ -34,9 +34,9 @@ spec:
   rules:
   - http:
       paths:
-      - path: /landing
+      - path: /web
         backend:
-          serviceName: web-server-landing
+          serviceName: web-server
           servicePort: 3000
   backend:
     serviceName: default-http-backend
