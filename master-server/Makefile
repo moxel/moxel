@@ -29,11 +29,14 @@ migrate:
 test:
 	./manage.py test ${ARGS}
 
+
+MASTER_DEV="35.197.60.175"
+
 ssh:
-	ssh -ti secrets/warpdrive warp@master-dev.dummy.ai "source ~/.profile; cd ~/master-server; bash"
+	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; bash"
 
 sync:
-	rsync -e "ssh -i secrets/warpdrive" -rvL --exclude=bin --exclude=*.build ./ warp@master-dev.dummy.ai:~/master-server
+	rsync -e "ssh -i secrets-dev/warpdrive" -rvL --exclude=bin --exclude=*.build ./ warp@$(MASTER_DEV):~/master-server
 
 deploy: 
 	kubectl delete service master-server || true
@@ -41,8 +44,8 @@ deploy:
 	kubectl create -f deploy.yml
 	kubectl expose deploy master-server --name=master-server --type="LoadBalancer" 
 
-#deploy: sync
-#	ssh -ti secrets/warpdrive warp@master-dev.dummy.ai "source ~/.profile; cd ~/master-server; make build && make run"
+deploy-dev: sync
+	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; make build && ENV=dev make run"
 #
 #deploy-test: sync
 #	ssh -ti secrets/warpdrive warp@master-dev.dummy.ai "source ~/.profile; cd ~/master-server; make build && make test ARGS=\"${ARGS}\""

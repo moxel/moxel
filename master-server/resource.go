@@ -27,13 +27,13 @@ func GitAddWorktree(srcPath string, destPath string, branch string) error {
 
 	output, err := command.CombinedOutput()
 	if err != nil {
-		return err
+		return errors.New("Failed to add worktree: " + err.Error())
 	}
 
 	command = exec.Command("chmod", "-R", "a+rwx", destPath)
 	output, err = command.CombinedOutput()
 	if err != nil {
-		return err
+		return errors.New("Failed to add worktree permission: " + err.Error())
 	}
 
 	fmt.Println(string(output))
@@ -59,10 +59,10 @@ func GetAssetPath(user string, repo string, commit string) string {
 func CreateRepoMirror(user string, repo string, commit string) error {
 	srcPath := GetRepoPath(user, repo)
 	destPath := GetRepoMirrorPath(user, repo, commit)
-	branch := "branch-" + commit
+	branch := commit
 
 	if pathExists(destPath) {
-		return errors.New("Mirror path already exists: " + destPath)
+		return nil
 	}
 
 	return GitAddWorktree(srcPath, destPath, branch)

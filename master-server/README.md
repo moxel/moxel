@@ -34,6 +34,12 @@ When using a branch of the repo for training / deployment, the master server fir
 make build && make run ENV=dev
 ```
 
+```
+sudo apt-get install nfs-common
+sudo mkdir /mnt/nfs
+sudo mount -t nfs -o intr,tcp,port=2049,nfsvers=4 -v zfs-east-vm:/data /mnt/nfs
+```
+
 ### Migrate DB Schema
 
 ```

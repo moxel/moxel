@@ -296,6 +296,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, _ := json.Marshal(results)
+	w.WriteHeader(200)
 	w.Write(response)
 }
 
@@ -387,9 +388,11 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 
 		model.Status = "INACTIVE"
 		models.UpdateModel(db, model)
+		return
+	} else {
+		w.WriteHeader(400)
+		w.Write([]byte(fmt.Sprintf("[POST] Deploying model using unknown action %s", data["action"])))
 	}
-	w.WriteHeader(400)
-	w.Write([]byte(fmt.Sprintf("[POST] Deploying model using unknown action %s", data["action"])))
 }
 
 func putJob(w http.ResponseWriter, r *http.Request) {
@@ -529,14 +532,14 @@ func main() {
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
-		router.HandleFunc("/model/{user}/{model}/{tag}", getModel).Methods("GET")
-		router.HandleFunc("/model/{user}/{model}/{tag}", putModel).Methods("PUT")
-		router.HandleFunc("/landing", postLanding).Methods("POST")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", getModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
+		router.HandleFunc("/landing", postLanding).Methods("POST")
 
 		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))
 		fmt.Println("Starting HTTP master server")

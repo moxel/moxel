@@ -72,6 +72,40 @@ func main() {
 			},
 		},
 		{
+			Name:  "teardown",
+			Usage: "warp teardown [model-name]:[tag]",
+			Action: func(c *cli.Context) error {
+				GlobalContext = c
+				if err := CheckLogin(); err != nil {
+					return err
+				}
+
+				nameAndTag := c.Args().Get(0)
+				entries := strings.Split(nameAndTag, ":")
+
+				if len(entries) != 2 {
+					return errors.New(fmt.Sprintf("Unrecognized format %s", nameAndTag))
+				}
+
+				projectName := entries[0]
+				tag := entries[1]
+
+				resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), projectName, tag)
+				if err != nil {
+					return err
+				}
+
+				if resp.StatusCode != 200 {
+					fmt.Println("Error:", resp.String())
+					return nil
+				}
+
+				fmt.Println("Successfully torn down", nameAndTag)
+				return nil
+
+			},
+		},
+		{
 			Name:  "deploy",
 			Usage: "warp deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
@@ -100,7 +134,7 @@ func main() {
 					return nil
 				}
 
-				fmt.Println("successfully deployed", nameAndTag)
+				fmt.Println("Successfully deployed", nameAndTag)
 				return nil
 
 			},
@@ -184,23 +218,28 @@ func main() {
 					return nil
 				}
 				if resp.StatusCode != 200 {
-					resp.JSON(&modelData)
-					if modelData["status"] != "UNKNOWN" {
-						fmt.Printf("Model already exists. Overwrite? [y/n]\t")
-						isYes := AskForConfirmation()
-						if isYes {
-							resp, err = GlobalAPI.DeleteModel(userName, projectName, tag)
-							if err != nil {
-								fmt.Println("Error: ", err.Error())
-							}
-
-							if resp.StatusCode != 200 {
-								fmt.Println("Error: ", resp.String())
-							}
-							return nil
-						} else {
-							return nil
+					msg := resp.String()
+					fmt.Println("Error:", msg)
+					return errors.New(msg)
+				}
+				resp.JSON(&modelData)
+				if modelData["status"] != "UNKNOWN" {
+					fmt.Printf("Model already exists. Overwrite? [y/n]\t")
+					isYes := AskForConfirmation()
+					if isYes {
+						resp, err = GlobalAPI.DeleteModel(userName, projectName, tag)
+						if err != nil {
+							fmt.Println("Error:", err.Error())
+							return err
 						}
+
+						if resp.StatusCode != 200 {
+							msg := resp.String()
+							fmt.Println("Error: ", msg)
+							return errors.New(msg)
+						}
+					} else {
+						return nil
 					}
 				}
 

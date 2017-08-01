@@ -111,7 +111,7 @@ func (api *MasterAPI) DeployModel(user string, name string, tag string) (*greque
 	})
 }
 
-func (api *MasterAPI) StopDeployModel(user string, name string, tag string) (*grequests.Response, error) {
+func (api *MasterAPI) TeardownDeployModel(user string, name string, tag string) (*grequests.Response, error) {
 	return grequests.Post(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{
 		JSON: map[string]string{
 			"action": "teardown",

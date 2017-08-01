@@ -28,7 +28,8 @@ func InitGlobal() {
 	// fmt.Println("Env:", env)
 	if env == "dev" {
 		// Run in dev mode.
-		MasterAddress = "http://0.0.0.0:8080"
+		// MasterAddress = "http://0.0.0.0:8080"
+		MasterAddress = "http://master-dev.dummy.ai:8080"
 	} else {
 		// default: Production.
 	}
