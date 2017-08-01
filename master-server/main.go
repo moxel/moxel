@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/codegangsta/negroni"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dummy-ai/mvp/master-server/models"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
@@ -20,6 +20,14 @@ import (
 
 var db *gorm.DB
 var kubeClient *kube.Clientset
+
+func printRequest(r *http.Request, args ...interface{}) error {
+	if r == nil {
+		return errors.New("Cannot print nil request")
+	}
+	fmt.Printf("%s %s %s %s %v\n", r.RemoteAddr, r.Method, r.URL.Path, r.Proto, args)
+	return nil
+}
 
 func AuthenticationError(w http.ResponseWriter, r *http.Request, err string) {
 	fmt.Println("header", r.Header)
@@ -55,8 +63,15 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 }
 
 func ping(w http.ResponseWriter, r *http.Request) {
-	user := context.Get(r, "user")
-	fmt.Println("user", user)
+	vars := mux.Vars(r)
+	user := vars["user"]
+
+	if user == "" {
+		http.Error(w, "User name cannot be empty", 400)
+		return
+	}
+	printRequest(r, "user", user)
+
 	response, _ := json.Marshal(map[string]string{
 		"status": "OK",
 	})
@@ -322,7 +337,7 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			replicas = 1
 		}
-		deployName, err := CreateDeployV2(kubeClient, model.Commit, model.Yaml, replicas)
+		deployName, err := CreateDeployV2(kubeClient, user, name, tag, model.Commit, model.Yaml, replicas)
 		if err != nil {
 			http.Error(w, "Unable to create deployment. "+err.Error(), 500)
 			return
@@ -512,7 +527,7 @@ func main() {
 		// No authentication. For debugging.
 		// router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, GetGitRequestHandler())
 
-		router.Handle("/ping", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
+		router.Handle("/ping/{user}", jwtMiddleware.Handler(http.HandlerFunc(ping))).Methods("GET")
 		router.HandleFunc("/", sayHello).Methods("GET")
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")

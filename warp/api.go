@@ -9,6 +9,27 @@ import (
 
 // API for the MasterServer
 type MasterAPI struct {
+	authToken string
+	user      *User
+}
+
+func NewMasterAPI(user *User) *MasterAPI {
+	authToken := "Bearer " + user.JWT()
+	api := MasterAPI{
+		authToken: authToken,
+		user:      user,
+	}
+	return &api
+}
+
+func (api *MasterAPI) ping() (*grequests.Response, error) {
+	resp, err := grequests.Get(MasterEndpoint("/ping/"+api.user.Username()),
+		&grequests.RequestOptions{
+			Headers: map[string]string{
+				"Authorization": api.authToken,
+			},
+		})
+	return resp, err
 }
 
 func (api *MasterAPI) GetRepoURL(user string, name string) (string, error) {

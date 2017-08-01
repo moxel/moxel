@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/levigross/grequests"
 	"github.com/urfave/cli"
 	"os"
 	"path/filepath"
@@ -11,43 +10,33 @@ import (
 	"strings"
 )
 
-func CheckLogin() {
-	user := User{}
-	if user.Initialized() {
-		// fmt.Println("User: ", user.Username())
-		userToken = "Bearer " + user.JWT()
-		userName = user.Username()
-
+func CheckLogin() error {
+	if GlobalUser.Initialized() {
 		// Check if user has logged in.
-		resp, err := grequests.Get(MasterEndpoint("/ping"), &grequests.RequestOptions{
-			Headers: map[string]string{
-				"Authorization": userToken,
-			},
-		})
+		resp, err := GlobalAPI.ping()
 
 		// Internal server error
 		if err != nil {
 			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
-			return
+			return errors.New("User not logged in")
 		}
 
-		if resp.StatusCode == 500 {
+		if resp.StatusCode != 200 {
 			fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
 			fmt.Println("Please login first. Run `warp login`")
-			return
+			return errors.New("User not logged in")
 		}
+
+		return nil
 	} else {
 		fmt.Println("Please login first. Run `warp login`")
-		return
+		return errors.New("User login failed")
 	}
 }
 
 func main() {
 	// Initialize Global Constants based on environment variable.
 	InitGlobal()
-
-	// Create API remote.
-	api := MasterAPI{}
 
 	// Start application.
 	app := cli.NewApp()
@@ -87,7 +76,9 @@ func main() {
 			Usage: "warp deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
 				GlobalContext = c
-				CheckLogin()
+				if err := CheckLogin(); err != nil {
+					return err
+				}
 
 				nameAndTag := c.Args().Get(0)
 				entries := strings.Split(nameAndTag, ":")
@@ -99,7 +90,7 @@ func main() {
 				projectName := entries[0]
 				tag := entries[1]
 
-				resp, err := api.DeployModel(userName, projectName, tag)
+				resp, err := GlobalAPI.DeployModel(GlobalUser.Username(), projectName, tag)
 				if err != nil {
 					return err
 				}
@@ -119,13 +110,19 @@ func main() {
 			Usage: "warp list [deploy/run]",
 			Action: func(c *cli.Context) error {
 				GlobalContext = c
-				CheckLogin()
+				if err := CheckLogin(); err != nil {
+					return err
+				}
+
+				userName := GlobalUser.Username()
+
+				fmt.Println("userName", userName)
 
 				kind := c.Args().Get(0)
 
 				if kind == "deploy" {
 					format := "%40s | %20s | %10s\n"
-					results, err := api.ListDeployModel(userName)
+					results, err := GlobalAPI.ListDeployModel(userName)
 					if err != nil {
 						return err
 					}
@@ -153,9 +150,12 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				GlobalContext = c
-				CheckLogin()
+				if err := CheckLogin(); err != nil {
+					return err
+				}
 
 				file := c.String("file")
+				userName := GlobalUser.Username()
 
 				// Load configuration.
 				repo, err := GetWorkingRepo()
@@ -177,14 +177,14 @@ func main() {
 				fmt.Printf("> Model %s:%s\n", projectName, tag)
 
 				// Push code to git registry.
-				url, err := api.GetRepoURL(userName, projectName)
+				url, err := GlobalAPI.GetRepoURL(userName, projectName)
 				if err != nil {
 					fmt.Printf("Failed to reach remote repo: %s\n", err.Error())
 					return nil
 				}
 
 				fmt.Println("> Pushing code...")
-				commit, err := repo.PushCode(userToken, url)
+				commit, err := repo.PushCode(GlobalAPI.authToken, url)
 				if err != nil {
 					fmt.Printf("Failed to push code: ", err.Error())
 					return nil
@@ -211,7 +211,7 @@ func main() {
 
 				// Create model in the database.
 				yamlString, _ := SaveYAMLToString(config)
-				resp, err := api.PutModel(userName, projectName, tag, commit, yamlString)
+				resp, err := GlobalAPI.PutModel(userName, projectName, tag, commit, yamlString)
 				if err != nil {
 					return err
 				}
@@ -241,7 +241,9 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				GlobalContext = c
-				CheckLogin()
+				if err := CheckLogin(); err != nil {
+					return err
+				}
 
 				kind := c.Args().Get(0)
 

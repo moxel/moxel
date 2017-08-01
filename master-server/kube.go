@@ -226,23 +226,19 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, replica int) (string, error) {
+func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
 	// Load YAML configuration.
 	var err error
 	var config map[string]interface{}
 	decodeYAML(yamlString, &config)
 
 	// Get basic properties.
-	user := config["user"].(string)
-	name := config["name"].(string)
-	repo := config["repo"].(string)
-	tag := config["tag"].(string)
 	image := config["image"].(string)
 	resources := config["resources"].(map[string]interface{})
 	workPath := config["work_path"].(string)
 
 	// Create git worktree for the container.
-	err = CreateRepoMirror(user, repo, commit)
+	err = CreateRepoMirror(user, name, commit)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	}
@@ -252,11 +248,11 @@ func CreateDeployV2(client *kube.Clientset, commit string, yamlString string, re
 
 	// Add code root. This is where the code repo sits.
 	command = append(command, "--code_root")
-	command = append(command, GetRepoMirrorPath(user, repo, commit))
+	command = append(command, GetRepoMirrorPath(user, name, commit))
 
 	// Add asset root. This is where data / model weights sit.
 	command = append(command, "--asset_root")
-	command = append(command, GetAssetPath(user, repo, commit))
+	command = append(command, GetAssetPath(user, name, commit))
 
 	// Add working path.
 	command = append(command, "--work_path")

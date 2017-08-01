@@ -19,8 +19,8 @@ const USER_CONFIG = ".dummy"
 var MasterAddress = "http://beta.dummy.ai/api"
 
 var GlobalContext *cli.Context
-var userName string
-var userToken string
+var GlobalUser *User
+var GlobalAPI *MasterAPI
 var callbackPort string
 
 func InitGlobal() {
@@ -32,6 +32,9 @@ func InitGlobal() {
 	} else {
 		// default: Production.
 	}
+
+	GlobalUser = &User{}
+	GlobalAPI = NewMasterAPI(GlobalUser)
 }
 
 func MasterEndpoint(path string) string {
@@ -55,7 +58,6 @@ func GetAuthorizeURL() string {
 }
 
 func Debugln(args ...interface{}) {
-	fmt.Println(GlobalContext.String("lang"))
 	if GlobalContext != nil && GlobalContext.Bool("debug") {
 		fmt.Println(args)
 	}
