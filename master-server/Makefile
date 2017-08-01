@@ -5,6 +5,9 @@ docker-build:
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest
 
+docker-run:
+	docker run -e ENV=local -v /tmp/code:/tmp/code -p 8080:8080 -ti $(URL):`cat VERSION` start
+
 install:
 	./manage.py install	
 

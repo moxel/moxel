@@ -7,7 +7,7 @@ import yaml
 import requests
 import requests.exceptions
 import dateparser
-from os.path import join, abspath, exists, relpath, getsize, dirname
+from os.path import expanduser, join, abspath, exists, relpath, getsize, dirname
 
 sys.path.append('./')
 
@@ -17,12 +17,9 @@ from warpcli.local import Repo, Deployment, Experiment
 from warpcli.remote import MasterRemote
 from warpcli.utils import (load_yaml, dump_yaml, query_yes_no, mkdir_if_not_exists,
                            ProgressBar, SpinCursor)
+from warpcli.user import load_user
 
-
-def current_user():
-    # TODO: For MVP, we do not have a user system.
-    return "dummy"
-
+api = MasterRemote()
 
 def current_repo_dir():
     repo_dir = abspath('./')
@@ -112,13 +109,26 @@ def push_data(remote, user, root, commit, deploy, cloud='gcloud'):
         bar.update(round(accum_size / denom, 1))
 
 
+def check_user(user):
+    if user is not None:
+        resp = api.ping(user)
+        print(resp)
+
+
 @click.group()
 def cli(): pass
 
 
 @cli.command()
+def ping():
+    user = load_user()
+    check_user(user)
+
+
+
+@cli.command()
 @click.option('--config_file', '-f', type=str, default='dummy.yml', help='Dummy config to deploy')
-def upload(config_file):
+def create(config_file):
     """
     Note: paths in yaml is relative to the yaml file.
     """

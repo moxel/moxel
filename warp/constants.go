@@ -26,9 +26,11 @@ var callbackPort string
 func InitGlobal() {
 	env := os.Getenv("ENV")
 	// fmt.Println("Env:", env)
-	if env == "dev" {
+	if env == "local" {
+
+		MasterAddress = "http://0.0.0.0:8080"
+	} else if env == "dev" {
 		// Run in dev mode.
-		// MasterAddress = "http://0.0.0.0:8080"
 		MasterAddress = "http://master-dev.dummy.ai:8080"
 	} else {
 		// default: Production.

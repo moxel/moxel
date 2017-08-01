@@ -16,3 +16,9 @@
 [submodule "warp/test/tf-bare"]
 	path = warp/test/tf-bare
 	url = https://github.com/dummy-ai/tf-bare
+[submodule "examples/iris_flower_classifier_demo"]
+	path = examples/iris_flower_classifier_demo
+	url = https://github.com/predictors/iris_flower_classifier_demo
+[submodule "examples/colorization"]
+	path = examples/colorization
+	url = https://github.com/richzhang/colorization

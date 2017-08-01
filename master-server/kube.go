@@ -560,6 +560,7 @@ func AddServiceToIngress(client *kube.Clientset, path string, serviceName string
 					"kubernetes.io/ingress.class":                 "nginx",
 					"ingress.kubernetes.io/rewrite-target":        "/",
 					"kubernetes.io/ingress.global-static-ip-name": "dummy-ingress",
+					"ingress.kubernetes.io/proxy-body-size":       "500m",
 				},
 			},
 			Spec: v1beta1Extensions.IngressSpec{

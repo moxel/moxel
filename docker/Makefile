@@ -12,6 +12,9 @@ all: .python3 .py3-tf-cpu .python3-gpu .py3-tf-gpu
 .py3-tf-cpu: .python3
 	cp -r core py3-tf-cpu && cd py3-tf-cpu && make build
 
+.py3-caffe-cpu:
+	cp -r core py3-caffe-cpu && cd py3-caffe-cpu && make build
+
 .py3-tf-gpu: .python3-gpu
 	cp -r core py3-tf-gpu && cd py3-tf-gpu && make build
 

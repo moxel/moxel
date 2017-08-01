@@ -11,7 +11,7 @@ setup(name='warp',
       packages=['warpcli'],
       entry_points={
           "console_scripts": [
-              "warp = warpcli.cli:cli",
+              "warpy = warpcli.cli:cli",
           ]
       }
 )

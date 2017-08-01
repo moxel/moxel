@@ -10,6 +10,18 @@ from warpcli.constants import master_server_http
 class MasterRemote(object):
     """ Remote to master
     """
+    def get(self, path, *args, **kwargs):
+        try:
+            return requests.get(master_server_http(path), *args, **kwargs)
+        except:
+            print('Cannot connect to warp API')
+            exit(1)
+
+    def ping(self, user):
+        response = self.get('/ping/{}'.format(user))
+        return response
+
+
     def get_repo_url(self, user, name):
         response = requests.get(master_server_http('/url/code'),
                         params={'user': user, 'name': name}).json()
