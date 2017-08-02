@@ -7,4 +7,5 @@ extra:
 pages:
 - 'index.md'
 - Deployment:
-  - 'deploy-with-web-server.md'
+  - 'tensorflow-object-detection.md'
+  - 'caffe-colorization.md'

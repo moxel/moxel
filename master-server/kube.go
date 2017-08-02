@@ -187,7 +187,8 @@ func GetDeployName(user string, model string, tag string) string {
 		strings.Replace(user, "-", "--", -1) +
 		"-" +
 		strings.Replace(model, "-", "--", -1) +
-		"-" + tag
+		"-" +
+		strings.Replace(tag, ".", "-1", -1)
 }
 
 func GetJobName(user string, repo string, commit string) string {
