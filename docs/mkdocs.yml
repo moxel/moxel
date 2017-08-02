@@ -1,5 +1,10 @@
 site_name: Warpdrive
-theme_dir: bootstrap
+theme: 'material'
+extra:
+  palette:
+    primary: 'indigo'
+    accent: 'light blue'
 pages:
 - 'index.md'
-- 'deploy.md'
+- Deployment:
+  - 'deploy-with-web-server.md'
