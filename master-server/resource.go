@@ -75,6 +75,13 @@ func CreateRepoMirror(user string, repo string, commit string) error {
 
 	if _, err := os.Stat(mirrorRoot); os.IsNotExist(err) {
 		os.MkdirAll(mirrorRoot, 0777)
+
+		command := exec.Command("chmod", "-R", "a+rwx", mirrorRoot)
+		_, err := command.CombinedOutput()
+		if err != nil {
+			return errors.New("Failed to add mirror permission: " + err.Error())
+		}
+
 	}
 
 	if pathExists(destPath) {
@@ -114,7 +121,7 @@ func GetRepoURL(user string, name string) (string, error) {
 
 	}
 
-	return GitRegistry + "/" + gitPath + "/main", nil
+	return "/" + gitPath + "/main", nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets
