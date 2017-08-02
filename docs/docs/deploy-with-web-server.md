@@ -1,4 +1,4 @@
-# Model Deployment
+# Model Deployment with Web Server
 
 In this chapter, we will show how to deploy a machine learning model using Warpdrive.
 
