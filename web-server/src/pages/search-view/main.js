@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import SearchLayout from "./SearchLayout";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
 import AuthStore from "../../stores/AuthStore";
+import ModelStore from "../../stores/ModelStore";
 
 class Main extends Component {
 	constructor() {
@@ -16,34 +17,21 @@ class Main extends Component {
 
 	componentDidMount() {
 		var user = AuthStore.username();
-
-		fetch(`/api/users/${user}/models`, {
-			"method": "GET"
-		}).then((response)=>{
-            return response.json();
-        }).then(function(data) {
-            console.log("models", data);
-            var models = [];
-            for(var row of data) {
-            	models.push({
-            		id: row.uid,
-            		title: row.name,
-            		details: "(Description)",
-            		readme: "(ReadME)",
-            		tags: ["deep learning"],
-            		contributors: [{ username: user, name: user }],
-		            stats: {
-		                download: 271,
-		                stars: 805
-		            },
-		            lastUpdated: '1 days ago'
-            	})
+		ModelStore.fetchModelAll().then(function(models) {
+            var modelHash = {};
+            var modelAgg = [];
+            for(var model of models) {
+                // TODO: aggregate based on whichever tag comes later :)
+                var uid = model.user + "/" + model.id;
+                if(uid in modelHash) continue;
+                modelHash[uid] = model;
+                modelAgg.push(model); 
             }
+            console.log(modelAgg)
             this.setState({
-            	models: models
+                models: modelAgg
             })
-        }.bind(this))
-
+        }.bind(this));
 	}
 
     render() {

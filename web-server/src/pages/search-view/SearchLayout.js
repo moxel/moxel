@@ -6,6 +6,7 @@ import styled from "styled-components";
 
 const StyledSearchLayout = styled(Flex)`
     height: 100%;
+    padding-top: 30px;
 
     .catalogue-hero {
       margin-bottom: 40px;
@@ -22,13 +23,12 @@ const StyledSearchLayout = styled(Flex)`
     .catalogue-body-container .model-snippet {
       width: 100%;
     }
+
 `;
 
 export default function SearchLayout(props) {
     return (
         <StyledSearchLayout column className="catalogue-layout-container">
-            <FixedWidthRow component="h4" className="catalogue-hero"
-            >Discover Models</FixedWidthRow>
             {/*<FixedWidthRow component={SearchBar}
                            className="catalogue-search-bar"
                            placeholder="Search 15,291 models"/>*/}
