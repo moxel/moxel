@@ -14,7 +14,11 @@ import { TimeSeries, TimeRange } from "pondjs";
 import {Tabs, Tab} from 'react-materialize'
 import ImageUploader from "../../widgets/image-uploader";
 import ModelStore from "../../stores/ModelStore";
+import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -26,6 +30,35 @@ const StyledModelLayout = styled(Flex)`
         padding-top: 20px;
         width: 100%;
         padding-bottom: 100px;
+    }
+
+    .slick-dots li {
+        width: 50px;
+        height: 50px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .slick-prev {
+        display: block;
+        height: 100%;
+    }
+
+    .slick-prev:hover {
+        background-color: #EFF1F4;
+    }
+
+    .slick-next:hover {
+        background-color: #EFF1F4;
+    }
+
+    .slick-next {
+        display: block;
+        height: 100%;
+    }
+
+    .slick-prev:before, .slick-next:before {
+        color: #dddde2;
     }
 
     padding-top: 20px;`;
@@ -102,6 +135,32 @@ class ModelView extends Component {
             )
         }
 
+        // Set up image gallery.
+        var galleryThumb = [];
+        var galleryImages = [];
+
+        console.log('model gallery', model.gallery);
+        for(var imgSrc of model.gallery) {
+            galleryImages.push(
+                <div><img style={{width: "100%", height: "auto"}} src={imgSrc} /></div>
+            );
+            galleryThumb.push(
+                <a><img style={{height: "auto", width: "50px"}} src={imgSrc}/></a>
+            )
+        }
+
+        var gallerySettings = {
+            customPaging: function(i) {
+                return galleryThumb[i];
+            },
+            dots: true,
+            dotsClass: 'slick-dots slick-thumb',
+            infinite: true,
+            speed: 500,
+            slidesToShow: 1,
+            slidesToScroll: 1
+        };
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -109,6 +168,8 @@ class ModelView extends Component {
                 {/*<FixedWidthRow component={SearchBar}*/}
                 {/*className="catalogue-search-bar"*/}
                 {/*placeholder="Search 15,291 models"/>*/}
+                
+
                 <Flex component={FlexItem}
                       fluid
                       width="%"
@@ -164,6 +225,22 @@ class ModelView extends Component {
                                   }
                                 </div>
                               </div>
+                            </div>
+                        </div>
+                    </FixedWidthRow>
+
+                    <FixedWidthRow>
+                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                            <div className="col s12 m12">
+                                <div className="card white">
+                                    <div className="card-content white-text">
+                                        <div>
+                                            <Slider {...gallerySettings}>
+                                                {galleryImages}
+                                            </Slider>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </FixedWidthRow>

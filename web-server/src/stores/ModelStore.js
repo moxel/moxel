@@ -20,7 +20,8 @@ class ModelStoreClass {
             inputType: {
             },
             outputType: {
-            }
+            },
+            gallery: []
         };
     	
         for(var k in data.metadata) {
