@@ -147,21 +147,36 @@ func listModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 
-	ms, err := models.ListModelByUser(db, user)
+	var err error
+	var ms []models.Model
+
+	if user == "_" {
+		ms, err = models.ListModelAll(db)
+	} else {
+		ms, err = models.ListModelByUser(db, user)
+	}
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 		return
 	}
 
-	var results []map[string]string
+	var results []map[string]interface{}
 
 	for _, model := range ms {
-		results = append(results, map[string]string{
-			"uid":    model.Uid,
-			"name":   model.Name,
-			"tag":    model.Tag,
-			"status": model.Status,
+		var metadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(model.Yaml), &metadata)
+
+		result := cleanupInterfaceMap(map[interface{}]interface{}{
+			"uid":      model.Uid,
+			"name":     model.Name,
+			"tag":      model.Tag,
+			"status":   model.Status,
+			"yaml":     model.Yaml,
+			"metadata": metadata,
 		})
+
+		results = append(results, result)
 	}
 
 	response, _ := json.Marshal(results)

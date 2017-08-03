@@ -82,3 +82,11 @@ func ListModelByUser(db *gorm.DB, userId string) ([]Model, error) {
 
 	return models, err
 }
+
+// ListModelByUser lists models that belong to UserId.
+func ListModelAll(db *gorm.DB) ([]Model, error) {
+	var models []Model
+	err := db.Find(&models).Error
+
+	return models, err
+}
