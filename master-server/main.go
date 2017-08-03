@@ -280,6 +280,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	model, err := models.GetModelById(db, modelId)
 
+	// Read status and YAML string.
 	status := "UNKNOWN"
 	yamlString := ""
 
@@ -290,12 +291,25 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 		yamlString = model.Yaml
 	}
 
-	results := map[string]string{
-		"status": status,
-		"yaml":   yamlString,
-	}
+	// Convert YAML into JSON.
+	var metadata map[interface{}]interface{}
+	yaml.Unmarshal([]byte(yamlString), &metadata)
 
-	response, _ := json.Marshal(results)
+	// By default YAML returns map[interface{}][interface{}} for nested maps.
+	// See https://github.com/go-yaml/yaml/issues/139
+	results := cleanupInterfaceMap(map[interface{}]interface{}{
+		"status":   status,
+		"yaml":     yamlString,
+		"metadata": metadata,
+	})
+
+	fmt.Println("results", results)
+
+	response, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), results), 500)
+		return
+	}
 	w.WriteHeader(200)
 	w.Write(response)
 }
