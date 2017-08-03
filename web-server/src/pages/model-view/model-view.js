@@ -12,6 +12,7 @@ import styled from "styled-components";
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
 import { TimeSeries, TimeRange } from "pondjs";
 import {Tabs, Tab} from 'react-materialize'
+import ImageUploader from "../../widgets/image-uploader";
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -28,22 +29,28 @@ const StyledModelLayout = styled(Flex)`
     padding-top: 20px;`;
 
 function ModelView({match, ..._props}) {
-    const {user, modelId} = match.params;
+    const {userId, modelId, tag} = match.params;
     const model = {
-        user: "strin",
-        name: "tf-object-detection",
+        user: userId,
+        id: modelId,
         status: "LIVE",
         title: "Tensorflow Object Detection",
         description: "This is an object detection model written in Tensorflow",
         readme: "(ReadME)",
-        tag: "0.0.1",
+        tag: tag,
         keywords: ["deep learning", "computer vision"],
         links: {
             "github": "https://github.com/tensorflow/models",
             "arxiv": "https://arxiv.org/abs/1603.04467"
         },
         stars: 999,
-        lastUpdated: '1 days ago'
+        lastUpdated: '1 days ago',
+        inputType: {
+            image: "image.rgb.uint8"
+        },
+        outputType: {
+            image: "image.rgb.uint8"
+        }
     };
 
     var statusButton = null;
@@ -70,6 +77,28 @@ function ModelView({match, ..._props}) {
 
     const series1 = new TimeSeries(seriesData);
 
+    var inputType = [];
+
+    for(var t in model.inputType) {
+        inputType.push(
+            (<tr>
+                <td>{t}</td>
+                <td>{model.inputType[t]}</td>
+            </tr>)
+        )
+    }
+
+    var outputType = [];
+
+    for(var t in model.outputType) {
+        outputType.push(
+            (<tr>
+                <td>{t}</td>
+                <td>{model.outputType[t]}</td>
+            </tr>)
+        )
+    }
+
     return (
         <StyledModelLayout column className="catalogue-layout-container">
             {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -81,9 +110,9 @@ function ModelView({match, ..._props}) {
                   fluid
                   width="%"
                   className="model-view">
-                <FixedWidthRow>
+                <FixedWidthRow style={{justifyContent: "left"}}>
                     <i className="material-icons">book</i> &nbsp; 
-                    <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.name}</b>
+                    <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
                 </FixedWidthRow>
                 <FixedWidthRow>
                     <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -143,7 +172,28 @@ function ModelView({match, ..._props}) {
                                 <div className="card-tabs blue-grey lighten-1">
                                   <Tabs className='tab-demo blue-grey lighten-1'>
                                     <Tab title="Demo" active >
-                                        <span className="white-text">Demo</span>
+                                        <span className="white-text">
+                                            <div className="row"></div> 
+                                            <div className="row">
+                                                <div className="col m6">
+                                                    <ImageUploader></ImageUploader>
+                                                </div>
+                                                <div className="col m6" style={{textAlign: "right"}}>
+                                                    <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col m5">
+                                                    
+                                                </div>
+                                                <div className="col m2">
+                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
+                                                </div>
+                                                <div className="col m5">
+                                                </div>
+                                                
+                                            </div>
+                                        </span>
                                     </Tab>
                                     <Tab title="API">
                                         <Markdown className="markdown-body white-text" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
@@ -187,20 +237,23 @@ function ModelView({match, ..._props}) {
                                                   <th>Type</th>
                                               </tr>
                                             </thead>*/}
-
                                             <tbody>
-                                              <tr>
-                                                <td>Image</td>
-                                                <td>raw.base64</td>
-                                              </tr>
-                                              <tr>
-                                                <td>Text</td>
-                                                <td>string.ascii</td>
-                                              </tr>
+                                                {inputType}
                                             </tbody>
-                                          </table>
+                                        </table>
                                     </Tab>
                                     <Tab title="Output Type">
+                                        <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
+                                            {/*<thead>
+                                              <tr>
+                                                  <th>Name</th>
+                                                  <th>Type</th>
+                                              </tr>
+                                            </thead>*/}
+                                            <tbody>
+                                                {outputType}
+                                            </tbody>
+                                        </table>
                                     </Tab>
                                 </Tabs>
 

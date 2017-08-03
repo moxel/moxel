@@ -76,7 +76,7 @@
   },
   "proxy": {
     "/api": {
-      "target": "http://localhost:8080",
+      "target": "http://master-dev.dummy.ai:8080",
       "ws": true,
       "pathRewrite": {
         "^/api": ""
