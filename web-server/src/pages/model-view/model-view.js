@@ -184,28 +184,39 @@ class ModelView extends Component {
                               <div className="card blue-grey">
                                 <div className="card-content white-text">
                                 <span style={{float: "right"}}>
-                                    {statusButton}
+                                    
                                     &nbsp;
-                                    <a className='dropdown-button btn-flat white black-text' href='#' data-activates='dropdown1'>
-                                        <i className="material-icons left">loyalty</i>
-                                        {model.tag}
-                                    </a>
+                                    <a className="waves-effect btn-flat orange black-text"><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
-                                    <ul id='dropdown1' className='dropdown-content white black-text'>
-                                      <li><a href="#!">one</a></li>
-                                      <li><a href="#!">two</a></li>
-                                      <li className="divider"></li>
-                                      <li><a href="#!">three</a></li>
-                                      <li><a href="#!"><i className="material-icons">view_module</i>four</a></li>
-                                      <li><a href="#!"><i className="material-icons">cloud</i>five</a></li>
-                                    </ul>
-                                    &nbsp;
-                                    <a className="waves-effect btn-flat white black-text"><i className="material-icons left">star</i>{model.stars}</a>
+                                    <a className="waves-effect btn-flat white black-text"><i className="material-icons left">share</i>Share</a>
                                 </span>
-                                  <span className="card-title">
-                                        {model.title}
-                                  </span>
-                                  <p>{model.description}</p>
+
+                                <span className="card-title">
+                                    {model.title}
+                                </span>
+
+                                <div style={{height: "50px"}}>
+                                    <span style={{float: "left"}}>
+                                        {statusButton}
+                                        &nbsp;
+                                        <a className='dropdown-button btn-flat white black-text' href='#' data-activates='dropdown1'>
+                                            <i className="material-icons left">loyalty</i>
+                                            {model.tag}
+                                        </a>
+                                        <ul id='dropdown1' className='dropdown-content white black-text'>
+                                          <li><a href="#!">one</a></li>
+                                          <li><a href="#!">two</a></li>
+                                          <li className="divider"></li>
+                                          <li><a href="#!">three</a></li>
+                                          <li><a href="#!"><i className="material-icons">view_module</i>four</a></li>
+                                          <li><a href="#!"><i className="material-icons">cloud</i>five</a></li>
+                                        </ul>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <p>{model.description}</p>
+                                </div>
 
                                   <br/>
 
