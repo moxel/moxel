@@ -5,7 +5,9 @@ extra:
     primary: 'indigo'
     accent: 'light blue'
 pages:
-- 'index.md'
-- Deployment:
+- Warpdrive:
+  - 'warpdrive/install.md'
+  - 'warpdrive/proposal.md'
+- Tutorial:
   - 'tensorflow-object-detection.md'
   - 'caffe-colorization.md'
