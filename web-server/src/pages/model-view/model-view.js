@@ -14,6 +14,7 @@ import { TimeSeries, TimeRange } from "pondjs";
 import {Tabs, Tab} from 'react-materialize'
 import ImageUploader from "../../widgets/image-uploader";
 import ModelStore from "../../stores/ModelStore";
+import DataStore from "../../stores/DataStore";
 import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
@@ -169,6 +170,18 @@ class ModelView extends Component {
                 }.bind(this));
             }
         }.bind(this));
+
+        // Add event handler for image upload.
+        this.uploadEventHandlers = { 
+            addedfile: (file) => {
+                const {userId, modelId, tag} = this.props.match.params;
+                console.log('file', file);
+                var parts = file.name.split('.')
+                var ext = parts[parts.length-1];
+                var uid = DataStore.uuid() + '.' + ext;
+                DataStore.uploadData(userId, modelId, `data/${uid}`, file);
+            }
+        }
     }
 
     render() {
@@ -369,7 +382,7 @@ class ModelView extends Component {
                                                 <div className="row"></div> 
                                                 <div className="row">
                                                     <div className="col m6">
-                                                        <ImageUploader></ImageUploader>
+                                                        <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
                                                     </div>
                                                     <div className="col m6" style={{textAlign: "center"}}>
                                                         <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
