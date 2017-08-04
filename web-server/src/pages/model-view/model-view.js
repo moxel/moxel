@@ -39,6 +39,12 @@ const StyledModelLayout = styled(Flex)`
         margin-right: 10px;
     }
 
+    .slick-custom {
+        background-color: rgba(195, 195, 195, 0.18);
+        bottom: 0px !important;
+        height: 35px;
+    }
+
     .slick-prev {
         display: block;
         height: 100%;
@@ -61,7 +67,55 @@ const StyledModelLayout = styled(Flex)`
         color: #dddde2;
     }
 
-    padding-top: 20px;`;
+    padding-top: 20px;
+
+    .card:hover {
+        box-shadow: 0px 0px 15px #888;
+    }
+
+    .model-status-btn {
+        height: 20px;
+        width: 75px;
+        font-size: 10px;
+        padding-left: 0px;
+        padding-right: 0px;
+        vertical-align: middle;
+        line-height: 2;
+    }
+
+    .model-status-btn:hover {
+        box-shadow: 0px 0px 5px #333;
+    }
+
+    .model-status-btn i {
+        font-size: .8rem;
+        line-height: 1.8;
+        height: 20px;
+        margin-right: 5px;
+        margin-left: 10px;
+    }
+
+    .model-action-btn {
+
+    }
+
+    .model-action-btn:hover {
+        box-shadow: 0px 0px 15px #333;
+    }
+
+    .card-gallery {
+        padding: 0;
+    }
+
+    // Gallery style.
+    .slick-list {
+        height: 300px;
+    }
+
+    .slick-track {
+        height: 300px;
+    }
+`;
 
 class ModelView extends Component {
     constructor() {
@@ -92,11 +146,11 @@ class ModelView extends Component {
         var statusButton = null;
         if(model.status == "LIVE") {
             statusButton = (
-                <a className="waves-effect btn-flat green black-text"><i className="material-icons left">check_box_outline_blank</i>{model.status}</a>
+                <a className="waves-effect btn-flat green black-text model-status-btn white-text"><i className="material-icons left">check_box_outline_blank</i>{model.status}</a>
             )
         }else{
             statusButton = (
-                <a className="waves-effect btn-flat white black-text"><i className="material-icons left">check_box_outline_blank</i>{model.status}</a>
+                <a className="waves-effect btn-flat white black-text model-status-btn"><i className="material-icons left">check_box_outline_blank</i>{model.status}</a>
             )
         }
         
@@ -142,7 +196,7 @@ class ModelView extends Component {
         console.log('model gallery', model.gallery);
         for(var imgSrc of model.gallery) {
             galleryImages.push(
-                <div><img style={{width: "100%", height: "auto"}} src={imgSrc} /></div>
+                <div style={{backgroundImage: `url(${imgSrc})`, backgroundSize: "cover"}}></div>
             );
             galleryThumb.push(
                 <a><img style={{height: "auto", width: "50px"}} src={imgSrc}/></a>
@@ -154,7 +208,7 @@ class ModelView extends Component {
                 return galleryThumb[i];
             },
             dots: true,
-            dotsClass: 'slick-dots slick-thumb',
+            dotsClass: 'slick-dots slick-thumb slick-custom',
             infinite: true,
             speed: 500,
             slidesToShow: 1,
@@ -181,14 +235,14 @@ class ModelView extends Component {
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
-                              <div className="card blue-grey">
+                              <div className="card blue darken-3">
                                 <div className="card-content white-text">
                                 <span style={{float: "right"}}>
                                     
                                     &nbsp;
-                                    <a className="waves-effect btn-flat orange black-text"><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
+                                    <a className="waves-effect btn-flat orange lighten-1 black-text model-action-btn"><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
-                                    <a className="waves-effect btn-flat white black-text"><i className="material-icons left">share</i>Share</a>
+                                    <a className="waves-effect btn-flat white black-text model-action-btn"><i className="material-icons left">share</i>Share</a>
                                 </span>
 
                                 <span className="card-title">
@@ -199,7 +253,7 @@ class ModelView extends Component {
                                     <span style={{float: "left"}}>
                                         {statusButton}
                                         &nbsp;
-                                        <a className='dropdown-button btn-flat white black-text' href='#' data-activates='dropdown1'>
+                                        <a className='dropdown-button btn-flat white black-text model-status-btn' href='#' data-activates='dropdown1'>
                                             <i className="material-icons left">loyalty</i>
                                             {model.tag}
                                         </a>
@@ -227,7 +281,7 @@ class ModelView extends Component {
                                     </div>
                                 </div>
                                 
-                                <div className="card-action blue-grey darken-1">
+                                <div className="card-action blue darken-4">
                                   {
                                     model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
                                   }
@@ -244,7 +298,7 @@ class ModelView extends Component {
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
                                 <div className="card white">
-                                    <div className="card-content white-text">
+                                    <div className="card-content card-gallery white-text">
                                         <div>
                                             <Slider {...gallerySettings}>
                                                 {galleryImages}
