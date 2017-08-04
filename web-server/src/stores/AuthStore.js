@@ -52,7 +52,7 @@ class AuthStoreClass {
 
 	logout() {
 		  localStorage.removeItem('accessToken');	
-      this.lock.logout();
+      this.lock.logout({ returnTo: window.location.protocol + '//' + window.location.host});
 	}
 
   profile() {

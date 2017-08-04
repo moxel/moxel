@@ -92,16 +92,11 @@ class PageHeader extends Component {
         }
 
         var menu = null;
-        if(!AuthStore.isAuthenticated) {
-            menu = (
-                <ul className="right hide-on-med-and-down">
-                  <li className="active"><a href="/">Models</a></li>
-                  <li><a href="warpdrive.html">Warpdrive</a></li>
-                   <li><a href="http://docs.dummy.ai/">Docs</a></li>
-                </ul>
-            )
+        if(!AuthStore.isAuthenticated()) {
+            menu = null;
         }else{
             menu = <ul className="right hide-on-med-and-down">
+              <li><a href="/models">Models</a></li>
               <li><a href="/logout">Logout</a></li>
             </ul>
         }
