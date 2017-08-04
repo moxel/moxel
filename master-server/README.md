@@ -68,6 +68,13 @@ make test ARGS="github.com/dummy-ai/mvp/master-server -run TestGetRepoURL"
 make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
 ```
 
+### Deploy
+
+```
+make devbox-build && make devbox-push && make deploy ENV=${ENV}
+```
+
+where `ENV=dev/prod`.
 
 #### Test Deployments
 

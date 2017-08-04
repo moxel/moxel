@@ -22,6 +22,8 @@ gsutil cors set cors/enable-gcloud.json gs://dummy-dev
 
 ## Deployment
 
+tl;dr: `make build && make push && make deploy`
+
 First, build the docker container,
 
 ```

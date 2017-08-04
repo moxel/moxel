@@ -57,6 +57,10 @@ deploy:
 devbox-deploy: sync
 	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; sudo make docker-build && sudo make docker-run ENV=devbox"
 
+devbox-build: sync
+	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; sudo make docker-build"
+
+
 devbox-push: sync
 	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; sudo make docker-push"
 
