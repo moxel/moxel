@@ -115,6 +115,17 @@ const StyledModelLayout = styled(Flex)`
     .slick-track {
         height: 300px;
     }
+
+    hr {
+        box-sizing: content-box;
+        height: 1px;
+        outline-color: rgba(162, 160, 160, 0.25);
+        color: rgba(218, 218, 218, 0.52);
+        background-color: rgba(218, 218, 218, 0.52);
+        border: none;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
 `;
 
 class ModelView extends Component {
@@ -122,7 +133,8 @@ class ModelView extends Component {
         super()
 
         this.state = {
-            model: null
+            model: null,
+            readme: "*No description available for the model*"
         }
     }
 
@@ -132,6 +144,18 @@ class ModelView extends Component {
             this.setState({
                 model: model
             })
+
+            console.log(model.readme);
+
+            if(model.readme) {
+                fetch(model.readme).then(function(resp) {
+                    return resp.text();
+                }).then(function(body) {
+                    this.setState({
+                        readme: body
+                    })
+                }.bind(this));
+            }
         }.bind(this));
     }
 
@@ -323,8 +347,8 @@ class ModelView extends Component {
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
                                 <div className="card">
-                                    <div className="card-tabs blue-grey lighten-1">
-                                      <Tabs className='tab-demo blue-grey lighten-1'>
+                                    <div className="card-tabs white">
+                                      <Tabs className='tab-demo white'>
                                         <Tab title="Demo" active >
                                             <span className="white-text">
                                                 <div className="row"></div> 
@@ -411,26 +435,27 @@ class ModelView extends Component {
                                         </Tab>
                                     </Tabs>
 
-                                      
+                                    
+                                    <hr/>
 
                                       
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </FixedWidthRow>
 
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                            <div className="col s12 m12">
-                                <div className="card">
-                                    <div className="card-content black-text">
-                                        <Markdown tagName="article" source={model.readme} className="markdown-body"/>
+                                    <div className="card-content">
+                                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                            <div className="col s12 m12">
+                                                <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                            </div>
+                                        </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
+
+                        
                     </FixedWidthRow>
+            
                     {/*<FixedWidthRow style={{marginTop: '30px'}}><ModelSnippet {...model}/></FixedWidthRow>
                     <TabButtonBar repoUrl={model.links['github']}/>
                     <NotificationBanner>A new version of the model is being launched, click here to see the launch

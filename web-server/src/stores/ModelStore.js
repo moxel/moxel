@@ -12,7 +12,6 @@ class ModelStoreClass {
             status: data.status,
             title: "Untitled",
             description: "This is some magic machine learning model",
-            readme: "(ReadME)",
             labels: ["deep learning"],
             links: {},
             stars: 0,
@@ -21,7 +20,8 @@ class ModelStoreClass {
             },
             outputType: {
             },
-            gallery: []
+            gallery: [],
+            readme: null
         };
     	
         for(var k in data.metadata) {
