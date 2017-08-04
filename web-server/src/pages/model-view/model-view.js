@@ -18,7 +18,7 @@ import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-
+import ReactDisqusThread from 'react-disqus-thread';
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -470,7 +470,28 @@ class ModelView extends Component {
 
                         
                     </FixedWidthRow>
-            
+                
+
+                    <FixedWidthRow>
+                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                            <div className="col s12 m12">
+                                <div className="card">
+                                    <div className="card-content">
+                                        <ReactDisqusThread
+                                            shortname="moxel"
+                                            identifier="something-unique-12345"
+                                            title="Example Thread"
+                                            url={`http://dummy.ai${window.location.pathname}`}
+                                            category_id="123456"
+                                            onNewComment={this.handleNewComment}>
+                                            {`http://dummy.ai${window.location.pathname}`}
+                                        </ReactDisqusThread>
+                                            
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </FixedWidthRow>
                     {/*<FixedWidthRow style={{marginTop: '30px'}}><ModelSnippet {...model}/></FixedWidthRow>
                     <TabButtonBar repoUrl={model.links['github']}/>
                     <NotificationBanner>A new version of the model is being launched, click here to see the launch

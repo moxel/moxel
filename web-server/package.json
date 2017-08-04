@@ -21,6 +21,7 @@
     "pondjs": "^0.8.7",
     "react": "^15.6.1",
     "react-clipboard.js": "^1.1.2",
+    "react-disqus-thread": "^0.4.0",
     "react-dom": "^15.6.1",
     "react-dropzone-component": "^2.0.0",
     "react-floating-label": "^1.0.0",
