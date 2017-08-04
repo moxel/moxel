@@ -116,6 +116,8 @@ const StyledModelLayout = styled(Flex)`
         height: 300px;
     }
 
+    // Model Readme.
+
     hr {
         box-sizing: content-box;
         height: 1px;
@@ -125,6 +127,14 @@ const StyledModelLayout = styled(Flex)`
         border: none;
         margin-left: 20px;
         margin-right: 20px;
+    }
+
+    .tabs .tab a {
+        color: rgb(0, 0, 0);
+    }
+
+    .tabs .indicator {
+        background-color: black;
     }
 `;
 
@@ -356,7 +366,7 @@ class ModelView extends Component {
                                                     <div className="col m6">
                                                         <ImageUploader></ImageUploader>
                                                     </div>
-                                                    <div className="col m6" style={{textAlign: "right"}}>
+                                                    <div className="col m6" style={{textAlign: "center"}}>
                                                         <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
                                                     </div>
                                                 </div>

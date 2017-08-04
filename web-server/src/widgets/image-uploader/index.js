@@ -12,7 +12,19 @@ const StyledImageUploader = styled(FlexItem)`
     .filepicker.dropzone.dz-clickable {
         background: none;
         height: 100%;
-        width: auto;
+        width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    {
+        text-align: center;
+    }
+
+    .dropzone-col {
+        width: 100%;
+        height: 100%;
+        text-align: center;
     }
 
     height: 300px;
@@ -41,9 +53,11 @@ var djsConfig = {
 export default function ImageUploader({uploadEventHandlers}: props) {
     return (
         <StyledImageUploader>
-            <DropzoneComponent config={componentConfig}
-               eventHandlers={uploadEventHandlers}
-               djsConfig={djsConfig} />           
+            <div className="dropzone-col">
+                <DropzoneComponent config={componentConfig}
+                   eventHandlers={uploadEventHandlers}
+                   djsConfig={djsConfig} />           
+            </div>
         </StyledImageUploader>
     )
 }
