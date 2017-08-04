@@ -151,6 +151,8 @@ class ModelView extends Component {
     componentDidMount() {
         const {userId, modelId, tag} = this.props.match.params;
         ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
+            console.log('the model', model);
+
             this.setState({
                 model: model
             })
@@ -227,7 +229,6 @@ class ModelView extends Component {
         var galleryThumb = [];
         var galleryImages = [];
 
-        console.log('model gallery', model.gallery);
         for(var imgSrc of model.gallery) {
             galleryImages.push(
                 <div style={{backgroundImage: `url(${imgSrc})`, backgroundSize: "cover"}}></div>
@@ -328,7 +329,9 @@ class ModelView extends Component {
                         </div>
                     </FixedWidthRow>
 
-                    <FixedWidthRow>
+
+                    {model.gallery.length > 0 ? 
+                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
                                 <div className="card white">
@@ -343,6 +346,8 @@ class ModelView extends Component {
                             </div>
                         </div>
                     </FixedWidthRow>
+                     : null 
+                    }
 
                     {/*<FixedWidthRow>
                         <ChartContainer timeRange={series1.timerange()} width={800}>
