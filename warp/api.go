@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/levigross/grequests"
+	"io/ioutil"
 	"path"
 )
 
@@ -41,16 +44,17 @@ func (api *MasterAPI) GetRepoURL(user string, name string) (string, error) {
 			},
 		},
 	)
+	body, _ := ioutil.ReadAll(resp.RawResponse.Body)
 
 	if err != nil {
 		return "", err
 	}
 
 	result := make(map[string]interface{})
-	err = resp.JSON(&result)
+	err = json.NewDecoder(bytes.NewReader(body)).Decode(&result)
 
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Cannot parse JSON. %s", resp.String()))
+		return "", errors.New(fmt.Sprintf("Cannot parse JSON. %s", string(body)))
 	}
 
 	url := result["url"].(string)

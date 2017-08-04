@@ -104,6 +104,7 @@ func getRepoURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("url = ", url)
 	response, _ := json.Marshal(map[string]string{
 		"url": url,
 	})
@@ -147,21 +148,36 @@ func listModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 
-	ms, err := models.ListModelByUser(db, user)
+	var err error
+	var ms []models.Model
+
+	if user == "_" {
+		ms, err = models.ListModelAll(db)
+	} else {
+		ms, err = models.ListModelByUser(db, user)
+	}
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 		return
 	}
 
-	var results []map[string]string
+	var results []map[string]interface{}
 
 	for _, model := range ms {
-		results = append(results, map[string]string{
-			"uid":    model.Uid,
-			"name":   model.Name,
-			"tag":    model.Tag,
-			"status": model.Status,
+		var metadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(model.Yaml), &metadata)
+
+		result := cleanupInterfaceMap(map[interface{}]interface{}{
+			"uid":      model.Uid,
+			"name":     model.Name,
+			"tag":      model.Tag,
+			"status":   model.Status,
+			"yaml":     model.Yaml,
+			"metadata": metadata,
 		})
+
+		results = append(results, result)
 	}
 
 	response, _ := json.Marshal(results)
@@ -280,6 +296,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	model, err := models.GetModelById(db, modelId)
 
+	// Read status and YAML string.
 	status := "UNKNOWN"
 	yamlString := ""
 
@@ -290,12 +307,25 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 		yamlString = model.Yaml
 	}
 
-	results := map[string]string{
-		"status": status,
-		"yaml":   yamlString,
-	}
+	// Convert YAML into JSON.
+	var metadata map[interface{}]interface{}
+	yaml.Unmarshal([]byte(yamlString), &metadata)
 
-	response, _ := json.Marshal(results)
+	// By default YAML returns map[interface{}][interface{}} for nested maps.
+	// See https://github.com/go-yaml/yaml/issues/139
+	results := cleanupInterfaceMap(map[interface{}]interface{}{
+		"status":   status,
+		"yaml":     yamlString,
+		"metadata": metadata,
+	})
+
+	fmt.Println("results", results)
+
+	response, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), results), 500)
+		return
+	}
 	w.WriteHeader(200)
 	w.Write(response)
 }

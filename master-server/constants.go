@@ -46,10 +46,14 @@ func InitGlobal() {
 		GitRoot = "/tmp/code"
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
+	} else if env == "devbox" {
+		// Run in dev mode.
+		GitRegistry = fmt.Sprintf("http://master-dev.dummy.ai:%d/git", MasterPort)
+		KubeConfig = "secrets-dev/admin.conf"
+		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
 	} else if env == "dev" {
 		// Run in dev mode.
-		GitRegistry = fmt.Sprintf("http://localhost:%d/git", MasterPort)
-		GitRoot = "/tmp/code"
+		GitRegistry = fmt.Sprintf("http://dev.dummy.ai/git")
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
 	} else {

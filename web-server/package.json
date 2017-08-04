@@ -18,8 +18,10 @@
     "morgan": "^1.8.2",
     "neal-react": "^0.2.5",
     "nextjs": "0.0.3",
+    "pondjs": "^0.8.7",
     "react": "^15.6.1",
     "react-clipboard.js": "^1.1.2",
+    "react-disqus-thread": "^0.4.0",
     "react-dom": "^15.6.1",
     "react-dropzone-component": "^2.0.0",
     "react-floating-label": "^1.0.0",
@@ -30,7 +32,10 @@
     "react-redux": "^5.0.5",
     "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1",
+    "react-slick": "^0.14.11",
     "react-stepper-horizontal": "^1.0.9",
+    "react-timeseries-charts": "^0.12.8",
+    "slick-carousel": "^1.6.0",
     "styled-components": "^2.1.1",
     "superagent": "^3.5.2"
   },
@@ -74,7 +79,7 @@
   },
   "proxy": {
     "/api": {
-      "target": "http://localhost:8080",
+      "target": "http://master-dev.dummy.ai:8080",
       "ws": true,
       "pathRewrite": {
         "^/api": ""

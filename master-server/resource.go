@@ -40,9 +40,19 @@ func GitAddWorktree(srcPath string, destPath string, branch string) error {
 	return nil
 }
 
+// Get the repo root path where repo and mirrors sit.
+func GetRepoRootPath(user string, repo string) string {
+	return path.Join(GitRoot, user, repo)
+}
+
 // Get the repo path given user and project name
 func GetRepoPath(user string, repo string) string {
 	return path.Join(GitRoot, user, repo, "main")
+}
+
+// Get the repo root path given user, project name.
+func GetMirrorRootPath(user string, repo string) string {
+	return path.Join(GitRoot, user, repo, "mirror")
 }
 
 // Get the repo mirror path given user, project name and commit
@@ -57,9 +67,22 @@ func GetAssetPath(user string, repo string, commit string) string {
 
 // Create a mirror of repo given commit.
 func CreateRepoMirror(user string, repo string, commit string) error {
+
 	srcPath := GetRepoPath(user, repo)
+	mirrorRoot := GetMirrorRootPath(user, repo)
 	destPath := GetRepoMirrorPath(user, repo, commit)
 	branch := commit
+
+	if _, err := os.Stat(mirrorRoot); os.IsNotExist(err) {
+		os.MkdirAll(mirrorRoot, 0777)
+
+		command := exec.Command("chmod", "-R", "a+rwx", mirrorRoot)
+		_, err := command.CombinedOutput()
+		if err != nil {
+			return errors.New("Failed to add mirror permission: " + err.Error())
+		}
+
+	}
 
 	if pathExists(destPath) {
 		return nil
@@ -79,6 +102,7 @@ func GetRepoURL(user string, name string) (string, error) {
 	}
 
 	gitPath := user + "/" + name
+	gitFileRoot := GetRepoRootPath(user, name)
 	gitFilePath := GetRepoPath(user, name)
 
 	if _, err := os.Stat(gitFilePath); os.IsNotExist(err) {
@@ -88,6 +112,13 @@ func GetRepoURL(user string, name string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
+		command := exec.Command("chmod", "-R", "a+rwx", gitFileRoot)
+		output, err := command.CombinedOutput()
+		if err != nil {
+			return "", errors.New(fmt.Sprintf("Failed to add git repo permission: %s\nOutput: %s", err.Error(), output))
+		}
+
 	}
 
 	return GitRegistry + "/" + gitPath + "/main", nil
