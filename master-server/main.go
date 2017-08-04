@@ -104,6 +104,7 @@ func getRepoURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("url = ", url)
 	response, _ := json.Marshal(map[string]string{
 		"url": url,
 	})

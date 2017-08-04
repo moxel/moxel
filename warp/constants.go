@@ -29,6 +29,8 @@ func InitGlobal() {
 	if env == "local" {
 		MasterAddress = "http://0.0.0.0:8080"
 	} else if env == "dev" {
+		MasterAddress = "http://dev.dummy.ai/api"
+	} else if env == "devbox" {
 		// Run in dev mode.
 		MasterAddress = "http://master-dev.dummy.ai:8080"
 	} else {

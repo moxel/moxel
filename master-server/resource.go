@@ -121,7 +121,7 @@ func GetRepoURL(user string, name string) (string, error) {
 
 	}
 
-	return "/" + gitPath + "/main", nil
+	return GitRegistry + "/" + gitPath + "/main", nil
 }
 
 // If gcsAccessID or gcsAccessKey is empty, the system loads them from secrets
