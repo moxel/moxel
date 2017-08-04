@@ -32,7 +32,7 @@ class ModelStoreClass {
 	}
 
 	fetchModel(userId, modelId, tag) { 
-		return new Promise(function(resolve) {
+		return new Promise(function(resolve, reject) {
 			fetch(`/api/users/${userId}/models/${modelId}/${tag}`).then((response)=>{
 	            return response.json();
 	        }).then(function(data) {
@@ -41,7 +41,9 @@ class ModelStoreClass {
 	        	var model = this.formatModel(userId, modelId, tag, data);
 
 	        	resolve(model);
-	        }.bind(this));
+	        }.bind(this)).catch(function() {
+		        reject();
+		    });;
 		}.bind(this));
 	}
 

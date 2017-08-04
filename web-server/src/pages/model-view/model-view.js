@@ -15,6 +15,7 @@ import {Tabs, Tab} from 'react-materialize'
 import ImageUploader from "../../widgets/image-uploader";
 import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
+import Error404View from "../../pages/error-view/404";
 import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
@@ -169,6 +170,15 @@ class ModelView extends Component {
                     })
                 }.bind(this));
             }
+        }.bind(this)).catch(function() {
+            console.log('Cannot fetch model');
+            var model = {
+                status: "404"
+            }
+
+            this.setState({
+                model: model
+            })
         }.bind(this));
 
         // Add event handler for image upload.
@@ -187,6 +197,10 @@ class ModelView extends Component {
     render() {
         if(!this.state.model) {
             return null
+        }
+
+        if(this.state.model.status == "404") {
+            return <Error404View/>
         }
 
         const {userId, modelId, tag} = this.props.match.params;
