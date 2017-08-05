@@ -51,6 +51,11 @@ const StyledModelSnippet = styled(FlexItem)`
     .profile-snippet:not(:last-child) {
         margin-right: 14px;
     }
+
+    .simple-tag {
+        color: #888 !important;
+        border: 1px solid #888;
+    }
 `;
 type Props = {
     id: string,
