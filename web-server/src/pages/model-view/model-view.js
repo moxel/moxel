@@ -148,10 +148,14 @@ class ModelView extends Component {
             model: null,
             readme: "*No description available for the model*"
         }
+
+        this.handleUpvote = this.handleUpvote.bind(this);
+        this.syncModel = this.syncModel.bind(this);
     }
 
-    componentDidMount() {
+    syncModel() {
         const {userId, modelId, tag} = this.props.match.params;
+
         ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
             console.log('the model', model);
 
@@ -180,6 +184,12 @@ class ModelView extends Component {
                 model: model
             })
         }.bind(this));
+    }
+
+    componentDidMount() {
+        const {userId, modelId, tag} = this.props.match.params;
+        
+        this.syncModel();
 
         // Add event handler for image upload.
         this.uploadEventHandlers = { 
@@ -192,6 +202,25 @@ class ModelView extends Component {
                 DataStore.uploadData(userId, modelId, `data/${uid}`, file);
             }
         }
+    }
+
+    handleUpvote() {
+        const {userId, modelId, tag} = this.props.match.params;
+
+        var currStars = this.state.model.stars;
+
+        // First, create the illusion that update is done.
+        var model = this.state.model;
+        model['stars'] = currStars + 1;
+        this.setState({
+            model: model
+        })
+
+        console.log('currStars', currStars);
+        // Then, do the real update.
+        ModelStore.updateModel(userId, modelId, tag, {'stars': currStars + 1}).then(function() {
+            this.syncModel();
+        }.bind(this));
     }
 
     render() {
@@ -302,7 +331,7 @@ class ModelView extends Component {
                                 <span style={{float: "right"}}>
                                     
                                     &nbsp;
-                                    <a className="waves-effect btn-flat orange lighten-1 black-text model-action-btn"><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
+                                    <a className="waves-effect btn-flat orange lighten-1 black-text model-action-btn" onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
                                     <a className="waves-effect btn-flat white black-text model-action-btn"><i className="material-icons left">share</i>Share</a>
                                 </span>

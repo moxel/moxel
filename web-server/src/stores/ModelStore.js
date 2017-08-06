@@ -1,3 +1,5 @@
+import yaml from 'js-yaml';
+
 class ModelStoreClass {
 	constructor() {
 		this.formatModel = this.formatModel.bind(this)
@@ -27,6 +29,8 @@ class ModelStoreClass {
         for(var k in data.metadata) {
         	model[k] = data.metadata[k];
         }
+
+        model["stars"] = parseInt(model["stars"])
 
         return model;
 	}
@@ -67,6 +71,24 @@ class ModelStoreClass {
 
 	        	resolve(models);
 	        }.bind(this));
+		}.bind(this));
+	}
+
+	updateModel(userId, modelId, tag, modelProps) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelId}/${tag}`, {
+				method: 'PUT',
+				headers: new Headers({
+					'Content-Type': 'text/plain'
+				}),
+				body: JSON.stringify({
+					'yaml': yaml.safeDump(modelProps)
+				})
+			}).then((response)=>{
+				console.log(response);
+				resolve();
+	            return response;
+		    });
 		}.bind(this));
 	}
 };
