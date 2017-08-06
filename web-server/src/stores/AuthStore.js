@@ -11,7 +11,8 @@ var lockOptions = {
       title: "Dummy.ai"
   },
   allowedConnections: ['Username-Password-Authentication'],
-  rememberLastLogin: false // disable sso.
+  rememberLastLogin: false, // disable sso.
+
 };
 
 class AuthStoreClass {
@@ -23,7 +24,6 @@ class AuthStoreClass {
 
   constructor() {
       var lock = this.lock;
-      var callbackURL = '/';
       lock.on("authenticated", function(authResult) {
         console.log('hi');
         lock.getUserInfo(authResult.accessToken, function(error, profile) {
@@ -34,7 +34,6 @@ class AuthStoreClass {
           console.log('profile', profile);
           localStorage.setItem('accessToken', authResult.accessToken);
           localStorage.setItem('profile', JSON.stringify(profile));
-          window.location.href = callbackURL;
         });
       });
   }
@@ -47,16 +46,27 @@ class AuthStoreClass {
 	}
 
 	login(callbackURL) {
-      this.lock.show();
+      this.lock.show({
+        auth: {
+          redirectUrl: callbackURL
+        }
+      });
 	}
 
 	logout() {
 		  localStorage.removeItem('accessToken');	
+      localStorage.removeItem('profile'); 
       this.lock.logout({ returnTo: window.location.protocol + '//' + window.location.host});
 	}
 
   profile() {
-      var profile = JSON.parse(localStorage.getItem('profile'));
+      var rawProfile = localStorage.getItem('profile');
+      if(!rawProfile) {
+        this.lock.show();
+        throw "No profile is available."
+        return;
+      }
+      var profile = JSON.parse(rawProfile);
       console.log(profile);
       return profile;
   }

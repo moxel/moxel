@@ -71,7 +71,8 @@ class PageHeader extends Component {
         const isMobile = screenWidth <= 900;    
 
         let banner = null;
-        if(!AuthStore.isAuthenticated() && this.props.showBanner) {
+
+        if(this.props.showBanner) {
             banner = (
                 <div className="nav-header center">
                     <br/>
@@ -80,7 +81,7 @@ class PageHeader extends Component {
                         Dummy.ai is a platform to build and share machine intelligence.
                     </div>
                     <div>
-                        <Button waves="light" className="blue" onClick={() => AuthStore.login('/new')}>Upload Model</Button>
+                        <Button waves="light" className="blue" onClick={() => {window.location.href = '/new';}}>Upload Model</Button>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
                         &nbsp;
