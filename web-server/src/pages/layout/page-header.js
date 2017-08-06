@@ -96,10 +96,17 @@ class PageHeader extends Component {
         if(!AuthStore.isAuthenticated()) {
             menu = null;
         }else{
-            menu = <ul className="right hide-on-med-and-down">
-              <li><a href="/models">Models</a></li>
-              <li><a href="/logout">Logout</a></li>
-            </ul>
+            menu = (
+                <ul className="right hide-on-med-and-down">
+
+                    <li><a href="/models">Models</a></li>
+                    
+                    <ul id="dropdown1" className="dropdown-content">
+                        <li><a href="/logout" className="black-text">Logout</a></li>
+                    </ul>
+                    <li><a className="dropdown-button" href="#!" data-activates="dropdown1">{AuthStore.username()}<i className="material-icons right">arrow_drop_down</i></a></li>
+                </ul>
+            )
         }
         return (
             <div>
