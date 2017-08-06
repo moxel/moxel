@@ -12,7 +12,7 @@ var lockOptions = {
   },
   allowedConnections: ['Username-Password-Authentication'],
   rememberLastLogin: false, // disable sso.
-
+  redirect: true
 };
 
 class AuthStoreClass {
@@ -21,21 +21,23 @@ class AuthStoreClass {
     'dummyai.auth0.com',
     lockOptions
   );
-
+  
   constructor() {
-      var lock = this.lock;
-      lock.on("authenticated", function(authResult) {
-        console.log('hi');
-        lock.getUserInfo(authResult.accessToken, function(error, profile) {
-          if (error) {
-            console.log('Error: ', error);
-            return;
-          }
-          console.log('profile', profile);
-          localStorage.setItem('accessToken', authResult.accessToken);
-          localStorage.setItem('profile', JSON.stringify(profile));
-        });
-      });
+    var lock = this.lock;
+    
+    lock.on("authenticated", function(authResult) {
+      lock.getUserInfo(authResult.accessToken, function(error, profile) {
+        if (error) {
+          console.log('Error: ', error);
+          return;
+        }
+        console.log('profile', profile);
+        localStorage.setItem('accessToken', authResult.accessToken);
+        localStorage.setItem('profile', JSON.stringify(profile));
+      }.bind(this));
+    }.bind(this));
+
+    this.login = this.login.bind(this);
   }
 
 	isAuthenticated() {
@@ -46,11 +48,15 @@ class AuthStoreClass {
 	}
 
 	login(callbackURL) {
-      this.lock.show({
+    if(this.isAuthenticated()) {
+      window.location.href = callbackURL;
+      return;
+    }
+    this.lock.show({
         auth: {
-          redirectUrl: callbackURL
+          redirectUrl: document.location.host + callbackURL
         }
-      });
+    });
 	}
 
 	logout() {
@@ -62,7 +68,7 @@ class AuthStoreClass {
   profile() {
       var rawProfile = localStorage.getItem('profile');
       if(!rawProfile) {
-        this.lock.show();
+        this.login('/');
         throw "No profile is available."
         return;
       }
