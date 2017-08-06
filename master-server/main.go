@@ -215,40 +215,81 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 	name := vars["model"]
 	tag := vars["tag"]
 
-	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
-		user, name, tag))
-
-	// Check if the model already exists.
-	_, err := models.GetModelById(db, models.ModelId(user, name, tag))
-	if err == nil {
-		http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists",
-			user, name, tag), 500)
-		return
-	}
-
 	var params map[string]interface{}
-	err = json.NewDecoder(r.Body).Decode(&params)
+	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
 
-	model := models.Model{
-		UserId: vars["user"],
-		Name:   vars["model"],
-		Tag:    vars["tag"],
-		Yaml:   params["yaml"].(string),
-		Commit: params["commit"].(string),
-		Status: "INACTIVE",
+	commit := ""
+	if _, ok := params["commit"]; ok {
+		commit = params["commit"].(string)
 	}
 
-	err = models.AddModel(db, model)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
+	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
+		user, name, tag))
+
+	// Check if the model already exists.
+	model, err := models.GetModelById(db, models.ModelId(user, name, tag))
+	if err == nil {
+		// http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists", user, name, tag), 500)
+		// Model already exists. Update the metadata.
+		// TODO: use transaction to avoid race.
+		// First merge YAML.
+		var currMetadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(model.Yaml), &currMetadata)
+
+		var newMetadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(params["yaml"].(string)), &newMetadata)
+
+		updateInterfaceMap(currMetadata, newMetadata)
+
+		if commit == "" {
+			commit = model.Commit
+		}
+
+		status := model.Status
+
+		yamlBytes, err := yaml.Marshal(cleanupInterfaceMap(currMetadata))
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		yamlString := string(yamlBytes)
+
+		fmt.Println(yamlString)
+
+		model = models.Model{
+			UserId: vars["user"],
+			Name:   vars["model"],
+			Tag:    vars["tag"],
+			Yaml:   yamlString,
+			Commit: commit,
+			Status: status,
+		}
+
+		models.UpdateModel(db, model)
 		return
-	}
+	} else {
+		// Create a new model.
+		model = models.Model{
+			UserId: vars["user"],
+			Name:   vars["model"],
+			Tag:    vars["tag"],
+			Yaml:   params["yaml"].(string),
+			Commit: params["commit"].(string),
+			Status: "INACTIVE",
+		}
 
-	w.WriteHeader(200)
+		err = models.AddModel(db, model)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.WriteHeader(200)
+	}
 }
 
 func deleteModel(w http.ResponseWriter, r *http.Request) {
@@ -563,9 +604,10 @@ func main() {
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", getModel).Methods("GET")
+		// PUT is used to create / update metadata. POST is used to control model deployments.
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
-		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")

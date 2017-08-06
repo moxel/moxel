@@ -27,6 +27,25 @@ func pathExists(path string) bool {
 	panic(err)
 }
 
+func updateInterfaceMap(target map[interface{}]interface{}, src map[interface{}]interface{}) {
+	for k, v := range src {
+		if t, ok := target[k]; ok {
+			switch v.(type) {
+			case map[interface{}]interface{}:
+				updateInterfaceMap(t.(map[interface{}]interface{}),
+					v.(map[interface{}]interface{}),
+				)
+				target[k] = t
+				break
+			default:
+				target[k] = v
+			}
+		} else {
+			target[k] = v
+		}
+	}
+}
+
 func cleanupInterfaceArray(in []interface{}) []interface{} {
 	res := make([]interface{}, len(in))
 	for i, v := range in {
