@@ -27,7 +27,6 @@ import {Button, Dropdown, NavItem} from 'react-materialize'
 import { FacebookButton, FacebookCount, TwitterCount } from "react-social";
 import NotificationSystem from 'react-notification-system';
 
-
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
         width: 100%;
