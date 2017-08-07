@@ -420,6 +420,122 @@ class ModelView extends Component {
             slidesToScroll: 1
         };
 
+
+        // Demo UI.
+        var demoUI = (
+            <FixedWidthRow>
+                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                    <div className="col s12 m12">
+                        <div className="card">
+                            <div className="card-tabs white">
+                              <Tabs className='tab-demo white'>
+                                <Tab title="Demo" active >
+                                    <span className="white-text">
+                                        <div className="row"></div> 
+                                        <div className="row">
+                                            <div className="col m6">
+                                                <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
+                                            </div>
+                                            <div className="col m6" style={{textAlign: "center"}}>
+                                                <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <div className="col m5">
+                                                
+                                            </div>
+                                            <div className="col m2">
+                                                <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
+                                            </div>
+                                            <div className="col m5">
+                                            </div>
+                                            
+                                        </div>
+                                    </span>
+                                </Tab>
+                                <Tab title="API">
+                                    <Markdown className="markdown-body white-text" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                                    {`   
+                                        \`\`\`python
+                                        import requests
+                                        import base64
+                                        import os
+
+                                        # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
+                                        URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
+
+
+                                        with open('test_images/image1.jpg', 'rb') as f:
+                                            result = requests.post(URL, json={
+                                                'image': base64.b64encode(f.read()).decode('utf-8'),
+                                                'ext': 'jpg'
+                                            })
+                                            try:
+                                                result = result.json()
+                                            except:
+                                                print(result.text)
+                                                exit(1)
+
+
+                                            image_binary = base64.b64decode(result['vis'])
+                                            with open('output.png', 'wb') as f:
+                                                f.write(image_binary)
+                                            os.system('open output.png')
+                                        \`\`\`
+
+
+                                    `}
+                                    </Markdown>   
+                                </Tab>
+                                <Tab title="Input Type">
+                                    <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
+                                        {/*<thead>
+                                          <tr>
+                                              <th>Name</th>
+                                              <th>Type</th>
+                                          </tr>
+                                        </thead>*/}
+                                        <tbody>
+                                            {inputType}
+                                        </tbody>
+                                    </table>
+                                </Tab>
+                                <Tab title="Output Type">
+                                    <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
+                                        {/*<thead>
+                                          <tr>
+                                              <th>Name</th>
+                                              <th>Type</th>
+                                          </tr>
+                                        </thead>*/}
+                                        <tbody>
+                                            {outputType}
+                                        </tbody>
+                                    </table>
+                                </Tab>
+                            </Tabs>
+
+                            
+                            <hr/>
+
+                              
+                            </div>
+
+                            <div className="card-content">
+                                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                    <div className="col s12 m12">
+                                        <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                
+            </FixedWidthRow>
+        );
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -559,118 +675,27 @@ class ModelView extends Component {
                             </ChartRow>
                         </ChartContainer>
                     </FixedWidthRow>*/}
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card">
-                                    <div className="card-tabs white">
-                                      <Tabs className='tab-demo white'>
-                                        <Tab title="Demo" active >
-                                            <span className="white-text">
-                                                <div className="row"></div> 
-                                                <div className="row">
-                                                    <div className="col m6">
-                                                        <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
-                                                    </div>
-                                                    <div className="col m6" style={{textAlign: "center"}}>
-                                                        <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
-                                                    </div>
-                                                </div>
-                                                <div className="row">
-                                                    <div className="col m5">
-                                                        
-                                                    </div>
-                                                    <div className="col m2">
-                                                        <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
-                                                    </div>
-                                                    <div className="col m5">
-                                                    </div>
-                                                    
-                                                </div>
-                                            </span>
-                                        </Tab>
-                                        <Tab title="API">
-                                            <Markdown className="markdown-body white-text" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
-                                            {`   
-                                                \`\`\`python
-                                                import requests
-                                                import base64
-                                                import os
 
-                                                # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
-                                                URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
-
-
-                                                with open('test_images/image1.jpg', 'rb') as f:
-                                                    result = requests.post(URL, json={
-                                                        'image': base64.b64encode(f.read()).decode('utf-8'),
-                                                        'ext': 'jpg'
-                                                    })
-                                                    try:
-                                                        result = result.json()
-                                                    except:
-                                                        print(result.text)
-                                                        exit(1)
-
-
-                                                    image_binary = base64.b64decode(result['vis'])
-                                                    with open('output.png', 'wb') as f:
-                                                        f.write(image_binary)
-                                                    os.system('open output.png')
-                                                \`\`\`
-
-
-                                            `}
-                                            </Markdown>   
-                                        </Tab>
-                                        <Tab title="Input Type">
-                                            <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
-                                                {/*<thead>
-                                                  <tr>
-                                                      <th>Name</th>
-                                                      <th>Type</th>
-                                                  </tr>
-                                                </thead>*/}
-                                                <tbody>
-                                                    {inputType}
-                                                </tbody>
-                                            </table>
-                                        </Tab>
-                                        <Tab title="Output Type">
-                                            <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
-                                                {/*<thead>
-                                                  <tr>
-                                                      <th>Name</th>
-                                                      <th>Type</th>
-                                                  </tr>
-                                                </thead>*/}
-                                                <tbody>
-                                                    {outputType}
-                                                </tbody>
-                                            </table>
-                                        </Tab>
-                                    </Tabs>
-
-                                    
-                                    <hr/>
-
-                                      
-                                    </div>
-
-                                    <div className="card-content">
-                                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                                            <div className="col s12 m12">
-                                                <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
-                                            </div>
+                    {
+                        model.status == 'LIVE' 
+                        ?
+                        demoUI
+                        :
+                        (<FixedWidthRow>
+                            <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                                <div className="col s12 m12">
+                                    <div className="card">
+                                        <div className="card-content" style={{textAlign: "center"}}>
+                                            Currently, only metadata is available for this model. Next, deploy the model as API. 
+                                            <div className="row"></div>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelId}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
-                        </div>
-
-                        
-                    </FixedWidthRow>
+                        </FixedWidthRow>
+                        )
+                    }
                 
 
                     <FixedWidthRow>

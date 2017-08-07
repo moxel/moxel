@@ -110,18 +110,18 @@ class UploadView extends Component {
         //     componentConfig.postUrl = data.url;
         // });
         let params = this.props.match.params
-        this.user = params.user
+        this.userId = params.userId
         this.modelId = params.modelId
-        this.tag = "latest"
+        this.tag = params.tag;
         // Thread to check if the model is uploaded.
         var modelProbe = function() {
-            fetch(`/api/users/${this.user}/models/${this.modelId}/${this.tag}`, {
+            fetch(`/api/users/${this.userId}/models/${this.modelId}/${this.tag}`, {
                 "method": "GET"
             }).then((response)=>{
                 return response.json();
             }).then(function(data) {
                 console.log(data);
-                if(data.status != "UNKNOWN") { // model has been successfully uploaded.
+                if(data.status == "LIVE") { // model has been successfully uploaded.
                     this.setState({
                         step: this.steps.length - 1
                     })
@@ -287,11 +287,11 @@ class UploadView extends Component {
                 )
                 break; 
             case 2: // Deploy Your Model.
-                let yaml = (`user: ${this.user}\n` +
+                let yaml = (`user: ${this.userId}\n` +
                             `name: ${this.modelId}\n` +
                             `tag: ${this.tag}\n` +
                             "image: dummyai/py3-tf-gpu\n" +
-                            "description: " + localStorage.getItem(this.user + "/" + this.modelId) + "\n" +
+                            "description: " + localStorage.getItem(this.userId + "/" + this.modelId) + "\n" +
                             "assets:\n" +
                             "- (path to weight file)\n" +
                             "cmd:\n" +
@@ -411,7 +411,7 @@ class UploadView extends Component {
 
                         <div className="row" style={{display: "block"}}>
                             <div className="col s12 m12" style={{textAlign: "center"}}>
-                                <h4>Model <b>{`${this.user}/${this.modelId}`}</b> is now live!</h4>
+                                <h4>Model <b>{`${this.userId}/${this.modelId}`}</b> is now live!</h4>
                             </div>
                         </div>
 
