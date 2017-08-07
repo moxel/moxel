@@ -278,7 +278,7 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 			Name:   vars["model"],
 			Tag:    vars["tag"],
 			Yaml:   params["yaml"].(string),
-			Commit: params["commit"].(string),
+			Commit: commit,
 			Status: "INACTIVE",
 		}
 

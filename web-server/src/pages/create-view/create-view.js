@@ -10,15 +10,24 @@ import 'markdown-it';
 import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
+import ModelStore from "../../stores/ModelStore";
 
 class CreateView extends Component {
     gotoUpload() {
-        var username = AuthStore.username();
+        var userId = AuthStore.username();
         var modelId = document.querySelector('#modelId').value;
         var modelDescription = document.querySelector('#modelDescription').value;
+        var modelTitle = document.querySelector('#modelTitle').value;
+        var tag = "latest";
         // caching the description.
-        localStorage.setItem(username + "/" + modelId, modelDescription)
-        window.location.href = "/" + username + "/" + modelId  + "/upload";
+        localStorage.setItem(userId + "/" + modelId, modelDescription);
+
+        ModelStore.updateModel(userId, modelId, tag, {
+            'title': modelTitle,
+            'description': modelDescription
+        }).then(function(resp) {
+            window.location.href = "/models/" + userId + "/" + modelId  + "/" + tag;
+        })
         return false;
     }
 
@@ -28,7 +37,7 @@ class CreateView extends Component {
         return (
             <div className="row">
                 <div className="col s12  m8 offset-m2">
-                    <form className="card" onSubmit={(event) => event.preventDefault()}>
+                    <form className="card" onSubmit={(event) => {event.preventDefault(); this.gotoUpload();}}>
                         <div className="row">
                         </div>
                         <div className="row">
@@ -61,7 +70,19 @@ class CreateView extends Component {
                                 
                             </div>
                         </div>
-                        
+
+                        <div className="row">
+                            <div className="col s12 m10 offset-m1">
+                                {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
+                                    <i className="material-icons">edit</i>
+                                </div>*/}
+                                <div className="input-field col s10 m10">
+                                    <label htmlFor="modelTitle">Model Title</label>
+                                    <input id="modelTitle" type="text" className="validate" required aria-required="true"/>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="row">
                             <div className="col s12 m10 offset-m1">
                                 {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
@@ -69,14 +90,14 @@ class CreateView extends Component {
                                 </div>*/}
                                 <div className="input-field col s10 m10">
                                     <label htmlFor="modelDescription">Model Description (Optional)</label>
-                                    <input id="modelDescription" type="text" className="validate" required="" aria-required="true"/>
+                                    <input id="modelDescription" type="text" className="validate" aria-required="true"/>
                                 </div>
                             </div>
                         </div>
 
                         <div className="row">
                             <div className="col s4 m4 offset-s9 offset-m9">
-                                <button className="waves-effect waves-light btn blue" onClick={this.gotoUpload}>
+                                <button className="waves-effect waves-light btn blue">
                                     Create Model
                                 </button> 
                             </div>
