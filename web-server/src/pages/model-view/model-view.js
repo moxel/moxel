@@ -489,8 +489,8 @@ class ModelView extends Component {
                                                 {model.tag}
                                             </a>
                                         }>
-                                            <NavItem><a href="#!">one</a></NavItem>
-                                            <NavItem><a href="#!">two</a></NavItem>
+                                            {/*<NavItem><a href="#!">one</a></NavItem>
+                                            <NavItem><a href="#!">two</a></NavItem>*/}
                                         </Dropdown>
                                     </span>
                                 </div>
