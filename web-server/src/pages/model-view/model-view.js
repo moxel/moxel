@@ -168,6 +168,7 @@ class ModelView extends Component {
 
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
+        this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -311,13 +312,27 @@ class ModelView extends Component {
         const {userId, modelId, tag} = this.props.match.params;
 
         var modelTitle = document.querySelector('#model-title').value;
-        console.log('model title = ', modelTitle);
 
         ModelStore.updateModel(userId, modelId, tag, {'title': modelTitle}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model title.',
                   level: 'success'
+                });
+            }.bind(this));
+        }.bind(this));
+    }
+
+    handleUpdateDescription() {
+        const {userId, modelId, tag} = this.props.match.params;
+
+        var modelDescription = document.querySelector('#model-description').value;
+
+        ModelStore.updateModel(userId, modelId, tag, {'description': modelDescription}).then(function() {
+            this.syncModel().then(function() {
+                this.notificationSystem.addNotification({
+                    message: 'Successfully updated model description.',
+                    level: 'success'
                 });
             }.bind(this));
         }.bind(this));
@@ -469,7 +484,7 @@ class ModelView extends Component {
                                         {statusButton}
                                         &nbsp;
                                         <Dropdown trigger={
-                                            <a className='dropdown-button btn-flat white black-text model-status-btn' href='#' data-activates='dropdown1'>
+                                            <a className='dropdown-button btn-flat white black-text model-status-btn'>
                                                 <i className="material-icons left">loyalty</i>
                                                 {model.tag}
                                             </a>
@@ -481,7 +496,17 @@ class ModelView extends Component {
                                 </div>
 
                                 <div>
-                                    <p>{model.description}</p>
+                                    {
+                                        this.editMode
+                                        ?
+                                        (
+                                            <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
+                                        )
+                                        :
+                                        (
+                                            <p>{model.description}</p>
+                                        )
+                                    }
                                 </div>
 
                                   <br/>
