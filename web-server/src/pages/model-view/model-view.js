@@ -23,6 +23,8 @@ import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from 'react-disqus-thread';
+import {Button, Dropdown, NavItem} from 'react-materialize'
+import { FacebookButton, FacebookCount, TwitterCount } from "react-social";
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -400,7 +402,21 @@ class ModelView extends Component {
                                     &nbsp;
                                     <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
-                                    <a className="waves-effect btn-flat white black-text model-action-btn"><i className="material-icons left">share</i>Share</a>
+                                    
+                                    <ul id='dropdown-share' className='dropdown-content'>
+                                      <li><a href="#!">one</a></li>
+                                      <li><a href="#!">two</a></li>
+                                    </ul>
+                                    
+
+                                    <Dropdown trigger={
+                                        <a className="dropdown-button btn-flat white black-text model-action-btn" data-activates='dropdown-share'>
+                                            <i className="material-icons left">share</i>Share
+                                        </a>
+                                    }>
+                                        <NavItem><div className="addthis_inline_share_toolbox" style={{width: "150px"}}></div></NavItem>
+                                    </Dropdown>
+
                                 </span>
 
                                 <span className="card-title">
