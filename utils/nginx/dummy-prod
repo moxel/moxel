@@ -1,23 +1,23 @@
 server {
-        listen   80; 
-        server_name dummy.ai; 
+        listen   80;
+        server_name beta.dummy.ai;
         location /release {
                 proxy_set_header X-Real-IP  $remote_addr;
                 proxy_set_header X-Forwarded-For $remote_addr;
                 proxy_set_header Host $host;
                 proxy_pass http://kube-beta.dummy.ai:31900/release;
         }
+        location /git {
+                proxy_pass http://kube-beta.dummy.ai:31900/git;
+        }
+        location /model {
+                proxy_pass http://kube-beta.dummy.ai:31900/model;
+        }
         location /api {
                 proxy_set_header X-Real-IP  $remote_addr;
                 proxy_set_header X-Forwarded-For $remote_addr;
                 proxy_set_header Host $host;
                 proxy_pass http://kube-beta.dummy.ai:31900/api;
-        }
-        location /git {
-                proxy_set_header X-Real-IP  $remote_addr;
-                proxy_set_header X-Forwarded-For $remote_addr;
-                proxy_set_header Host $host;
-                proxy_pass http://kube-beta.dummy.ai:31900/git;
         }
         location / {
                 proxy_set_header X-Real-IP  $remote_addr;
@@ -26,3 +26,20 @@ server {
                 proxy_pass http://kube-beta.dummy.ai:31900/web/;
         }
 }
+server {
+        listen   80;
+        server_name ~^(www\.)?(?<dummy>.+)$;
+        location / {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://kube-beta.dummy.ai:31900/landing/;
+        }
+        location /api {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://kube-beta.dummy.ai:31900/api;
+        }
+}
+~            
