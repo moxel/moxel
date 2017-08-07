@@ -24,7 +24,8 @@ class CreateView extends Component {
 
         ModelStore.updateModel(userId, modelId, tag, {
             'title': modelTitle,
-            'description': modelDescription
+            'description': modelDescription,
+            'status': 'METADATA'
         }).then(function(resp) {
             window.location.href = "/models/" + userId + "/" + modelId  + "/" + tag;
         })

@@ -75,15 +75,21 @@ class ModelStoreClass {
 	}
 
 	updateModel(userId, modelId, tag, modelProps) {
+		var body = {
+			'yaml': yaml.safeDump(modelProps)
+		};
+
+		if(modelProps.status) {
+			body['status'] = modelProps.status;
+		}
+
 		return new Promise(function(resolve, reject) {
 			fetch(`/api/users/${userId}/models/${modelId}/${tag}`, {
 				method: 'PUT',
 				headers: new Headers({
 					'Content-Type': 'text/plain'
 				}),
-				body: JSON.stringify({
-					'yaml': yaml.safeDump(modelProps)
-				})
+				body: JSON.stringify(body)
 			}).then((response)=>{
 				console.log(response);
 				resolve();

@@ -82,7 +82,7 @@ const StyledModelLayout = styled(Flex)`
 
     .model-status-btn {
         height: 20px;
-        width: 75px;
+        width: 90px;
         font-size: 10px;
         padding-left: 0px;
         padding-right: 0px;
