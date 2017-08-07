@@ -87,7 +87,7 @@ class ModelStoreClass {
 			fetch(`/api/users/${userId}/models/${modelId}/${tag}`, {
 				method: 'PUT',
 				headers: new Headers({
-					'Content-Type': 'text/plain'
+					'Content-Type': 'application/json'
 				}),
 				body: JSON.stringify(body)
 			}).then((response)=>{

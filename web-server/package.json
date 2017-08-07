@@ -87,6 +87,10 @@
       "pathRewrite": {
         "^/api": ""
       }
+    },
+    "/model/": {
+      "target": "http://dev.dummy.ai",
+      "ws": true
     }
   }
 }

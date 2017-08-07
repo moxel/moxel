@@ -153,6 +153,21 @@ const StyledModelLayout = styled(Flex)`
         background-color: rgba(255, 255, 255, 0.14);
         border: none;
     }
+
+    .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview {
+        width: 80%;
+        height: 80%;
+    }
+
+    .dz-image {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .dz-image img {
+        width: 100%;
+        height: 100%;
+    }
 `;
 
 class ModelView extends Component {
@@ -231,15 +246,41 @@ class ModelView extends Component {
         this.syncRating();
 
         // Add event handler for image upload.
+        this.handleDemoRun = null;
+
         this.uploadEventHandlers = { 
-            addedfile: (file) => {
+            addedfile: function(file) {
                 const {userId, modelId, tag} = this.props.match.params;
                 console.log('file', file);
                 var parts = file.name.split('.')
                 var ext = parts[parts.length-1];
                 var uid = DataStore.uuid() + '.' + ext;
                 DataStore.uploadData(userId, modelId, `data/${uid}`, file);
-            }
+                
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.addEventListener("load", function () {
+                    var dataURL = reader.result;
+                    this.handleDemoRun = function() {
+                        var data = dataURL.substring(dataURL.indexOf("base64,") + 7, dataURL.length);
+                        var demoOutput = document.querySelector('#demo-output');
+                        demoOutput.src = '/images/spinner.gif';
+                        fetch('/model/jimfan/colorization/0.0.1', {
+                            method: 'POST', 
+                            headers: new Headers({
+                                'Content-Type': 'application/json'
+                            }),
+                            body: JSON.stringify({
+                                'img_in': data,
+                            })
+                        }).then(function(resp) {
+                            return resp.json();
+                        }).then(function(result) {
+                            demoOutput.src = 'data:image/png;base64,' + result['img_out'];
+                        })
+                    };
+                }.bind(this), false);
+            }.bind(this)
         }
 
         // Set up edit mode.
@@ -247,6 +288,8 @@ class ModelView extends Component {
         this.editMode = (userId == AuthStore.username());
 
     }
+
+    
 
     handleUpvote() {
         if(this.doingHandleUpvote) {
@@ -437,7 +480,7 @@ class ModelView extends Component {
                                                 <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
                                             </div>
                                             <div className="col m6" style={{textAlign: "center"}}>
-                                                <img style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
+                                                <img id="demo-output" style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
                                             </div>
                                         </div>
                                         <div className="row">
@@ -445,7 +488,7 @@ class ModelView extends Component {
                                                 
                                             </div>
                                             <div className="col m2">
-                                                <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
+                                                <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
                                             </div>
                                             <div className="col m5">
                                             </div>
@@ -688,7 +731,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelId}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelId}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
                                         </div>
                                     </div>
                                 </div>
