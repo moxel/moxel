@@ -25,6 +25,8 @@ import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from 'react-disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
 import { FacebookButton, FacebookCount, TwitterCount } from "react-social";
+import NotificationSystem from 'react-notification-system';
+
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -142,6 +144,16 @@ const StyledModelLayout = styled(Flex)`
     .tabs .indicator {
         background-color: black;
     }
+
+    .editable-input {
+        border: none;
+        padding-left: 5px;
+    }
+
+    .editable-input:hover {
+        background-color: rgba(255, 255, 255, 0.14);
+        border: none;
+    }
 `;
 
 class ModelView extends Component {
@@ -155,9 +167,10 @@ class ModelView extends Component {
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
+        this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
-        this.syncRating = this.syncRating.bind(this);
+        this.syncRating = this.syncRating.bind(this);        
     }
 
     syncModel() {
@@ -228,6 +241,11 @@ class ModelView extends Component {
                 DataStore.uploadData(userId, modelId, `data/${uid}`, file);
             }
         }
+
+        // Set up edit mode.
+        console.log(userId, AuthStore.username());
+        this.editMode = (userId == AuthStore.username());
+
     }
 
     handleUpvote() {
@@ -285,11 +303,24 @@ class ModelView extends Component {
                         this.doingHandleUpvote = false;
                     }.bind(this));
                 }.bind(this));
-
             }.bind(this));
         }.bind(this))
-        
-        
+    }
+
+    handleUpdateTitle() {
+        const {userId, modelId, tag} = this.props.match.params;
+
+        var modelTitle = document.querySelector('#model-title').value;
+        console.log('model title = ', modelTitle);
+
+        ModelStore.updateModel(userId, modelId, tag, {'title': modelTitle}).then(function() {
+            this.syncModel().then(function() {
+                this.notificationSystem.addNotification({
+                  message: 'Successfully updated model title.',
+                  level: 'success'
+                });
+            }.bind(this));
+        }.bind(this));
     }
 
     render() {
@@ -420,7 +451,17 @@ class ModelView extends Component {
                                 </span>
 
                                 <span className="card-title">
-                                    {model.title}
+                                    {
+                                        this.editMode
+                                        ?
+                                        (
+                                            <input id="model-title" defaultValue={model.title} className="editable-input" style={{width: "60%"}} onBlur={this.handleUpdateTitle}/>
+                                        )
+                                        :
+                                        (
+                                            model.title
+                                        )
+                                    }
                                 </span>
 
                                 <div style={{height: "50px"}}>
@@ -639,6 +680,8 @@ class ModelView extends Component {
                         <Markdown tagName="article" source={model.readme} className="markdown-body"/>
                     </FixedWidthRow>*/}
                 </Flex>
+
+                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
             </StyledModelLayout>
         )
     }

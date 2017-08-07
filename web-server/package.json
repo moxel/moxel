@@ -29,6 +29,7 @@
     "react-markdownit": "^2.5.0",
     "react-material-modal": "0.0.2",
     "react-materialize": ">=0.14.0",
+    "react-notification-system": "^0.2.15",
     "react-primitives": "^0.4.3",
     "react-redux": "^5.0.5",
     "react-router": "^4.1.1",
