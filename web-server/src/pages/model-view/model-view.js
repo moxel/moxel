@@ -468,18 +468,15 @@ class ModelView extends Component {
                                     <span style={{float: "left"}}>
                                         {statusButton}
                                         &nbsp;
-                                        <a className='dropdown-button btn-flat white black-text model-status-btn' href='#' data-activates='dropdown1'>
-                                            <i className="material-icons left">loyalty</i>
-                                            {model.tag}
-                                        </a>
-                                        <ul id='dropdown1' className='dropdown-content white black-text'>
-                                          <li><a href="#!">one</a></li>
-                                          <li><a href="#!">two</a></li>
-                                          <li className="divider"></li>
-                                          <li><a href="#!">three</a></li>
-                                          <li><a href="#!"><i className="material-icons">view_module</i>four</a></li>
-                                          <li><a href="#!"><i className="material-icons">cloud</i>five</a></li>
-                                        </ul>
+                                        <Dropdown trigger={
+                                            <a className='dropdown-button btn-flat white black-text model-status-btn' href='#' data-activates='dropdown1'>
+                                                <i className="material-icons left">loyalty</i>
+                                                {model.tag}
+                                            </a>
+                                        }>
+                                            <NavItem><a href="#!">one</a></NavItem>
+                                            <NavItem><a href="#!">two</a></NavItem>
+                                        </Dropdown>
                                     </span>
                                 </div>
 
