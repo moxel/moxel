@@ -15,6 +15,8 @@ import {Tabs, Tab} from 'react-materialize'
 import ImageUploader from "../../widgets/image-uploader";
 import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
+import AuthStore from "../../stores/AuthStore";
+import RatingStore from "../../stores/RatingStore";
 import Error404View from "../../pages/error-view/404";
 import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
@@ -146,43 +148,64 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
-            readme: "*No description available for the model*"
+            readme: "*No description available for the model*",
+            rating: 0, // user rating for this model.
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
+        this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
+        this.syncRating = this.syncRating.bind(this);
     }
 
     syncModel() {
+        return new Promise(function(resolve, reject) {
+            const {userId, modelId, tag} = this.props.match.params;
+
+            ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
+                console.log('the model', model);
+
+                this.setState({
+                    model: model
+                })
+
+                console.log(model.readme);
+
+                if(model.readme) {
+                    fetch(model.readme).then(function(resp) {
+                        return resp.text();
+                    }).then(function(body) {
+                        this.setState({
+                            readme: body
+                        })
+                    }.bind(this));
+                }
+
+                resolve(model);
+            }.bind(this)).catch(function() {
+                console.log('Cannot fetch model');
+                var model = {
+                    status: "404"
+                }
+
+                this.setState({
+                    model: model
+                })
+            }.bind(this));
+        }.bind(this))
+    }
+
+    syncRating() {
         const {userId, modelId, tag} = this.props.match.params;
 
-        ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
-            console.log('the model', model);
+        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
+        var myId = AuthStore.username()
 
+        RatingStore.fetchRating(myId, modelUid).then(function(rating) {
+            console.log("Rating value = ", rating);
             this.setState({
-                model: model
-            })
-
-            console.log(model.readme);
-
-            if(model.readme) {
-                fetch(model.readme).then(function(resp) {
-                    return resp.text();
-                }).then(function(body) {
-                    this.setState({
-                        readme: body
-                    })
-                }.bind(this));
-            }
-        }.bind(this)).catch(function() {
-            console.log('Cannot fetch model');
-            var model = {
-                status: "404"
-            }
-
-            this.setState({
-                model: model
-            })
+                rating: rating
+            });
         }.bind(this));
     }
 
@@ -190,6 +213,7 @@ class ModelView extends Component {
         const {userId, modelId, tag} = this.props.match.params;
         
         this.syncModel();
+        this.syncRating();
 
         // Add event handler for image upload.
         this.uploadEventHandlers = { 
@@ -205,22 +229,65 @@ class ModelView extends Component {
     }
 
     handleUpvote() {
+        if(this.doingHandleUpvote) {
+            window.setTimeout(this.handleUpvote, 100);
+            return
+        }
+        this.doingHandleUpvote = true;
+
         const {userId, modelId, tag} = this.props.match.params;
 
-        var currStars = this.state.model.stars;
+        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
+        var myId = AuthStore.username()
+
+        var newRating = 0.;
+        if(this.state.rating > 0) {
+            newRating = 0.;
+        }else{
+            newRating = 1.;
+        }
 
         // First, create the illusion that update is done.
+        this.setState({
+            rating: newRating
+        })
+
         var model = this.state.model;
-        model['stars'] = currStars + 1;
+
+        if(newRating == 1.) {
+            model['stars'] = model['stars'] + 1;
+        }else{
+            model['stars'] = model['stars'] - 1;
+        }
+
         this.setState({
             model: model
         })
 
-        console.log('currStars', currStars);
         // Then, do the real update.
-        ModelStore.updateModel(userId, modelId, tag, {'stars': currStars + 1}).then(function() {
-            this.syncModel();
-        }.bind(this));
+        RatingStore.updateRating(myId, modelUid, newRating).then(function() {
+            this.syncRating();
+            this.syncModel().then(function(model) {
+                if(newRating == 1.) {
+                    model['stars'] = model.stars + 1;
+                }else{
+                    model['stars'] = model.stars - 1;
+                }
+
+                this.setState({
+                    model: model
+                })
+
+                ModelStore.updateModel(userId, modelId, tag, {'stars': model['stars']}).then(function() {
+                    this.syncModel().then(function() {
+                        this.doingHandleUpvote = false;
+                    }.bind(this));
+                }.bind(this));
+
+            }.bind(this));
+        }.bind(this))
+        
+        
     }
 
     render() {
@@ -331,7 +398,7 @@ class ModelView extends Component {
                                 <span style={{float: "right"}}>
                                     
                                     &nbsp;
-                                    <a className="waves-effect btn-flat orange lighten-1 black-text model-action-btn" onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
+                                    <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
                                     <a className="waves-effect btn-flat white black-text model-action-btn"><i className="material-icons left">share</i>Share</a>
                                 </span>

@@ -91,6 +91,10 @@ class ModelStoreClass {
 		    });
 		}.bind(this));
 	}
+
+	modelId(userId, model, tag) {
+		return userId + "/" + model + ":" + tag;
+	}
 };
 
 const ModelStore = new ModelStoreClass();

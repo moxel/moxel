@@ -546,6 +546,71 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Put a rating in the database.
+// The request body contains a JSON object {"value": <rating_value>}
+func putRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	var params map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	value := params["value"].(float64)
+
+	err = models.UpdateRating(db, userId, modelId, value)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+// Get the rating from the database.
+func getRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	rating, err := models.GetRatingById(db, models.RatingId(userId, modelId))
+	value := 0.
+
+	if err == nil {
+		value = rating.Value
+	}
+
+	w.WriteHeader(200)
+
+	response, _ := json.Marshal(map[string]float64{
+		"value": value,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
+// Delete the rating from the database.
+func deleteRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	err := models.DeleteRating(db, models.RatingId(userId, modelId))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 func main() {
 	var err error
 
@@ -611,6 +676,11 @@ func main() {
 		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
+		// Endpoints for manipulating user rating for models.
+		router.HandleFunc(`/rating/{userId}/{modelId:(?:.|\/)*}`, putRating).Methods("PUT")
+		router.HandleFunc("/rating/{userId}/{modelId:.*}", getRating).Methods("GET")
+		router.HandleFunc(`/rating/{userId}/{modelId:[.\/]*}`, deleteRating).Methods("DELETE")
+		// Other endpoints.
 		router.HandleFunc("/landing", postLanding).Methods("POST")
 
 		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))
