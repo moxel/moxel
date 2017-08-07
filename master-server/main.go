@@ -215,40 +215,81 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 	name := vars["model"]
 	tag := vars["tag"]
 
-	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
-		user, name, tag))
-
-	// Check if the model already exists.
-	_, err := models.GetModelById(db, models.ModelId(user, name, tag))
-	if err == nil {
-		http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists",
-			user, name, tag), 500)
-		return
-	}
-
 	var params map[string]interface{}
-	err = json.NewDecoder(r.Body).Decode(&params)
+	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
 
-	model := models.Model{
-		UserId: vars["user"],
-		Name:   vars["model"],
-		Tag:    vars["tag"],
-		Yaml:   params["yaml"].(string),
-		Commit: params["commit"].(string),
-		Status: "INACTIVE",
+	commit := ""
+	if _, ok := params["commit"]; ok {
+		commit = params["commit"].(string)
 	}
 
-	err = models.AddModel(db, model)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
+	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
+		user, name, tag))
+
+	// Check if the model already exists.
+	model, err := models.GetModelById(db, models.ModelId(user, name, tag))
+	if err == nil {
+		// http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists", user, name, tag), 500)
+		// Model already exists. Update the metadata.
+		// TODO: use transaction to avoid race.
+		// First merge YAML.
+		var currMetadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(model.Yaml), &currMetadata)
+
+		var newMetadata map[interface{}]interface{}
+		yaml.Unmarshal([]byte(params["yaml"].(string)), &newMetadata)
+
+		updateInterfaceMap(currMetadata, newMetadata)
+
+		if commit == "" {
+			commit = model.Commit
+		}
+
+		status := model.Status
+
+		yamlBytes, err := yaml.Marshal(cleanupInterfaceMap(currMetadata))
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		yamlString := string(yamlBytes)
+
+		fmt.Println(yamlString)
+
+		model = models.Model{
+			UserId: vars["user"],
+			Name:   vars["model"],
+			Tag:    vars["tag"],
+			Yaml:   yamlString,
+			Commit: commit,
+			Status: status,
+		}
+
+		models.UpdateModel(db, model)
 		return
-	}
+	} else {
+		// Create a new model.
+		model = models.Model{
+			UserId: vars["user"],
+			Name:   vars["model"],
+			Tag:    vars["tag"],
+			Yaml:   params["yaml"].(string),
+			Commit: commit,
+			Status: "INACTIVE",
+		}
 
-	w.WriteHeader(200)
+		err = models.AddModel(db, model)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.WriteHeader(200)
+	}
 }
 
 func deleteModel(w http.ResponseWriter, r *http.Request) {
@@ -505,6 +546,71 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Put a rating in the database.
+// The request body contains a JSON object {"value": <rating_value>}
+func putRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	var params map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	value := params["value"].(float64)
+
+	err = models.UpdateRating(db, userId, modelId, value)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+// Get the rating from the database.
+func getRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	rating, err := models.GetRatingById(db, models.RatingId(userId, modelId))
+	value := 0.
+
+	if err == nil {
+		value = rating.Value
+	}
+
+	w.WriteHeader(200)
+
+	response, _ := json.Marshal(map[string]float64{
+		"value": value,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
+// Delete the rating from the database.
+func deleteRating(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+	modelId := vars["modelId"]
+
+	printRequest(r)
+
+	err := models.DeleteRating(db, models.RatingId(userId, modelId))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
 func main() {
 	var err error
 
@@ -563,12 +669,18 @@ func main() {
 		router.HandleFunc("/url/code", getRepoURL).Methods("GET")
 		router.HandleFunc("/url/data", getDataURL).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", getModel).Methods("GET")
+		// PUT is used to create / update metadata. POST is used to control model deployments.
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
-		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
+		// Endpoints for manipulating user rating for models.
+		router.HandleFunc(`/rating/{userId}/{modelId:(?:.|\/)*}`, putRating).Methods("PUT")
+		router.HandleFunc("/rating/{userId}/{modelId:.*}", getRating).Methods("GET")
+		router.HandleFunc(`/rating/{userId}/{modelId:[.\/]*}`, deleteRating).Methods("DELETE")
+		// Other endpoints.
 		router.HandleFunc("/landing", postLanding).Methods("POST")
 
 		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))

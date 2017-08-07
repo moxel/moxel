@@ -40,7 +40,6 @@ class LandingPage extends Component {
   render() {
     const screenWidth = this.state.width;
     const isMobile = screenWidth <= 900;    
-    console.log(isMobile, screenWidth)
 
     var deployText = (
       <div className={isMobile ? "col s12" : "col s4 m5 offset-m1"}>

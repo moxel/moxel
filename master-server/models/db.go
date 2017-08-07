@@ -28,4 +28,5 @@ func MigrateDB(db *gorm.DB) {
 	db.Debug().AutoMigrate(&User{})
 	db.Debug().AutoMigrate(&Landing{})
 	db.Debug().AutoMigrate(&Job{})
+	db.Debug().AutoMigrate(&Rating{})
 }
