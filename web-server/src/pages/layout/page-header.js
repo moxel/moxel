@@ -78,7 +78,7 @@ class PageHeader extends Component {
                     <br/>
                     <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
                     <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
-                        Dummy.ai is a platform to build and share machine intelligence.
+                        Moxel is a platform to build and share machine intelligence.
                     </div>
                     <div>
                         <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
@@ -124,7 +124,7 @@ class PageHeader extends Component {
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
                     </div>
                     <div className="nav-wrapper container">
-                        <a href="/" className="brand-logo"><i className="material-icons" style={{fontSize: "32px"}}>face</i>Dummy.ai</a>
+                        <a href="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></a>
                         <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
                         {menu}
                         {banner}
