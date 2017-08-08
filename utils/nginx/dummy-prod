@@ -10,8 +10,8 @@ server {
         location /git {
                 proxy_pass http://kube-beta.dummy.ai:31900/git;
         }
-        location /model {
-                proxy_pass http://kube-beta.dummy.ai:31900/model;
+        location /model/ {
+                proxy_pass http://kube-beta.dummy.ai:31900/model/;
         }
         location /api {
                 proxy_set_header X-Real-IP  $remote_addr;

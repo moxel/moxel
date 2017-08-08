@@ -15,8 +15,8 @@ server {
                 proxy_pass http://kube-dev.dummy.ai:31900/api;
         }
 
-        location /model {
-                proxy_pass http://kube-dev.dummy.ai:31900/model;
+        location /model/ {
+                proxy_pass http://kube-dev.dummy.ai:31900/model/;
         }
 
         location /git {
