@@ -17,7 +17,7 @@ class PageLayout extends Component {
         console.log('is logged in? ', isLoggedIn);
 
         let showBanner = false;
-        if(!isLoggedIn && window.location.pathname == '/') {
+        if(window.location.pathname == '/') {
             showBanner = true;
         }
 

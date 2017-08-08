@@ -18,11 +18,7 @@ export default function Root() {
 				)
 			}}/>
             <Route exact path="/" component={() => {
-            	if(!AuthStore.isAuthenticated()) {
-            		return (<LandingPage/>)
-            	}else{
-            		return <Redirect to="/new"/>
-            	}
+        		return (<LandingPage/>)
             }}/>
 
             <Route exact path="/new" component={() => 

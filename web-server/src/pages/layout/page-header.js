@@ -71,7 +71,7 @@ class PageHeader extends Component {
         const isMobile = screenWidth <= 900;    
 
         let banner = null;
-        if(!AuthStore.isAuthenticated() && this.props.showBanner) {
+        if(this.props.showBanner) {
             banner = (
                 <div className="nav-header center">
                     <br/>
