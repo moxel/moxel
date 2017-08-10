@@ -807,7 +807,7 @@ class ModelView extends Component {
                                 <div className="card">
                                     <div className="card-content">
                                         <ReactDisqusThread
-                                            id="something-unique-12345"
+                                            id={`$[userId}/${modelId}:${tag}`}
                                             title="Example Thread"
                                             url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>
