@@ -21,7 +21,7 @@ import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import ReactDisqusThread from 'react-disqus-thread';
+import ReactDisqusThread from '../../components/disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
 import NotificationSystem from 'react-notification-system';
 import 'markdown-it';
@@ -158,10 +158,6 @@ const StyledModelLayout = styled(Flex)`
     .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview {
         width: 80%;
         height: 80%;
-    }
-
-    .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview:hover {
-        
     }
 
     .dz-image {
@@ -773,13 +769,9 @@ class ModelView extends Component {
                                 <div className="card">
                                     <div className="card-content">
                                         <ReactDisqusThread
-                                            shortname="moxel"
-                                            identifier="something-unique-12345"
+                                            id="something-unique-12345"
                                             title="Example Thread"
-                                            url={`http://dummy.ai${window.location.pathname}`}
-                                            category_id="123456"
-                                            onNewComment={this.handleNewComment}>
-                                            {`http://dummy.ai${window.location.pathname}`}
+                                            url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>
                                             
                                     </div>
