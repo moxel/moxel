@@ -6,8 +6,6 @@ import NotificationBanner from "../../components/notification-banner/notificatio
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
-import 'markdown-it';
-import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
 import { TimeSeries, TimeRange } from "pondjs";
@@ -25,8 +23,10 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from 'react-disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
-import { FacebookButton, FacebookCount, TwitterCount } from "react-social";
 import NotificationSystem from 'react-notification-system';
+import 'markdown-it';
+import Markdown from 'react-markdownit';
+
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -160,6 +160,10 @@ const StyledModelLayout = styled(Flex)`
         height: 80%;
     }
 
+    .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview:hover {
+        
+    }
+
     .dz-image {
         width: 100% !important;
         height: 100% !important;
@@ -168,6 +172,20 @@ const StyledModelLayout = styled(Flex)`
     .dz-image img {
         width: 100%;
         height: 100%;
+    }
+
+    .question-mark {
+        height: 300px !important;
+        width: 300px !important;
+        border-radius: 5px;
+        border: 2px dashed #C7C7C7;
+    }
+
+    .question-mark img {
+        opacity: 0.1;
+        margin: auto, auto, auto, auto;
+        max-width: 100%;
+        max-height: 100%;
     }
 `;
 
@@ -486,8 +504,8 @@ class ModelView extends Component {
                                             <div className="col m6">
                                                 <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
                                             </div>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                                <img id="demo-output" style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
+                                            <div className="col m6 question-mark" style={{textAlign: "center"}} >
+                                                <img id="demo-output" src="/images/question-256.png"></img>
                                             </div>
                                         </div>
                                         <div className="row">
@@ -504,7 +522,7 @@ class ModelView extends Component {
                                     </span>
                                 </Tab>
                                 <Tab title="API">
-                                    <Markdown className="markdown-body white-text" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                                    <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
                                     {`   
                                         \`\`\`python
                                         import requests
@@ -536,6 +554,7 @@ class ModelView extends Component {
 
                                     `}
                                     </Markdown>   
+
                                 </Tab>
                                 <Tab title="Input Type">
                                     <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
