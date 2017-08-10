@@ -193,11 +193,13 @@ class ModelView extends Component {
             model: null,
             readme: "*No description available for the model*",
             rating: 0, // user rating for this model.
+            editMode: false,
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
+        this.handleToggleEdit = this.handleToggleEdit.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -208,7 +210,7 @@ class ModelView extends Component {
             const {userId, modelId, tag} = this.props.match.params;
 
             ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
-                console.log('the model', model);
+                console.log('[Fetch Model]', model);
 
                 this.setState({
                     model: model
@@ -256,6 +258,10 @@ class ModelView extends Component {
 
     componentDidMount() {
         const {userId, modelId, tag} = this.props.match.params;
+
+        this.setState({
+            editMode: (userId == AuthStore.username())
+        })
         
         this.syncModel();
         this.syncRating();
@@ -306,8 +312,6 @@ class ModelView extends Component {
 
         // Set up edit mode.
         console.log(userId, AuthStore.username());
-        this.editMode = (userId == AuthStore.username());
-
     }
 
     
@@ -399,6 +403,10 @@ class ModelView extends Component {
                 });
             }.bind(this));
         }.bind(this));
+    }
+
+    handleToggleEdit() {
+        this.setState({editMode: !this.state.editMode});
     }
 
     render() {
@@ -589,7 +597,13 @@ class ModelView extends Component {
                             <div className="card-content">
                                 <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
                                     <div className="col s12 m12">
-                                        <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                        {
+                                            this.state.editMode
+                                            ?
+                                            <textarea style={{height: "300px"}} id="readme-textarea">{this.state.readme}</textarea>
+                                            :
+                                            <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -600,6 +614,8 @@ class ModelView extends Component {
                 
             </FixedWidthRow>
         );
+
+        console.log('editMode', this.state.editMode);
 
         return (
             <StyledModelLayout column className="catalogue-layout-container">
@@ -615,8 +631,21 @@ class ModelView extends Component {
                       width="%"
                       className="model-view">
                     <FixedWidthRow style={{justifyContent: "left"}}>
-                        <i className="material-icons">book</i> &nbsp; 
-                        <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
+                        <span>
+                            <i className="material-icons" style={{fontSize: "15px"}}>book</i> &nbsp; 
+                            <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
+                        </span>
+                        <span style={{marginLeft: "auto", marginRight: "0px"}}>
+                            <div className="switch">
+                                Edit Page:  &nbsp;
+                                <label>
+                                  Off
+                                  <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
+                                  <span className="lever"></span>
+                                  On
+                                </label>
+                            </div>
+                        </span>
                     </FixedWidthRow>
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -647,7 +676,7 @@ class ModelView extends Component {
 
                                 <span className="card-title">
                                     {
-                                        this.editMode
+                                        this.state.editMode
                                         ?
                                         (
                                             <input id="model-title" defaultValue={model.title} className="editable-input" style={{width: "60%"}} onBlur={this.handleUpdateTitle}/>
@@ -677,7 +706,7 @@ class ModelView extends Component {
 
                                 <div>
                                     {
-                                        this.editMode
+                                        this.state.editMode
                                         ?
                                         (
                                             <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
