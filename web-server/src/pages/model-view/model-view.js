@@ -178,10 +178,11 @@ const StyledModelLayout = styled(Flex)`
     }
 
     .question-mark img {
-        opacity: 0.1;
         margin: auto, auto, auto, auto;
         max-width: 100%;
         max-height: 100%;
+        margin-top: 50%;
+        transform: translateY(-50%);
     }
 `;
 
@@ -623,8 +624,6 @@ class ModelView extends Component {
                 
             </FixedWidthRow>
         );
-        console.log('editMode', model.readme);
-        console.log('editMode', this.state.editMode);
 
         return (
             <StyledModelLayout column className="catalogue-layout-container">
@@ -644,17 +643,23 @@ class ModelView extends Component {
                             <i className="material-icons" style={{fontSize: "15px"}}>book</i> &nbsp; 
                             <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
                         </span>
-                        <span style={{marginLeft: "auto", marginRight: "0px"}}>
-                            <div className="switch">
-                                Edit Page:  &nbsp;
-                                <label>
-                                  Off
-                                  <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
-                                  <span className="lever"></span>
-                                  On
-                                </label>
-                            </div>
-                        </span>
+                        {
+                            userId == AuthStore.username()
+                            ?
+                            <span style={{marginLeft: "auto", marginRight: "0px"}}>
+                                <div className="switch">
+                                    Edit Page:  &nbsp;
+                                    <label>
+                                      Off
+                                      <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
+                                      <span className="lever"></span>
+                                      On
+                                    </label>
+                                </div>
+                            </span>
+                            :
+                            null
+                        }
                     </FixedWidthRow>
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>

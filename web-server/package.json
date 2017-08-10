@@ -89,7 +89,7 @@
       }
     },
     "/model/": {
-      "target": "http://master-dev.dummy.ai:8080",
+      "target": "http://dev.dummy.ai",
       "ws": true
     }
   }
