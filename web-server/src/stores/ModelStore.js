@@ -23,7 +23,7 @@ class ModelStoreClass {
             outputType: {
             },
             gallery: [],
-            readme: null
+            readme: "There is no description for this model."
         };
     	
         for(var k in data.metadata) {

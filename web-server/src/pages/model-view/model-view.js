@@ -191,13 +191,13 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
-            readme: "*No description available for the model*",
             rating: 0, // user rating for this model.
             editMode: false,
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
+        this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
         this.handleToggleEdit = this.handleToggleEdit.bind(this);
         this.doingHandleUpvote = false;
@@ -215,18 +215,6 @@ class ModelView extends Component {
                 this.setState({
                     model: model
                 })
-
-                console.log(model.readme);
-
-                if(model.readme) {
-                    fetch(model.readme).then(function(resp) {
-                        return resp.text();
-                    }).then(function(body) {
-                        this.setState({
-                            readme: body
-                        })
-                    }.bind(this));
-                }
 
                 resolve(model);
             }.bind(this)).catch(function() {
@@ -384,6 +372,21 @@ class ModelView extends Component {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model title.',
+                  level: 'success'
+                });
+            }.bind(this));
+        }.bind(this));
+    }
+
+    handleUpdateReadMe() {
+        const {userId, modelId, tag} = this.props.match.params;
+
+        var modelReadMe = document.querySelector('#model-readme').value;
+
+        ModelStore.updateModel(userId, modelId, tag, {'readme': modelReadMe}).then(function() {
+            this.syncModel().then(function() {
+                this.notificationSystem.addNotification({
+                  message: 'Successfully updated model README.',
                   level: 'success'
                 });
             }.bind(this));
@@ -600,9 +603,15 @@ class ModelView extends Component {
                                         {
                                             this.state.editMode
                                             ?
-                                            <textarea style={{height: "300px"}} id="readme-textarea">{this.state.readme}</textarea>
+                                            <div>
+                                                <h5>Edit ReadMe</h5>
+                                                <textarea style={{height: "300px"}} id="model-readme" onBlur={this.handleUpdateReadMe} defaultValue={model.readme}>
+                                                </textarea>
+                                            </div>
                                             :
-                                            <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                            <Markdown tagName="article" className="markdown-body">
+                                                {model.readme}
+                                            </Markdown>
                                         }
                                     </div>
                                 </div>
@@ -614,7 +623,7 @@ class ModelView extends Component {
                 
             </FixedWidthRow>
         );
-
+        console.log('editMode', model.readme);
         console.log('editMode', this.state.editMode);
 
         return (
