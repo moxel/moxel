@@ -28,7 +28,7 @@ class PageFooter extends Component {
         return (
             <StyledFooter fixed width="100%" className="page-footer">
                 <FixedWidthRow row align="center" className="page-footer-inner">
-                    <HeaderButton fixed to="/">(c) 2017, Dummy.ai</HeaderButton>
+                    <HeaderButton fixed to="/">(c) 2017, Moxel.</HeaderButton>
                     <FlexSpacer/>
                     {/*<HeaderButton fixed to="/terms">Terms of Service</HeaderButton>
                     <HeaderButton fixed to="/privacy">Privacy Policy</HeaderButton>
