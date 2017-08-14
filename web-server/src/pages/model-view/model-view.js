@@ -16,6 +16,7 @@ import ImageUploader from "../../widgets/image-uploader";
 import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
 import AuthStore from "../../stores/AuthStore";
+import TypeUtils from "../../libs/TypeUtils"
 import RatingStore from "../../stores/RatingStore";
 import Error404View from "../../pages/error-view/404";
 import Slider from "react-slick";
@@ -261,24 +262,30 @@ class ModelView extends Component {
                 reader.readAsDataURL(file);
                 reader.addEventListener("load", function () {
                     var dataURL = reader.result;
-                    this.handleDemoRun = function() {
-                        var data = dataURL.substring(dataURL.indexOf("base64,") + 7, dataURL.length);
-                        var demoOutput = document.querySelector('#demo-output');
-                        demoOutput.src = '/images/spinner.gif';
-                        fetch('/model/jimfan/colorization/0.0.1', {
-                            method: 'POST', 
-                            headers: new Headers({
-                                'Content-Type': 'application/json'
-                            }),
-                            body: JSON.stringify({
-                                'img_in': data,
+                    var dataDict = TypeUtils.base64FromDataURL(dataURL);
+                    var inputData = dataDict.data;
+                    var inputType = dataDict.dataType;
+                    TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
+                        console.log('converted', convertedData)
+                        this.handleDemoRun = function() {
+                            var demoOutput = document.querySelector('#demo-output');
+                            demoOutput.src = '/images/spinner.gif';
+                            fetch('/model/jimfan/colorization/0.0.1', {
+                                method: 'POST', 
+                                headers: new Headers({
+                                    'Content-Type': 'application/json'
+                                }),
+                                body: JSON.stringify({
+                                    'img_in': inputData,
+                                })
+                            }).then(function(resp) {
+                                return resp.json();
+                            }).then(function(result) {
+                                demoOutput.src = 'data:image/png;base64,' + result['img_out'];
                             })
-                        }).then(function(resp) {
-                            return resp.json();
-                        }).then(function(result) {
-                            demoOutput.src = 'data:image/png;base64,' + result['img_out'];
-                        })
-                    };
+                        };
+                    }.bind(this))
+                    
                 }.bind(this), false);
             }.bind(this)
         }
