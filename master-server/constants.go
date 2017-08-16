@@ -37,6 +37,8 @@ var GitRegistry string = "http://beta.dummy.ai/git"
 var GitRoot string = "/mnt/nfs/code"
 var GitBin = "/usr/bin/git"
 
+var DBAddress string
+
 func InitGlobal() {
 	env := os.Getenv("ENV")
 	fmt.Println("ENV", env)
@@ -46,17 +48,21 @@ func InitGlobal() {
 		GitRoot = "/tmp/code"
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
+		DBAddress = "35.185.221.185"
 	} else if env == "devbox" {
 		// Run in dev mode.
 		GitRegistry = fmt.Sprintf("http://master-dev.dummy.ai:%d/git", MasterPort)
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
+		DBAddress = "35.185.221.185"
 	} else if env == "dev" {
 		// Run in dev mode.
 		GitRegistry = fmt.Sprintf("http://dev.dummy.ai/git")
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
+		DBAddress = "35.185.221.185"
 	} else {
 		// default: Production.
+		DBAddress = "35.197.24.27"
 	}
 }

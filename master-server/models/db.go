@@ -9,9 +9,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-const dbAddress = "35.185.221.185"
-
-func CreateDB() *gorm.DB {
+func CreateDB(dbAddress string) *gorm.DB {
 	dbString := fmt.Sprintf("host=%s user=postgres dbname=postgres sslmode=disable password=postgres", dbAddress)
 	db, err := gorm.Open("postgres", dbString)
 	if err != nil {

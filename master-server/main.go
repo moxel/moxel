@@ -626,13 +626,13 @@ func main() {
 
 	if command == "migrate" {
 		// migrate database schema.
-		db = models.CreateDB()
+		db = models.CreateDB(DBAddress)
 		defer db.Close()
 
 		models.MigrateDB(db)
 	} else if command == "start" {
 		// Database.
-		db = models.CreateDB()
+		db = models.CreateDB(DBAddress)
 		kubeClient = CreateClient(KubeConfig)
 		defer db.Close()
 
