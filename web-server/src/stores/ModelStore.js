@@ -55,18 +55,20 @@ class ModelStoreClass {
 		return new Promise(function(resolve) {
 			fetch(`/api/users/_/models`).then((response)=>{
 	            return response.json();
-	        }).then(function(data) {
+	        }).then(function(data) {	        	
 	        	var models = [];
+	        	
+	        	if(data) {
+	        		for(var row of data) {
+		        		var parts = row.uid.split(':');
+		                var tag = parts[1];
+		                parts = parts[0].split('/')
+		                var userId = parts[0];
+		                var modelId = parts[1];
 
-	        	for(var row of data) {
-	        		var parts = row.uid.split(':');
-	                var tag = parts[1];
-	                parts = parts[0].split('/')
-	                var userId = parts[0];
-	                var modelId = parts[1];
-
-	        		var model = this.formatModel(userId, modelId, tag, row);
-	        		models.push(model);
+		        		var model = this.formatModel(userId, modelId, tag, row);
+		        		models.push(model);
+		        	}		
 	        	}
 
 	        	resolve(models);
