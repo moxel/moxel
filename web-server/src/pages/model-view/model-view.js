@@ -279,7 +279,8 @@ class ModelView extends Component {
                         this.handleDemoRun = function() {
                             var demoOutput = document.querySelector('#demo-output');
                             demoOutput.src = '/images/spinner.gif';
-                            fetch('/model/jimfan/colorization/0.0.1', {
+                            var pathname = window.location.pathname;
+                            fetch('/model' + pathname.substring('/models'.length, pathname.length), {
                                 method: 'POST', 
                                 headers: new Headers({
                                     'Content-Type': 'application/json'
