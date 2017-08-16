@@ -28,7 +28,7 @@ server {
 }
 server {
         listen   80;
-        server_name ~^(www\.)?(?<dummy>.+)$;
+        server_name ~^(www\.)?dummy.+$;
         location / {
                 proxy_set_header X-Real-IP  $remote_addr;
                 proxy_set_header X-Forwarded-For $remote_addr;
@@ -42,4 +42,19 @@ server {
                 proxy_pass http://kube-beta.dummy.ai:31900/api;
         }
 }
-~            
+server {
+        listen   80; 
+        server_name ~^(www\.)?moxel.+$;
+        location / {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://kube-beta.moxel.ai:31900/landing/;
+        }
+        location /api {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://kube-beta.moxel.ai:31900/api;
+        }
+}            
