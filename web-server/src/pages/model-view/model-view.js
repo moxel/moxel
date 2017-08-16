@@ -6,8 +6,6 @@ import NotificationBanner from "../../components/notification-banner/notificatio
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
-import 'markdown-it';
-import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
 import { TimeSeries, TimeRange } from "pondjs";
@@ -23,10 +21,12 @@ import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import ReactDisqusThread from 'react-disqus-thread';
+import ReactDisqusThread from '../../components/disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
-import { FacebookButton, FacebookCount, TwitterCount } from "react-social";
 import NotificationSystem from 'react-notification-system';
+import 'markdown-it';
+import Markdown from 'react-markdownit';
+
 
 const StyledModelLayout = styled(Flex)`
     .model-snippet {
@@ -169,6 +169,21 @@ const StyledModelLayout = styled(Flex)`
         width: 100%;
         height: 100%;
     }
+
+    .question-mark {
+        height: 300px !important;
+        width: 300px !important;
+        border-radius: 5px;
+        border: 2px dashed #C7C7C7;
+    }
+
+    .question-mark img {
+        margin: auto, auto, auto, auto;
+        max-width: 100%;
+        max-height: 100%;
+        margin-top: 50%;
+        transform: translateY(-50%);
+    }
 `;
 
 class ModelView extends Component {
@@ -177,13 +192,15 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
-            readme: "*No description available for the model*",
             rating: 0, // user rating for this model.
+            editMode: false,
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
+        this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
+        this.handleToggleEdit = this.handleToggleEdit.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -194,23 +211,11 @@ class ModelView extends Component {
             const {userId, modelId, tag} = this.props.match.params;
 
             ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
-                console.log('the model', model);
+                console.log('[Fetch Model]', model);
 
                 this.setState({
                     model: model
                 })
-
-                console.log(model.readme);
-
-                if(model.readme) {
-                    fetch(model.readme).then(function(resp) {
-                        return resp.text();
-                    }).then(function(body) {
-                        this.setState({
-                            readme: body
-                        })
-                    }.bind(this));
-                }
 
                 resolve(model);
             }.bind(this)).catch(function() {
@@ -242,6 +247,10 @@ class ModelView extends Component {
 
     componentDidMount() {
         const {userId, modelId, tag} = this.props.match.params;
+
+        this.setState({
+            editMode: (userId == AuthStore.username())
+        })
         
         this.syncModel();
         this.syncRating();
@@ -292,8 +301,6 @@ class ModelView extends Component {
 
         // Set up edit mode.
         console.log(userId, AuthStore.username());
-        this.editMode = (userId == AuthStore.username());
-
     }
 
     
@@ -372,6 +379,21 @@ class ModelView extends Component {
         }.bind(this));
     }
 
+    handleUpdateReadMe() {
+        const {userId, modelId, tag} = this.props.match.params;
+
+        var modelReadMe = document.querySelector('#model-readme').value;
+
+        ModelStore.updateModel(userId, modelId, tag, {'readme': modelReadMe}).then(function() {
+            this.syncModel().then(function() {
+                this.notificationSystem.addNotification({
+                  message: 'Successfully updated model README.',
+                  level: 'success'
+                });
+            }.bind(this));
+        }.bind(this));
+    }
+
     handleUpdateDescription() {
         const {userId, modelId, tag} = this.props.match.params;
 
@@ -385,6 +407,10 @@ class ModelView extends Component {
                 });
             }.bind(this));
         }.bind(this));
+    }
+
+    handleToggleEdit() {
+        this.setState({editMode: !this.state.editMode});
     }
 
     render() {
@@ -486,8 +512,8 @@ class ModelView extends Component {
                                             <div className="col m6">
                                                 <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
                                             </div>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                                <img id="demo-output" style={{width: "auto", height: "300px", borderRadius: "5px", border: "2px dashed #C7C7C7"}} src="/images/question-256.png"></img>
+                                            <div className="col m6 question-mark" style={{textAlign: "center"}} >
+                                                <img id="demo-output" src="/images/question-256.png"></img>
                                             </div>
                                         </div>
                                         <div className="row">
@@ -504,7 +530,7 @@ class ModelView extends Component {
                                     </span>
                                 </Tab>
                                 <Tab title="API">
-                                    <Markdown className="markdown-body white-text" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                                    <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
                                     {`   
                                         \`\`\`python
                                         import requests
@@ -536,6 +562,7 @@ class ModelView extends Component {
 
                                     `}
                                     </Markdown>   
+
                                 </Tab>
                                 <Tab title="Input Type">
                                     <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
@@ -574,7 +601,19 @@ class ModelView extends Component {
                             <div className="card-content">
                                 <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
                                     <div className="col s12 m12">
-                                        <Markdown tagName="article" source={this.state.readme} className="markdown-body"/>
+                                        {
+                                            this.state.editMode
+                                            ?
+                                            <div>
+                                                <h5>Edit ReadMe</h5>
+                                                <textarea style={{height: "300px"}} id="model-readme" onBlur={this.handleUpdateReadMe} defaultValue={model.readme}>
+                                                </textarea>
+                                            </div>
+                                            :
+                                            <Markdown tagName="article" className="markdown-body">
+                                                {model.readme}
+                                            </Markdown>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -600,8 +639,27 @@ class ModelView extends Component {
                       width="%"
                       className="model-view">
                     <FixedWidthRow style={{justifyContent: "left"}}>
-                        <i className="material-icons">book</i> &nbsp; 
-                        <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
+                        <span>
+                            <i className="material-icons" style={{fontSize: "15px"}}>book</i> &nbsp; 
+                            <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
+                        </span>
+                        {
+                            userId == AuthStore.username()
+                            ?
+                            <span style={{marginLeft: "auto", marginRight: "0px"}}>
+                                <div className="switch">
+                                    Edit Page:  &nbsp;
+                                    <label>
+                                      Off
+                                      <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
+                                      <span className="lever"></span>
+                                      On
+                                    </label>
+                                </div>
+                            </span>
+                            :
+                            null
+                        }
                     </FixedWidthRow>
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -632,7 +690,7 @@ class ModelView extends Component {
 
                                 <span className="card-title">
                                     {
-                                        this.editMode
+                                        this.state.editMode
                                         ?
                                         (
                                             <input id="model-title" defaultValue={model.title} className="editable-input" style={{width: "60%"}} onBlur={this.handleUpdateTitle}/>
@@ -662,7 +720,7 @@ class ModelView extends Component {
 
                                 <div>
                                     {
-                                        this.editMode
+                                        this.state.editMode
                                         ?
                                         (
                                             <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
@@ -754,13 +812,9 @@ class ModelView extends Component {
                                 <div className="card">
                                     <div className="card-content">
                                         <ReactDisqusThread
-                                            shortname="moxel"
-                                            identifier="something-unique-12345"
+                                            id={`$[userId}/${modelId}:${tag}`}
                                             title="Example Thread"
-                                            url={`http://dummy.ai${window.location.pathname}`}
-                                            category_id="123456"
-                                            onNewComment={this.handleNewComment}>
-                                            {`http://dummy.ai${window.location.pathname}`}
+                                            url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>
                                             
                                     </div>
