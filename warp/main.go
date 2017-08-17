@@ -10,34 +10,7 @@ import (
 	"strings"
 )
 
-func CheckLogin() error {
-	if GlobalUser.Initialized() {
-		// Check if user has logged in.
-		resp, err := GlobalAPI.ping()
-
-		// Internal server error
-		if err != nil {
-			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
-			return errors.New("User not logged in")
-		}
-
-		if resp.StatusCode != 200 {
-			fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
-			fmt.Println("Please login first. Run `warp login`")
-			return errors.New("User not logged in")
-		}
-
-		return nil
-	} else {
-		fmt.Println("Please login first. Run `warp login`")
-		return errors.New("User login failed")
-	}
-}
-
 func main() {
-	// Initialize Global Constants based on environment variable.
-	InitGlobal()
-
 	// Start application.
 	app := cli.NewApp()
 
@@ -65,9 +38,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				GlobalContext = c
-
 				StartLoginFlow()
-
 				return nil
 			},
 		},
@@ -75,8 +46,7 @@ func main() {
 			Name:  "teardown",
 			Usage: "warp teardown [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				if err := CheckLogin(); err != nil {
+				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
@@ -109,8 +79,7 @@ func main() {
 			Name:  "deploy",
 			Usage: "warp deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				if err := CheckLogin(); err != nil {
+				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
@@ -143,8 +112,7 @@ func main() {
 			Name:  "list",
 			Usage: "warp list [deploy/run]",
 			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				if err := CheckLogin(); err != nil {
+				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
@@ -183,8 +151,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				if err := CheckLogin(); err != nil {
+				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
@@ -307,8 +274,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				if err := CheckLogin(); err != nil {
+				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
