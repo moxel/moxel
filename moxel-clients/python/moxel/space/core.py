@@ -5,3 +5,5 @@ class Space(object):
         """ Check if point x is inside Space.
         """
         return True
+
+

@@ -25,3 +25,8 @@ def test_to_numpy_rgb():
     assert isinstance(image_np, np.ndarray)
     assert image_np.shape == (512, 512, 3)
     assert image_np[0,0,0] == 223.
+
+def test_to_base64():
+    image = Image.from_file('tests/lena.jpg')
+    image_b64 = image.to_base64()
+    assert isinstance(image_b64, str)

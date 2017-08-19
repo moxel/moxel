@@ -1,3 +1,6 @@
+import moxel.space as space
+
+
 def parse_model_id(model_id):
     """ Return a tuple (user, model, tag)
 
@@ -17,4 +20,17 @@ def parse_model_id(model_id):
     model = parts[1]
 
     return (user, model, tag)
+
+
+def parse_space_dict(space_dict):
+    new_space_dict = {}
+
+    for k, v in space_dict.items():
+        try:
+            new_space_dict[k] = getattr(space, v)
+        except:
+            raise Exception('Unknown space name {}'.format(v))
+
+    return new_space_dict
+
 

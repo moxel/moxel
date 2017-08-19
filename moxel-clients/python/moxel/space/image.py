@@ -1,5 +1,7 @@
 from .core import Space
 import numpy as np
+import base64
+from six import BytesIO
 
 
 class Image(Space):
@@ -55,7 +57,17 @@ class Image(Space):
 
     def to_PIL(self):
         from PIL import Image as PILImage
-        return PILImage.fromarray(np.rollaxis(self.im * 255, 0,3))
+        return PILImage.fromarray(np.array(self.im * 255, dtype='uint8'))
+
+    def to_base64(self):
+        """ Return png of the image in base64 encoding.
+        """
+        image_pil = self.to_PIL()
+        buf = BytesIO()
+        image_pil.save(buf, 'png')
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode('utf_8')
+
 
 
 
