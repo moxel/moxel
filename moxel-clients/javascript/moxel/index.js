@@ -11,15 +11,17 @@ const Jimp = require('jimp');
 const async = require('async');
 
 
-module.exports = function(config) {
+var Moxel = function(config) {
+
 	if(!config || !config.endpoint) {
 		var MOXEL_ENDPOINT = 'http://beta.moxel.ai';
 	}else{
 		var MOXEL_ENDPOINT = config.endpoint
 	}
 
-	var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
-	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';
+	// var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
+	var API_ENDPOINT = '/api'; // TODO: CORS for APIs.
+	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';	
 
 	class Image {
 		// img is Jimp image.
@@ -53,6 +55,10 @@ module.exports = function(config) {
 		    // convert to dataURL.
 	        var hasLoaded = false;
 	        var result = {};
+
+	        if(data instanceof ArrayBuffer) { // Convert to node buffer.
+	        	data = new Buffer( new Uint8Array(data));
+	        }
 
 	        return new Promise((resolve, reject) => {
 	        	Jimp.read(data).then((result) => {
@@ -257,6 +263,8 @@ module.exports = function(config) {
 
 	return {
 		space: space,
-		createModel: createModel,
+		createModel: createModel
 	}
 };
+
+module.exports = Moxel;

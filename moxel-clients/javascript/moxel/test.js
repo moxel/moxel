@@ -50,5 +50,5 @@ function testColorization() {
 	});
 }
 
-testColorization();
-// testImage();
+// testColorization();
+testImage();
