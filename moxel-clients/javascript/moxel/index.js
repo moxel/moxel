@@ -1,18 +1,25 @@
 const fileType = require('file-type');
-const Jimp = require("jimp");
-const deasync = require('deasync');
-require('es6-promise').polyfill();
-require('isomorphic-fetch');
+if(typeof(window) != 'undefined' && !window.Buffer) {
+	// Browser environment.
+	window.Buffer = require('buffer')
+}else{
+	// Node.js environment.
+	require('es6-promise').polyfill();
+	require('isomorphic-fetch');
+}
+const Jimp = require('jimp');
+const async = require('async');
+
 
 module.exports = function(config) {
 	if(!config || !config.endpoint) {
-		MOXEL_ENDPOINT = 'http://beta.moxel.ai';
+		var MOXEL_ENDPOINT = 'http://beta.moxel.ai';
 	}else{
-		MOXEL_ENDPOINT = config.endpoint
+		var MOXEL_ENDPOINT = config.endpoint
 	}
 
-	API_ENDPOINT = MOXEL_ENDPOINT + '/api';
-	MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';
+	var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
+	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';
 
 	class Image {
 		// img is Jimp image.
@@ -47,8 +54,11 @@ module.exports = function(config) {
 	        var hasLoaded = false;
 	        var result = {};
 
-	        var read = deasync(Jimp.read);
-		    return new Image(read(data));
+	        return new Promise((resolve, reject) => {
+	        	Jimp.read(data).then((result) => {
+	        		resolve(new Image(result));
+	        	});
+	        });
 		}
 
 		// Create Image object from raw base64 data.
@@ -63,7 +73,11 @@ module.exports = function(config) {
 			if(!mime) {
 				mime = 'image/png';
 			}
-			return deasync(this.img.getBuffer).bind(this.img)(mime)
+			return new Promise((resolve, reject) => {
+				this.img.getBuffer(mime, (err, data) => {
+					resolve(data);
+				});
+			})
 		}
 
 		// Convert to base64 encoding.
@@ -72,7 +86,12 @@ module.exports = function(config) {
 			if(!mime) {
 				mime = 'image/png';
 			}
-			return 'data:' + mime + ';base64,' + this.toBase64(mime);
+			var self = this;
+			return new Promise((resolve, reject) => {
+				self.toBase64(mime).then((data) => {
+					resolve('data:' + mime + ';base64,' + data);
+				})
+			})
 		}
 
 		// Convert to base64 encoding.
@@ -81,8 +100,12 @@ module.exports = function(config) {
 			if(!mime) {
 				mime = 'image/png';
 			}
-			var bytes = this.toBytes(mime);
-			return Buffer(bytes).toString('base64');
+			var self = this;
+			return new Promise((resolve, reject) => {
+				self.toBytes(mime).then((data) => {
+					resolve(Buffer(data).toString('base64'));
+				})
+			})
 		}
 	}
 
@@ -147,44 +170,66 @@ module.exports = function(config) {
 			return new Promise(function(resolve, reject) {
 				// Wrap input.
 				var inputObject = {};
-				for(var varName in self.inputSpace) {
-					var varSpace = self.inputSpace[varName];
 
-					// Assume base64 encoding.
-					// Only works for Image now.
-					if(!kwargs[varName]) {
-						throw 'Input must have argument ' + varName;
-					}
-					var inputItem = kwargs[varName].toBase64('image/png');
-					inputObject[varName] = inputItem;
-				}
+				new Promise((resolve, reject) => {
+					async.forEachOf(self.inputSpace,
+						(varSpace, varName, callback) => {
+							// Assume base64 encoding.
+							// Only works for Image now.
+							if(!kwargs[varName]) {
+								throw 'Input must have argument ' + varName;
+							}
+							// console.log(kwargs[varName]);
+							kwargs[varName].toBase64('image/png').then((inputItem) => {
+								inputObject[varName] = inputItem;
+								callback();	
+							});
+						},
 
-				// Make HTTP REST request.
-				fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
-					{
-						method: 'POST',
-						headers: new Headers({
-                        	'Content-Type': 'application/json'
-                    	}),
-                    	body: JSON.stringify(inputObject)
-                    }
-				).then((response) => {
+						(err) => {
+							if(err) {
+								reject(err);
+							}else{
+								resolve();
+							}
+						}
+					)	
+				}).then(() => {
+					console.log(inputObject);
+					// Make HTTP REST request.
+					return fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
+						{
+							method: 'POST',
+							headers: new Headers({
+	                        	'Content-Type': 'application/json'
+	                    	}),
+	                    	body: JSON.stringify(inputObject)
+	                    }
+					)	
+				}).then((response) => {
 					return response.json();
 				}).then((result) => {
 					// Parse result.
 					var outputObject = {};
 
-					for(var varName in self.outputSpace) {
-						var varSpace = self.outputSpace[varName];
-
-						console.log(varSpace);
-						var outputItem = Image.fromBase64(result[varName]);
-						outputObject[varName] = outputItem;
-					}
-
-					console.log(outputObject);
-
-					resolve(outputObject);
+					return new Promise((resolve, reject) => {
+						async.forEachOf(self.outputSpace,
+						(varSpace, varName, callback) => {
+							Image.fromBase64(result[varName]).then((outputItem) => {
+								outputObject[varName] = outputItem;
+								callback();
+							});							
+						},
+						(err) => {
+							if(err) {
+								reject(err);
+							}else{
+								resolve(outputObject);
+							}
+						})
+					});
+				}).then((outputObject) => {
+					resolve(outputObject);	
 				});	
 			});
 		}

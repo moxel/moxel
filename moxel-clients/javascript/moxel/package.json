@@ -9,6 +9,8 @@
   "author": "Tim Shi",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.5.0",
+    "buffer": "^5.0.7",
     "deasync": "^0.1.10",
     "desync": "^1.1.2",
     "es6-promise": "^4.1.1",
