@@ -18,6 +18,7 @@ module.exports = function(config) {
 		// img is Jimp image.
 		constructor(img) {
 			this.img = img;
+			this.img.rgba(false); // use RGB only.
 			this.shape = this.shape.bind(this);
 			this.toBytes = this.toBytes.bind(this);
 			this.toBase64 = this.toBase64.bind(this);
@@ -50,19 +51,37 @@ module.exports = function(config) {
 		    return new Image(read(data));
 		}
 
+		// Create Image object from raw base64 data.
+		static fromBase64(data) {
+			var buffer = Buffer.from(data, 'base64');
+			return Image.fromBytes(buffer);
+		}
+
 		// Convert to bytes.
+		// mime: default is png.
 		toBytes(mime) {
+			if(!mime) {
+				mime = 'image/png';
+			}
 			return deasync(this.img.getBuffer).bind(this.img)(mime)
 		}
 
 		// Convert to base64 encoding.
-		toDataURL(mine) {
-			return 'data:' + mine + ';base64,' + this.toBase64(mine);
+		// mime: default is png.
+		toDataURL(mime) {
+			if(!mime) {
+				mime = 'image/png';
+			}
+			return 'data:' + mime + ';base64,' + this.toBase64(mime);
 		}
 
 		// Convert to base64 encoding.
-		toBase64(mine) {
-			var bytes = this.toBytes(mine);
+		// mime: default is png.
+		toBase64(mime) {
+			if(!mime) {
+				mime = 'image/png';
+			}
+			var bytes = this.toBytes(mime);
 			return Buffer(bytes).toString('base64');
 		}
 	}
@@ -117,43 +136,56 @@ module.exports = function(config) {
 			this.tag = tag;
 			this.metadata = result.metadata;
 			this.status = result.status;
-			this.inputSpace = result.metadata['input_space'];
-			console.log('space', this.inputSpace);
-			this.outputSpace = result.metadata['output_space'];
+			this.inputSpace = this.metadata['input_space'];
+			this.outputSpace = this.metadata['output_space'];
 
-			this.predict = this.predict.bind(this);
+			this.predict = this.predict.bind(this);			
 		}
 
 		predict(kwargs) {
+			var self = this;
 			return new Promise(function(resolve, reject) {
 				// Wrap input.
-				inputObject = {};
-				for(var varName in this.inputSpace) {
-					var varSpace = this.inputSpace[varName];
+				var inputObject = {};
+				for(var varName in self.inputSpace) {
+					var varSpace = self.inputSpace[varName];
 
 					// Assume base64 encoding.
 					// Only works for Image now.
-					inputItem = kwargs[varName].toBase64();
+					if(!kwargs[varName]) {
+						throw 'Input must have argument ' + varName;
+					}
+					var inputItem = kwargs[varName].toBase64('image/png');
 					inputObject[varName] = inputItem;
 				}
 
 				// Make HTTP REST request.
-				fetch(MODEL_ENDPOINT + '/' + this.user + '/' + this.model + '/' + this.tag,
-					{method: 'POST'}).then((response) => {
+				fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
+					{
+						method: 'POST',
+						headers: new Headers({
+                        	'Content-Type': 'application/json'
+                    	}),
+                    	body: JSON.stringify(inputObject)
+                    }
+				).then((response) => {
 					return response.json();
-				}.then((result) => {
+				}).then((result) => {
 					// Parse result.
 					var outputObject = {};
 
-					for(var varName in this.outputSpace) {
-						var varSpace = this.outputSpace[varName];
+					for(var varName in self.outputSpace) {
+						var varSpace = self.outputSpace[varName];
 
-						var outputItem = varSpace.fromBase64(result[varName]);
+						console.log(varSpace);
+						var outputItem = Image.fromBase64(result[varName]);
 						outputObject[varName] = outputItem;
 					}
 
+					console.log(outputObject);
+
 					resolve(outputObject);
-				}.bind(this));	
+				});	
 			});
 		}
 	}
@@ -170,7 +202,7 @@ module.exports = function(config) {
 			}).then(function(result) {
 				var model = new Model(user, name, tag, result);
 				if(model.status == 'LIVE') {
-					resolve(result);
+					resolve(model);
 				}else{
 					reject('The model must be in LIVE state');
 				}
