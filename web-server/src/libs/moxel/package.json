@@ -11,7 +11,9 @@
   "dependencies": {
     "deasync": "^0.1.10",
     "desync": "^1.1.2",
+    "es6-promise": "^4.1.1",
     "file-type": "^6.1.0",
+    "isomorphic-fetch": "^2.2.1",
     "jimp": "^0.2.28"
   }
 }

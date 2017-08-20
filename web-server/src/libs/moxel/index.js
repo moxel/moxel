@@ -1,6 +1,8 @@
 const fileType = require('file-type');
 const Jimp = require("jimp");
 const deasync = require('deasync');
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
 
 module.exports = function(config) {
 	if(!config || !config.endpoint) {
@@ -65,20 +67,119 @@ module.exports = function(config) {
 		}
 	}
 
-	class Utils {
-		parseModelId(modelId) {
+	// define submodule space.
+	var space = {
+		Image: Image,
+	};
 
+	class Utils {
+		static parseModelId(modelId) {
+			var parts = modelId.split(':');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+			var tag = parts[1];
+
+			parts = parts[0].split('/');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+
+			var user = parts[0];
+			var model = parts[1];
+
+			return {
+				user: user,
+				model: model,
+				tag: tag
+			}
+		}
+
+		static parseSpaceObject(spaceObject) {
+			var result = {};
+
+			for(var k in spaceObject) {
+				var v = spaceObject[k];
+				if(!space[v]) {
+					throw 'Type ' + v + ' is unknown.'
+				}
+				result[k] = space[v];
+			}
+
+			return result;
 		}
 	}
 
 	class Model {
-		load(modelId) {
+		constructor(user, name, tag, result) {
+			this.user = user;
+			this.name = name;
+			this.tag = tag;
+			this.metadata = result.metadata;
+			this.status = result.status;
+			this.inputSpace = result.metadata['input_space'];
+			console.log('space', this.inputSpace);
+			this.outputSpace = result.metadata['output_space'];
 
+			this.predict = this.predict.bind(this);
+		}
+
+		predict(kwargs) {
+			return new Promise(function(resolve, reject) {
+				// Wrap input.
+				inputObject = {};
+				for(var varName in this.inputSpace) {
+					var varSpace = this.inputSpace[varName];
+
+					// Assume base64 encoding.
+					// Only works for Image now.
+					inputItem = kwargs[varName].toBase64();
+					inputObject[varName] = inputItem;
+				}
+
+				// Make HTTP REST request.
+				fetch(MODEL_ENDPOINT + '/' + this.user + '/' + this.model + '/' + this.tag,
+					{method: 'POST'}).then((response) => {
+					return response.json();
+				}.then((result) => {
+					// Parse result.
+					var outputObject = {};
+
+					for(var varName in this.outputSpace) {
+						var varSpace = this.outputSpace[varName];
+
+						var outputItem = varSpace.fromBase64(result[varName]);
+						outputObject[varName] = outputItem;
+					}
+
+					resolve(outputObject);
+				}.bind(this));	
+			});
 		}
 	}
 
+	function createModel(modelId) {
+		return new Promise(function(resolve, reject) {
+			var parts = Utils.parseModelId(modelId);
+			var user = parts.user;
+			var name = parts.model;
+			var tag = parts.tag;
+
+			fetch(API_ENDPOINT + '/users/' + user + '/models/' + name + '/' + tag).then(function(response) {
+				return response.json();
+			}).then(function(result) {
+				var model = new Model(user, name, tag, result);
+				if(model.status == 'LIVE') {
+					resolve(result);
+				}else{
+					reject('The model must be in LIVE state');
+				}
+			})
+		});
+	}	
+
 	return {
-		Image: Image,
-		Model: Model,
+		space: space,
+		createModel: createModel,
 	}
 };
