@@ -1,0 +1,17 @@
+{
+  "name": "moxel",
+  "version": "1.0.0",
+  "description": "Javascript client for Moxel",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "Tim Shi",
+  "license": "ISC",
+  "dependencies": {
+    "deasync": "^0.1.10",
+    "desync": "^1.1.2",
+    "file-type": "^6.1.0",
+    "jimp": "^0.2.28"
+  }
+}
