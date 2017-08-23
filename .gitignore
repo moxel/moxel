@@ -17,3 +17,4 @@ tags
 
 # Specific Paths
 /master-server/bin
+.cache

@@ -1,0 +1,14 @@
+#!/bin/bash
+# Deploy master server to kube cluster.
+
+if [ $1 = "dev" ]
+then
+    ./bin/use-moxel-dev
+    cd master-server && make devbox-build && make devbox-push && make deploy ENV=dev
+elif [ $1 = "prod" ]
+then
+    ./bin/use-moxel-prod
+    cd master-server && make devbox-build && make devbox-push && make deploy ENV=prod
+else
+    echo "Unknown deployment environment $1"
+fi

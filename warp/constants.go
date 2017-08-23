@@ -2,6 +2,7 @@ package main
 
 import (
 	//"fmt"
+	"errors"
 	"fmt"
 	"github.com/urfave/cli"
 	"log"
@@ -23,7 +24,43 @@ var GlobalUser *User
 var GlobalAPI *MasterAPI
 var callbackPort string
 
-func InitGlobal() {
+// Checks if the user has logged in.
+func CheckLogin() error {
+	if GlobalUser.Initialized() {
+		GlobalUser = &User{}
+		GlobalAPI = NewMasterAPI(GlobalUser)
+
+		// Check if user has logged in.
+		resp, err := GlobalAPI.ping()
+
+		// Internal server error
+		if err != nil {
+			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
+			return errors.New("User not logged in")
+		}
+
+		if resp.StatusCode != 200 {
+			fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
+			fmt.Println("Please login first. Run `warp login`")
+			return errors.New("User not logged in")
+		}
+
+		return nil
+	} else {
+		fmt.Println("Please login first. Run `warp login`")
+		return errors.New("User login failed")
+	}
+}
+
+// Initializes global context and constants.
+// First checks if the user has logged in.
+func InitGlobal(c *cli.Context) error {
+	if err := CheckLogin(); err != nil {
+		return err
+	}
+
+	GlobalContext = c
+
 	env := os.Getenv("ENV")
 	// fmt.Println("Env:", env)
 	if env == "local" {
@@ -37,8 +74,7 @@ func InitGlobal() {
 		// default: Production.
 	}
 
-	GlobalUser = &User{}
-	GlobalAPI = NewMasterAPI(GlobalUser)
+	return nil
 }
 
 func MasterEndpoint(path string) string {

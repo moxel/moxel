@@ -26,6 +26,11 @@ import {Button, Dropdown, NavItem} from 'react-materialize'
 import NotificationSystem from 'react-notification-system';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
+import Moxel from 'moxel'
+const moxel = Moxel({
+    endpoint: 'http://dev.moxel.ai'
+})
+// import '../../libs/moxel/browser/lib/moxel.js'
 
 
 const StyledModelLayout = styled(Flex)`
@@ -267,34 +272,60 @@ class ModelView extends Component {
                 var uid = DataStore.uuid() + '.' + ext;
                 DataStore.uploadData(userId, modelId, `data/${uid}`, file);
                 
+                // Get modelId.
+                var pathname = window.location.pathname;
+                var modelPath = pathname.substring('/models'.length + 1, pathname.length);
+                var modelPathParts = modelPath.split('/');
+                var moxelModelId = modelPathParts[0] + '/' + modelPathParts[1] + ':' + modelPathParts[2];
+
+                // Output demo.
+                var demoOutput = document.querySelector('#demo-output');
+                demoOutput.src = '/images/spinner.gif';
+                
+                // Read data.
                 var reader = new FileReader();
-                reader.readAsDataURL(file);
+                // reader.readAsDataURL(file);
+                reader.readAsArrayBuffer(file);
                 reader.addEventListener("load", function () {
-                    var dataURL = reader.result;
-                    var dataDict = TypeUtils.base64FromDataURL(dataURL);
-                    var inputData = dataDict.data;
-                    var inputType = dataDict.dataType;
-                    TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
-                        console.log('converted', convertedData)
-                        this.handleDemoRun = function() {
-                            var demoOutput = document.querySelector('#demo-output');
-                            demoOutput.src = '/images/spinner.gif';
-                            var pathname = window.location.pathname;
-                            fetch('/model' + pathname.substring('/models'.length, pathname.length), {
-                                method: 'POST', 
-                                headers: new Headers({
-                                    'Content-Type': 'application/json'
-                                }),
-                                body: JSON.stringify({
-                                    'img_in': inputData,
-                                })
-                            }).then(function(resp) {
-                                return resp.json();
-                            }).then(function(result) {
-                                demoOutput.src = 'data:image/png;base64,' + result['img_out'];
-                            })
-                        };
-                    }.bind(this))
+                    var bytes = reader.result;
+                    console.log('bytes', bytes);
+                    console.log('modelId', moxelModelId);
+                    moxel.createModel(moxelModelId).then((model) => {
+                        moxel.space.Image.fromBytes(bytes).then((image) => {
+                          return model.predict({
+                              img_in: image
+                          });
+                        }).then((result) => {
+                          return result.img_out.toDataURL();
+                        }).then((url) => {
+                            console.log(url);
+                            demoOutput.src = url;
+                        });             
+                    });
+                    // var dataDict = TypeUtils.base64FromDataURL(dataURL);
+                    // var inputData = dataDict.data;
+                    // var inputType = dataDict.dataType;
+                    // TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
+                    //     console.log('converted', convertedData.length)
+                    //     this.handleDemoRun = function() {
+                    //         var demoOutput = document.querySelector('#demo-output');
+                    //         demoOutput.src = '/images/spinner.gif';
+                    //         var pathname = window.location.pathname;
+                    //         fetch('/model' + pathname.substring('/models'.length, pathname.length), {
+                    //             method: 'POST', 
+                    //             headers: new Headers({
+                    //                 'Content-Type': 'application/json'
+                    //             }),
+                    //             body: JSON.stringify({
+                    //                 'img_in': inputData,
+                    //             })
+                    //         }).then(function(resp) {
+                    //             return resp.json();
+                    //         }).then(function(result) {
+                    //             demoOutput.src = 'data:image/png;base64,' + result['img_out'];
+                    //         })
+                    //     };
+                    // }.bind(this))
                     
                 }.bind(this), false);
             }.bind(this)

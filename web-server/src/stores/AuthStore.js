@@ -12,7 +12,7 @@ var lockOptions = {
   },
   allowedConnections: ['Username-Password-Authentication'],
   rememberLastLogin: false, // disable sso.
-  redirect: true
+  redirect: false
 };
 
 class AuthStoreClass {
@@ -21,7 +21,7 @@ class AuthStoreClass {
     'dummyai.auth0.com',
     lockOptions
   );
-  
+
   constructor() {
     var lock = this.lock;
     
@@ -34,6 +34,10 @@ class AuthStoreClass {
         console.log('profile', profile);
         localStorage.setItem('accessToken', authResult.accessToken);
         localStorage.setItem('profile', JSON.stringify(profile));
+        var redirectUrl = localStorage.getItem('auth0RedirectUrl');
+        if(redirectUrl) {
+          window.location.href = redirectUrl;
+        }
       }.bind(this));
     }.bind(this));
 
@@ -52,10 +56,14 @@ class AuthStoreClass {
       window.location.href = callbackURL;
       return;
     }
+
+    // https://github.com/auth0/lock/issues/514
+    // Auth0 Lock handles redirect before "authenticated" event.
+    localStorage.setItem('auth0RedirectUrl', callbackURL);
     this.lock.show({
-        auth: {
-          redirectUrl: document.location.host + callbackURL
-        }
+        // auth: {
+        //   redirectUrl: document.location.host + callbackURL
+        // }
     });
 	}
 

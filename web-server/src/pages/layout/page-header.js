@@ -94,7 +94,13 @@ class PageHeader extends Component {
 
         var menu = null;
         if(!AuthStore.isAuthenticated()) {
-            menu = null;
+            menu = (
+                <ul className="right hide-on-med-and-down">
+
+                    <li><a onClick={()=>{AuthStore.login('/');}}>Login</a></li>
+
+                </ul>
+            )
         }else{
             menu = (
                 <ul className="right hide-on-med-and-down">
