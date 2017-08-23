@@ -44,7 +44,7 @@ func main() {
 		},
 		{
 			Name:  "teardown",
-			Usage: "warp teardown [model-name]:[tag]",
+			Usage: "moxel teardown [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
 				if err := InitGlobal(c); err != nil {
 					return err
@@ -77,7 +77,7 @@ func main() {
 		},
 		{
 			Name:  "deploy",
-			Usage: "warp deploy [model-name]:[tag]",
+			Usage: "moxel deploy [model-name]:[tag]",
 			Action: func(c *cli.Context) error {
 				if err := InitGlobal(c); err != nil {
 					return err
@@ -110,7 +110,7 @@ func main() {
 		},
 		{
 			Name:  "list",
-			Usage: "warp list [deploy/run]",
+			Usage: "moxel list deploy",
 			Action: func(c *cli.Context) error {
 				if err := InitGlobal(c); err != nil {
 					return err
@@ -141,13 +141,18 @@ func main() {
 			},
 		},
 		{
-			Name:  "create",
-			Usage: "warp create -f [file]",
+			Name:  "push",
+			Usage: "push -f [file] [model:tag]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "file, f",
 					Value: "dummy.yml",
 					Usage: "The YAML filename",
+				},
+				cli.StringFlag{
+					Name:  "modelId, m",
+					Value: "",
+					Usage: "ID of the model to be pushed.",
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -156,6 +161,10 @@ func main() {
 				}
 
 				file := c.String("file")
+				modelId := c.Args().Get(0)
+
+				fmt.Println("modelId", modelId)
+
 				userName := GlobalUser.Username()
 
 				// Load configuration.
@@ -260,7 +269,7 @@ func main() {
 		},
 		{
 			Name:  "init",
-			Usage: "warp init model -f [file] -n [name]",
+			Usage: "moxel init model -f [file] -n [name]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "file, f",
