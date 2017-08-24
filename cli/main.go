@@ -214,7 +214,11 @@ func main() {
 				}
 
 				// Default map values for compatibility.
-				config["work_path"] = "."
+				// Compute workpath.
+				moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
+				workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
+				fmt.Println("workPath", workPath)
+				config["work_path"] = workPath
 
 				fmt.Printf("> Model %s:%s\n", projectName, tag)
 
