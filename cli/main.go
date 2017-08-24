@@ -163,9 +163,15 @@ func main() {
 				file := c.String("file")
 				modelId := c.Args().Get(0)
 
-				fmt.Println("modelId", modelId)
+				modelIdParts := strings.Split(modelId, ":")
+				if len(modelIdParts) != 2 {
+					err := errors.New("Ill-formatted modelId \"" + modelId + "\"")
+					return err
+				}
 
 				userName := GlobalUser.Username()
+				projectName := modelIdParts[0]
+				tag := modelIdParts[1]
 
 				// Load configuration.
 				repo, err := GetWorkingRepo()
@@ -181,8 +187,34 @@ func main() {
 					return err
 				}
 
-				projectName := config["name"].(string)
-				tag := config["tag"].(string)
+				// A whitelist that maps <key> => <isRequired>
+				YAMLWhitelist := map[string]bool{
+					"image":        true,
+					"assets":       false,
+					"resources":    false,
+					"input_space":  true,
+					"output_space": true,
+					"cmd":          false,
+				}
+
+				// Check if all keys in config are in whitelist.
+				for k, _ := range config {
+					if _, ok := YAMLWhitelist[k]; ok {
+					} else {
+						return errors.New("Unknown key in YAML: \"" + k + "\"")
+					}
+				}
+
+				// Check if all required keys in whitelist are in config.
+				for k, v := range YAMLWhitelist {
+					_, ok := config[k]
+					if v && !ok {
+						return errors.New(fmt.Sprintf("Required key %s is not in YAML", k))
+					}
+				}
+
+				// Default map values for compatibility.
+				config["work_path"] = "."
 
 				fmt.Printf("> Model %s:%s\n", projectName, tag)
 
@@ -321,5 +353,8 @@ func main() {
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
