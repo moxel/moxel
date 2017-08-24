@@ -21,9 +21,11 @@ build-windows:
 build-release:  build-linux build-windows build-osx
 	@echo "All versions built".
 
+link:
+	ln -s `pwd`/bin/moxel /usr/local/bin/moxel
+
 build:
 	./manage.py build
-
 	
 clean:
 	./manage.py clean
