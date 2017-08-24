@@ -10,6 +10,163 @@ import (
 	"strings"
 )
 
+// Parse a modelId of format <modelName>:<tag> into parts.
+// Return modelName, tag, error.
+func ParseModelId(modelId string) (string, string, error) {
+	modelIdParts := strings.Split(modelId, ":")
+
+	if len(modelIdParts) != 2 {
+		return "", "", errors.New("Ill-formatted modelId \"" + modelId + "\"")
+	}
+
+	modelName := modelIdParts[0]
+	tag := modelIdParts[1]
+
+	return modelName, tag, nil
+}
+
+// Deploy model LIVE.
+func DeployModel(modelName string, tag string) error {
+	fmt.Println(fmt.Sprintf("> Deploying model %s:%s", modelName, tag))
+	resp, err := GlobalAPI.DeployModel(GlobalUser.Username(), modelName, tag)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		fmt.Println("Error:", resp.String())
+		return nil
+	}
+
+	fmt.Println(fmt.Sprintf("Successfully deployed %s:%s", modelName, tag))
+	return nil
+}
+
+// Push code to Git repo.
+// Return (commit, error)
+func PushCode(repo *Repo, modelName string) (string, error) {
+	url, err := GlobalAPI.GetRepoURL(GlobalUser.Username(), modelName)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to reach remote repo: %s", err.Error()))
+	}
+
+	fmt.Println("> Pushing code...")
+	commit, err := repo.PushCode(GlobalAPI.authToken, url)
+	if err != nil {
+		return "", errors.New("Failed to push code: " + err.Error())
+	}
+	return commit, nil
+}
+
+// Push assets to Git repo.
+func PushAssets(repo *Repo, modelName string, commit string, config map[string]interface{}) error {
+	fmt.Println("> Uploading weight files...")
+
+	if assets, ok := config["assets"]; ok {
+		// Normalize the asset paths.
+		var assetPaths []string
+		for _, asset := range assets.([]interface{}) {
+			assetPath, _ := filepath.Abs(asset.(string))
+			assetPath, _ = filepath.Rel(repo.Path, assetPath)
+			assetPaths = append(assetPaths, assetPath)
+		}
+		// Push data to cloud.
+		if err := repo.PushData(assetPaths, GlobalUser.Username(), modelName, commit); err != nil {
+			return errors.New(fmt.Sprintf("Failed to push data: %s", err.Error()))
+		}
+	}
+	return nil
+}
+
+// Teardown the model. From LIVE to INACTIVE.
+func TeardownModel(modelName string, tag string) error {
+	fmt.Println(fmt.Sprintf("Tearing down model %s:%s", modelName, tag))
+	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, tag)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New(resp.String())
+	}
+	return nil
+}
+
+// Create or update a model.
+func PutModel(modelName string, tag string, commit string, config map[string]interface{}) error {
+	yamlString, _ := SaveYAMLToString(config)
+	resp, err := GlobalAPI.PutModel(GlobalUser.Username(), modelName, tag, commit, yamlString)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return errors.New("Cannot save model:" + resp.String())
+	}
+	return nil
+}
+
+// Get model metadata.
+func GetModel(modelName string, tag string) (map[string]string, error) {
+	var modelData map[string]string
+	resp, err := GlobalAPI.GetModel(GlobalUser.Username(), modelName, tag)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to get model data: %s", err.Error()))
+	}
+	if resp.StatusCode != 200 {
+		msg := resp.String()
+		fmt.Println("Error:", msg)
+		return nil, errors.New(msg)
+	}
+	resp.JSON(&modelData)
+	return modelData, nil
+}
+
+// Delete model.
+func DeleteModel(modelName string, tag string) error {
+	resp, err := GlobalAPI.DeleteModel(GlobalUser.Username(), modelName, tag)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		msg := resp.String()
+		fmt.Println("Error: ", msg)
+		return errors.New(msg)
+	}
+	return nil
+}
+
+// Verify if the model configuration has the correct format.
+func VerifyModelConfig(config map[string]interface{}) error {
+	// A whitelist that maps <key> => <isRequired>
+	YAMLWhitelist := map[string]bool{
+		"image":        true,
+		"assets":       false,
+		"resources":    false,
+		"input_space":  true,
+		"output_space": true,
+		"cmd":          false,
+	}
+
+	// Check if all keys in config are in whitelist.
+	for k, _ := range config {
+		if _, ok := YAMLWhitelist[k]; ok {
+		} else {
+			return errors.New("Unknown key in YAML: \"" + k + "\"")
+		}
+	}
+
+	// Check if all required keys in whitelist are in config.
+	for k, v := range YAMLWhitelist {
+		_, ok := config[k]
+		if v && !ok {
+			return errors.New(fmt.Sprintf("Required key %s is not in YAML", k))
+		}
+	}
+
+	return nil
+}
+
 func main() {
 	// Start application.
 	app := cli.NewApp()
@@ -50,27 +207,17 @@ func main() {
 					return err
 				}
 
-				nameAndTag := c.Args().Get(0)
-				entries := strings.Split(nameAndTag, ":")
-
-				if len(entries) != 2 {
-					return errors.New(fmt.Sprintf("Unrecognized format %s", nameAndTag))
-				}
-
-				projectName := entries[0]
-				tag := entries[1]
-
-				resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), projectName, tag)
+				modelId := c.Args().Get(0)
+				modelName, tag, err := ParseModelId(modelId)
 				if err != nil {
 					return err
 				}
 
-				if resp.StatusCode != 200 {
-					fmt.Println("Error:", resp.String())
-					return nil
+				if err := TeardownModel(modelName, tag); err != nil {
+					return err
 				}
 
-				fmt.Println("Successfully torn down", nameAndTag)
+				fmt.Println("Successfully torn down", modelId)
 				return nil
 
 			},
@@ -83,29 +230,13 @@ func main() {
 					return err
 				}
 
-				nameAndTag := c.Args().Get(0)
-				entries := strings.Split(nameAndTag, ":")
-
-				if len(entries) != 2 {
-					return errors.New(fmt.Sprintf("Unrecognized format %s", nameAndTag))
-				}
-
-				projectName := entries[0]
-				tag := entries[1]
-
-				resp, err := GlobalAPI.DeployModel(GlobalUser.Username(), projectName, tag)
+				modelId := c.Args().Get(0)
+				modelName, tag, err := ParseModelId(modelId)
 				if err != nil {
 					return err
 				}
 
-				if resp.StatusCode != 200 {
-					fmt.Println("Error:", resp.String())
-					return nil
-				}
-
-				fmt.Println("Successfully deployed", nameAndTag)
-				return nil
-
+				return DeployModel(modelName, tag)
 			},
 		},
 		{
@@ -163,15 +294,10 @@ func main() {
 				file := c.String("file")
 				modelId := c.Args().Get(0)
 
-				modelIdParts := strings.Split(modelId, ":")
-				if len(modelIdParts) != 2 {
-					err := errors.New("Ill-formatted modelId \"" + modelId + "\"")
+				modelName, tag, err := ParseModelId(modelId)
+				if err != nil {
 					return err
 				}
-
-				userName := GlobalUser.Username()
-				projectName := modelIdParts[0]
-				tag := modelIdParts[1]
 
 				// Load configuration.
 				repo, err := GetWorkingRepo()
@@ -187,30 +313,9 @@ func main() {
 					return err
 				}
 
-				// A whitelist that maps <key> => <isRequired>
-				YAMLWhitelist := map[string]bool{
-					"image":        true,
-					"assets":       false,
-					"resources":    false,
-					"input_space":  true,
-					"output_space": true,
-					"cmd":          false,
-				}
-
-				// Check if all keys in config are in whitelist.
-				for k, _ := range config {
-					if _, ok := YAMLWhitelist[k]; ok {
-					} else {
-						return errors.New("Unknown key in YAML: \"" + k + "\"")
-					}
-				}
-
-				// Check if all required keys in whitelist are in config.
-				for k, v := range YAMLWhitelist {
-					_, ok := config[k]
-					if v && !ok {
-						return errors.New(fmt.Sprintf("Required key %s is not in YAML", k))
-					}
+				// Verify if the config has the right format.
+				if err := VerifyModelConfig(config); err != nil {
+					return err
 				}
 
 				// Default map values for compatibility.
@@ -220,35 +325,27 @@ func main() {
 				fmt.Println("workPath", workPath)
 				config["work_path"] = workPath
 
-				fmt.Printf("> Model %s:%s\n", projectName, tag)
+				fmt.Printf("> Model %s:%s\n", modelName, tag)
 
 				// Check to see if model already exists.
-				var modelData map[string]string
-				resp, err := GlobalAPI.GetModel(userName, projectName, tag)
+				modelData, err := GetModel(modelName, tag)
 				if err != nil {
-					fmt.Printf("Failed to get model data: %s\n", err.Error())
-					return nil
+					return err
 				}
-				if resp.StatusCode != 200 {
-					msg := resp.String()
-					fmt.Println("Error:", msg)
-					return errors.New(msg)
-				}
-				resp.JSON(&modelData)
+
 				if modelData["status"] != "UNKNOWN" {
 					fmt.Printf("Model already exists. Overwrite? [y/n]\t")
 					isYes := AskForConfirmation()
 					if isYes {
-						resp, err = GlobalAPI.DeleteModel(userName, projectName, tag)
-						if err != nil {
-							fmt.Println("Error:", err.Error())
-							return err
+						// If the model is LIVE, tear it down first.
+						if modelData["status"] == "LIVE" {
+							if err := TeardownModel(modelName, tag); err != nil {
+								return err
+							}
 						}
-
-						if resp.StatusCode != 200 {
-							msg := resp.String()
-							fmt.Println("Error: ", msg)
-							return errors.New(msg)
+						// Delete model.
+						if err := DeleteModel(modelName, tag); err != nil {
+							return err
 						}
 					} else {
 						return nil
@@ -256,50 +353,28 @@ func main() {
 				}
 
 				// Push code to git registry.
-				url, err := GlobalAPI.GetRepoURL(userName, projectName)
-				if err != nil {
-					fmt.Printf("Failed to reach remote repo: %s\n", err.Error())
-					return nil
-				}
-
-				fmt.Println("> Pushing code...")
-				commit, err := repo.PushCode(GlobalAPI.authToken, url)
-				if err != nil {
-					fmt.Printf("Failed to push code: ", err.Error())
-					return nil
-				}
-
-				fmt.Println("> Commit ", commit)
-
-				fmt.Println("> Uploading weight files...")
-				// Push assets to cloud storage.
-				if assets, ok := config["assets"]; ok {
-					// Normalize the asset paths.
-					var assetPaths []string
-					for _, asset := range assets.([]interface{}) {
-						assetPath, _ := filepath.Abs(asset.(string))
-						assetPath, _ = filepath.Rel(repo.Path, assetPath)
-						assetPaths = append(assetPaths, assetPath)
-					}
-					// Push data to cloud.
-					err = repo.PushData(assetPaths, userName, projectName, commit)
-					if err != nil {
-						fmt.Println("Failed to push data:", err.Error())
-					}
-				}
-
-				// Create model in the database.
-				yamlString, _ := SaveYAMLToString(config)
-				resp, err = GlobalAPI.PutModel(userName, projectName, tag, commit, yamlString)
+				commit, err := PushCode(repo, modelName)
 				if err != nil {
 					return err
 				}
-				if resp.StatusCode != 200 {
-					fmt.Println("Cannot save model:", resp.String())
-					os.Exit(1)
-				}
-				fmt.Println("> Done!")
+				fmt.Println("> Commit ", commit)
 
+				// Push assets to cloud storage.
+				if err := PushAssets(repo, modelName, commit, config); err != nil {
+					return err
+				}
+
+				// Create model in the database.
+				if err := PutModel(modelName, tag, commit, config); err != nil {
+					return err
+				}
+
+				// Deploy model.
+				if err := DeployModel(modelName, tag); err != nil {
+					return err
+				}
+
+				fmt.Println("> Done!")
 				return nil
 			},
 		},
