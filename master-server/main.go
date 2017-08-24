@@ -144,7 +144,7 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func listModel(w http.ResponseWriter, r *http.Request) {
+func listModels(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 
@@ -165,19 +165,33 @@ func listModel(w http.ResponseWriter, r *http.Request) {
 	var results []map[string]interface{}
 
 	for _, model := range ms {
-		var metadata map[interface{}]interface{}
-		yaml.Unmarshal([]byte(model.Yaml), &metadata)
+		results = append(results, model.ToMap())
+	}
 
-		result := cleanupInterfaceMap(map[interface{}]interface{}{
-			"uid":      model.Uid,
-			"name":     model.Name,
-			"tag":      model.Tag,
-			"status":   model.Status,
-			"yaml":     model.Yaml,
-			"metadata": metadata,
-		})
+	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
 
-		results = append(results, result)
+func listModelTags(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["user"]
+	modelName := vars["model"]
+
+	var err error
+	var ms []models.Model
+
+	ms, err = models.ListModelByUserAndName(db, userId, modelName)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+		return
+	}
+
+	var results []map[string]interface{}
+
+	for _, model := range ms {
+		results = append(results, model.ToMap())
 	}
 
 	response, _ := json.Marshal(results)
@@ -673,7 +687,8 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
-		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 		// Endpoints for manipulating user rating for models.

@@ -3,10 +3,12 @@ package models
 import (
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gopkg.in/yaml.v2"
 	"io"
 	"time"
 )
@@ -25,6 +27,26 @@ type Model struct {
 	Commit string
 	Yaml   string
 	Status string
+}
+
+// Convert model struct to map representation.
+func (model *Model) ToMap() map[string]interface{} {
+	var metadata map[interface{}]interface{}
+	yaml.Unmarshal([]byte(model.Yaml), &metadata)
+	return cleanupInterfaceMap(map[interface{}]interface{}{
+		"uid":      model.Uid,
+		"name":     model.Name,
+		"tag":      model.Tag,
+		"status":   model.Status,
+		"yaml":     model.Yaml,
+		"metadata": metadata,
+	})
+}
+
+// Convert model struct to JSON representation.
+func (model *Model) ToJSON() (string, error) {
+	result, err := json.Marshal(model.ToMap())
+	return string(result), err
 }
 
 // Compute the unique ID of a Model.
@@ -83,10 +105,17 @@ func ListModelByUser(db *gorm.DB, userId string) ([]Model, error) {
 	return models, err
 }
 
-// ListModelByUser lists models that belong to UserId.
 func ListModelAll(db *gorm.DB) ([]Model, error) {
 	var models []Model
 	err := db.Find(&models).Error
+
+	return models, err
+}
+
+// ListModelByUser lists models that belong to UserId and modelName.
+func ListModelByUserAndName(db *gorm.DB, userId string, modelName string) ([]Model, error) {
+	var models []Model
+	err := db.Find(&models, "user_id = ? AND name = ?", userId, modelName).Error
 
 	return models, err
 }
