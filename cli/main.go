@@ -38,7 +38,7 @@ func DeployModel(modelName string, tag string) error {
 		return nil
 	}
 
-	fmt.Println(fmt.Sprintf("   Successfully deployed %s:%s", modelName, tag))
+	fmt.Println(fmt.Sprintf("  Successfully deployed %s:%s", modelName, tag))
 	return nil
 }
 
