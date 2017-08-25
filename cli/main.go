@@ -38,7 +38,7 @@ func DeployModel(modelName string, tag string) error {
 		return nil
 	}
 
-	fmt.Println(fmt.Sprintf("Successfully deployed %s:%s", modelName, tag))
+	fmt.Println(fmt.Sprintf("   Successfully deployed %s:%s", modelName, tag))
 	return nil
 }
 
@@ -80,7 +80,7 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 
 // Teardown the model. From LIVE to INACTIVE.
 func TeardownModel(modelName string, tag string) error {
-	fmt.Println(fmt.Sprintf("Tearing down model %s:%s", modelName, tag))
+	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s", modelName, tag))
 	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, tag)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func main() {
 					return err
 				}
 
-				fmt.Println("Successfully torn down", modelId)
+				fmt.Println("  Successfully torn down", modelId)
 				return nil
 
 			},
@@ -322,7 +322,6 @@ func main() {
 				// Compute workpath.
 				moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
 				workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
-				fmt.Println("workPath", workPath)
 				config["work_path"] = workPath
 
 				fmt.Printf("> Model %s:%s\n", modelName, tag)
@@ -334,7 +333,7 @@ func main() {
 				}
 
 				if modelData["status"] != "UNKNOWN" {
-					fmt.Printf("Model already exists. Overwrite? [y/n]\t")
+					fmt.Printf("  Model already exists. Overwrite? [y/n]\t")
 					isYes := AskForConfirmation()
 					if isYes {
 						// If the model is LIVE, tear it down first.
@@ -374,7 +373,24 @@ func main() {
 					return err
 				}
 
-				fmt.Println("> Done!")
+				fmt.Println("> Done. Showing logs from model:")
+				fmt.Println("-------------------------------------------")
+
+				// Stream logs from model.
+				bytesRead := 0
+				for {
+					resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
+					if err != nil {
+						break
+					}
+					bytes := resp.Bytes()
+					if bytes == nil {
+						break
+					}
+					fmt.Print(string(bytes[bytesRead:len(bytes)]))
+					bytesRead = len(bytes)
+				}
+
 				return nil
 			},
 		},
@@ -424,6 +440,42 @@ func main() {
 					fmt.Printf("Unknown resource kind %s\n", kind)
 				}
 
+				return nil
+			},
+		},
+		{
+			Name:  "log",
+			Usage: "log [model:tag]",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "modelId, m",
+					Value: "",
+					Usage: "ID of the model to be pushed.",
+				},
+			},
+			Action: func(c *cli.Context) error {
+				if err := InitGlobal(c); err != nil {
+					return err
+				}
+
+				modelId := c.Args().Get(0)
+
+				modelName, tag, err := ParseModelId(modelId)
+				if err != nil {
+					return err
+				}
+
+				resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
+				buffer := make([]byte, 128)
+				for {
+					bytesRead, err := resp.Read(buffer)
+					if bytesRead == 0 || err != nil {
+						break
+					}
+					fmt.Printf(string(buffer))
+				}
+
+				fmt.Println()
 				return nil
 			},
 		},

@@ -432,6 +432,16 @@ func GetPodsByJobName(client *kube.Clientset, jobName string) ([]v1.Pod, error) 
 	return pods.Items, err
 }
 
+// Get the Pod based on the given deployment.
+func GetPodsByDeployName(client *kube.Clientset, deployName string) ([]v1.Pod, error) {
+	podClient := client.CoreV1().Pods(kubeNamespace)
+	var options = metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app=%s", deployName),
+	}
+	pods, err := podClient.List(options)
+	return pods.Items, err
+}
+
 // Stream logs from a pod.
 // Reference implementation: https://github.com/kubernetes/kubernetes/blob/c2e90cd1549dff87db7941544ce15f4c8ad0ba4c/pkg/kubectl/cmd/log.go#L186
 func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io.Writer) error {
@@ -485,9 +495,27 @@ func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out 
 		return errors.New(fmt.Sprintf("Cannot find job with given name: %s", jobName))
 	}
 
-	podID := pods[0].GetObjectMeta().GetName()
+	podId := pods[0].GetObjectMeta().GetName()
 
-	return StreamLogsFromPod(client, podID, follow, out)
+	return StreamLogsFromPod(client, podId, follow, out)
+}
+
+// Stream logs from a model.
+func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, follow bool, out io.Writer) error {
+	deployName := GetDeployName(userId, modelName, tag)
+
+	pods, err := GetPodsByDeployName(client, deployName)
+	if err != nil {
+		return err
+	}
+
+	if len(pods) == 0 {
+		return errors.New(fmt.Sprintf("Cannot find job with given name: %s", deployName))
+	}
+
+	podId := pods[0].GetObjectMeta().GetName()
+
+	return StreamLogsFromPod(client, podId, follow, out)
 }
 
 func CreateService(client *kube.Clientset, deployName string) error {

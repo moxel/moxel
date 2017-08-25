@@ -541,6 +541,7 @@ func putJob(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(""))
 }
 
+// For Jobs. Deprecated.
 func logJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -556,6 +557,20 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 	err := StreamLogsFromJob(kubeClient, jobName, true, w)
 
 	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+	}
+}
+
+func logModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["user"]
+	modelId := vars["model"]
+	tag := vars["tag"]
+
+	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
+		userId, modelId, tag))
+
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, true, w); err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 	}
 }
@@ -687,6 +702,7 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/log", logModel).Methods("GET")
 		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")

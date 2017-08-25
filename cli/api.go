@@ -94,6 +94,10 @@ func (api *MasterAPI) GetModel(user string, name string, tag string) (*grequests
 	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{})
 }
 
+func (api *MasterAPI) LogModel(user string, name string, tag string) (*grequests.Response, error) {
+	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log", user, name, tag)), &grequests.RequestOptions{})
+}
+
 func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, yaml string) (*grequests.Response, error) {
 	return grequests.Put(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{
 		JSON: map[string]string{

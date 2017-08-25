@@ -69,7 +69,7 @@ func InitGlobal(c *cli.Context) error {
 		MasterAddress = "http://dev.dummy.ai/api"
 	} else if env == "devbox" {
 		// Run in dev mode.
-		MasterAddress = "http://master-dev.dummy.ai:8080"
+		MasterAddress = "http://35.196.226.10:8080"
 	} else {
 		// default: Production.
 	}
