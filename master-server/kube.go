@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
+	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -481,6 +482,7 @@ func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io
 
 	defer readCloser.Close()
 	_, err = io.Copy(out, readCloser)
+	_, err = io.Copy(os.Stdout, readCloser)
 	return err
 }
 
@@ -514,6 +516,8 @@ func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string
 	}
 
 	podId := pods[0].GetObjectMeta().GetName()
+
+	fmt.Println("Log from pod", podId)
 
 	return StreamLogsFromPod(client, podId, follow, out)
 }

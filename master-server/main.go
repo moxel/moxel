@@ -570,7 +570,7 @@ func logModel(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
 		userId, modelId, tag))
 
-	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, true, w); err != nil {
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, false, w); err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 	}
 }
