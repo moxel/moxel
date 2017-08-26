@@ -25,3 +25,6 @@
 [submodule "cli/test/tf-bare"]
 	path = cli/test/tf-bare
 	url = https://github.com/moxel/tf-bare
+[submodule "examples/OpenNMT-py"]
+	path = examples/OpenNMT-py
+	url = https://github.com/OpenNMT/OpenNMT-py
