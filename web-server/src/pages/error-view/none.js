@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import FixedWidthRow from "../../components/fixed-width-row";
 
-class Error404View extends Component {
+class ErrorNoneView extends Component {
 	render() {
 		return (
 			<div>
@@ -9,11 +9,11 @@ class Error404View extends Component {
 					<h1><i className="material-icons left" style={{fontSize: "200px"}}>sentiment_dissatisfied</i></h1>
 				</FixedWidthRow>
 				<FixedWidthRow>
-					<h4>404. We are not able to find it.</h4>
+					<h4>Sorry, model does not exist...</h4>
 				</FixedWidthRow>
 			</div>
 		)
 	}
 };
 
-export default Error404View;
+export default ErrorNoneView;

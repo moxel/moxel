@@ -17,6 +17,7 @@ import AuthStore from "../../stores/AuthStore";
 import TypeUtils from "../../libs/TypeUtils"
 import RatingStore from "../../stores/RatingStore";
 import Error404View from "../../pages/error-view/404";
+import ErrorNoneView from "../../pages/error-view/none";
 import Slider from "react-slick";
 import SimpleTag from "../../components/simple-tag";
 import "slick-carousel/slick/slick.css";
@@ -218,6 +219,10 @@ class ModelView extends Component {
 
             ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
                 console.log('[Fetch Model]', model);
+                if(model.status == 'NONE') {
+                    // This model does not exist.
+
+                }
 
                 this.setState({
                     model: model
@@ -225,9 +230,9 @@ class ModelView extends Component {
 
                 resolve(model);
             }.bind(this)).catch(function() {
-                console.log('Cannot fetch model');
+                console.error('Cannot fetch model');
                 var model = {
-                    status: "404"
+                    status: "UNKNOWN"
                 }
 
                 this.setState({
@@ -512,8 +517,12 @@ class ModelView extends Component {
             return null
         }
 
-        if(this.state.model.status == "404") {
+        if(this.state.model.status == "UNKNOWN") {
             return <Error404View/>
+        }
+
+        if(this.state.model.status == "NONE") {
+            return <ErrorNoneView/>
         }
 
         const {userId, modelId, tag} = this.props.match.params;

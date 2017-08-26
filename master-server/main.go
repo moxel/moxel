@@ -363,7 +363,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	model, err := models.GetModelById(db, modelId)
 
 	// Read status and YAML string.
-	status := "UNKNOWN"
+	status := "NONE"
 	yamlString := ""
 
 	if err == nil {
