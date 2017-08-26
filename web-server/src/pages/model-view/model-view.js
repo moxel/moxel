@@ -197,6 +197,7 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
+            isRunning: false,
             rating: 0, // user rating for this model.
             editMode: false,
         }
@@ -243,7 +244,6 @@ class ModelView extends Component {
         var myId = AuthStore.username()
 
         RatingStore.fetchRating(myId, modelUid).then(function(rating) {
-            console.log("Rating value = ", rating);
             this.setState({
                 rating: rating
             });
@@ -281,24 +281,32 @@ class ModelView extends Component {
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
-            var outputSpaces = self.state.model['output_space'];
-            for(var outputName in outputs) {
-                var outputSpace = outputSpaces[outputName];
-                var output = outputs[outputName];
-                var demoWidget = document.querySelector(`#demo-${outputName}`);
-                console.log('demo widget', demoWidget);
-                if(outputSpace == "Image") {
-                    output.toDataURL().then((url) => {
-                        demoWidget.src = url;
-                    });
-                }else if(outputSpace == "JSON") {
-                    demoWidget.value = JSON.stringify(output);
-                }
-            }
+            return new Promise((resolve, reject) => {
+                var outputSpaces = self.state.model['output_space'];
+                for(var outputName in outputs) {
+                    var outputSpace = outputSpaces[outputName];
+                    var output = outputs[outputName];
+                    var demoWidget = document.querySelector(`#demo-${outputName}`);
+                    console.log('demo widget', demoWidget);
+                    if(outputSpace == "Image") {
+                        output.toDataURL().then((url) => {
+                            demoWidget.src = url;
+                            resolve();
+                        });
+                    }else if(outputSpace == "JSON") {
+                        demoWidget.value = JSON.stringify(output);
+                        resolve();
+                    }
+                }    
+            });
         }
 
         // Handle run button.
         self.handleDemoRun = function() {
+            self.setState({
+                isRunning: true
+            })
+
             // Make sure the model and all inputs are loaded.
             if(!self.moxelModel) {
                 return;
@@ -315,7 +323,11 @@ class ModelView extends Component {
             console.log('Moxel predicting...');
             self.moxelModel.predict(self.inputs).then((outputs) => {
                 console.log('Moxel output', outputs);
-                self.handleOutputs(outputs);
+                self.handleOutputs(outputs).then(() => {;
+                    self.setState({
+                        isRunning: false
+                    })
+                });
             });
 
         };
@@ -632,7 +644,13 @@ class ModelView extends Component {
                                                 
                                             </div>
                                             <div className="col m2">
-                                                <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run</a>
+                                                {
+                                                    this.state.isRunning 
+                                                    ?
+                                                    <img src="/images/spinner.gif" style={{width: "100%", height: "auto"}}></img>
+                                                    :    
+                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
+                                                }
                                             </div>
                                             <div className="col m5">
                                             </div>
