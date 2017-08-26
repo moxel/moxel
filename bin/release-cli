@@ -1,0 +1,2 @@
+#!/bin/bash
+cd cli && make build-release && make release
