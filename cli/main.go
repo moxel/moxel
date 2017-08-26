@@ -387,6 +387,8 @@ func main() {
 					if bytes == nil {
 						break
 					}
+					// fmt.Println("bytesRead", bytesRead)
+					// fmt.Println("bytesBuffer", len(bytes))
 					fmt.Print(string(bytes[bytesRead:len(bytes)]))
 					bytesRead = len(bytes)
 				}
