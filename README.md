@@ -1,4 +1,4 @@
-# Dummy.ai MVP
+# Moxel: Github for AI.
 
 [![CircleCI](https://circleci.com/gh/dummy-ai/warpdrive.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/dummy-ai/warpdrive)
 
@@ -6,17 +6,15 @@
 > World's Best Models, Built by the Community.
 
 
-Dummy is a marketplace for machine learning models. Researchers deploy and publish models as "lambda function", paying a low cost of serving per request. Developers discover intereseting models and integrate them into applications through API.
+Moxel is the marketplace for AI models, and a high-quality community for AI researchers. Researchers deploy and publish models as serverless "lambda function", paying a low cost of serving per request. Developers discover intereseting models and integrate them into applications through API.
 
-Links: [[Documentation]](http://docs.dummy.ai/)  
-
-
+Links: [[Documentation]](http://docs.dummy.ai/) 
 
 
 
 ## Objective
 
-Our goal is to differentiate through the following competitve advantages:
+The goal of system design is:
 
 1. **Low friction to start** Anyone can start uploading machine learning models in minutes.
 2. **Low cost of serving** Models are served like lambda functions and incur cost only when the API is called.

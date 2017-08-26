@@ -306,6 +306,19 @@ func main() {
 					return err
 				}
 
+				// Check if model repo is available.
+				// If model is created from Moxel site,
+				// then <modelName>:latest is created by default.
+				models, err := GlobalAPI.ListModelTags(GlobalUser.Username(), modelName)
+				if err != nil {
+					return err
+				}
+				if len(models) == 0 {
+					return errors.New(fmt.Sprintf(
+						"Model %s does not exist. Please create it first on Moxel website.", modelName) + "\n" +
+						CreateModelURL)
+				}
+
 				// Load configuration.
 				repo, err := GetWorkingRepo()
 				if err != nil {
