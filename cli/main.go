@@ -60,7 +60,7 @@ func PushCode(repo *Repo, modelName string) (string, error) {
 
 // Push assets to Git repo.
 func PushAssets(repo *Repo, modelName string, commit string, config map[string]interface{}) error {
-	fmt.Println("> Uploading weight files...")
+	fmt.Println("> Uploading model files...")
 
 	if assets, ok := config["assets"]; ok {
 		// Normalize the asset paths.
