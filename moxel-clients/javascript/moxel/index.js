@@ -201,7 +201,7 @@ var Moxel = function(config) {
 						}
 					)	
 				}).then(() => {
-					console.log(inputObject);
+					console.log('Moxel input', inputObject);
 					// Make HTTP REST request.
 					return fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
 						{
@@ -216,15 +216,23 @@ var Moxel = function(config) {
 					return response.json();
 				}).then((result) => {
 					// Parse result.
+					// console.log('Moxel result', result);
 					var outputObject = {};
 
 					return new Promise((resolve, reject) => {
 						async.forEachOf(self.outputSpace,
 						(varSpace, varName, callback) => {
-							Image.fromBase64(result[varName]).then((outputItem) => {
-								outputObject[varName] = outputItem;
+							if(varSpace == 'Image') {
+								Image.fromBase64(result[varName]).then((outputItem) => {
+									outputObject[varName] = outputItem;
+									callback();
+								});							
+							}else if(varSpace == 'JSON') {
+								outputObject[varName] = result[varName];
 								callback();
-							});							
+							}else{
+								console.error('Unknown variable output space', varSpace);
+							}
 						},
 						(err) => {
 							if(err) {

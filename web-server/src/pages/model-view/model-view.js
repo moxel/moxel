@@ -263,73 +263,123 @@ class ModelView extends Component {
         // Add event handler for image upload.
         this.handleDemoRun = null;
 
-        this.uploadEventHandlers = { 
-            addedfile: function(file) {
-                const {userId, modelId, tag} = this.props.match.params;
-                console.log('file', file);
-                var parts = file.name.split('.')
-                var ext = parts[parts.length-1];
-                var uid = DataStore.uuid() + '.' + ext;
-                DataStore.uploadData(userId, modelId, `data/${uid}`, file);
-                
-                // Get modelId.
-                var pathname = window.location.pathname;
-                var modelPath = pathname.substring('/models'.length + 1, pathname.length);
-                var modelPathParts = modelPath.split('/');
-                var moxelModelId = modelPathParts[0] + '/' + modelPathParts[1] + ':' + modelPathParts[2];
+        var self = this;
 
-                // Output demo.
-                var demoOutput = document.querySelector('#demo-output');
-                demoOutput.src = '/images/spinner.gif';
-                
-                // Read data.
-                var reader = new FileReader();
-                // reader.readAsDataURL(file);
-                reader.readAsArrayBuffer(file);
-                reader.addEventListener("load", function () {
-                    var bytes = reader.result;
-                    console.log('bytes', bytes);
-                    console.log('modelId', moxelModelId);
-                    moxel.createModel(moxelModelId).then((model) => {
-                        moxel.space.Image.fromBytes(bytes).then((image) => {
-                          return model.predict({
-                              img_in: image
-                          });
-                        }).then((result) => {
-                          return result.img_out.toDataURL();
-                        }).then((url) => {
-                            console.log(url);
-                            demoOutput.src = url;
-                        });             
+        // Get modelId.
+        var pathname = window.location.pathname;
+        var modelPath = pathname.substring('/models'.length + 1, pathname.length);
+        var modelPathParts = modelPath.split('/');
+        self.modelId = modelPathParts[0] + '/' + modelPathParts[1] + ':' + modelPathParts[2];
+        console.log('modelId', self.modelId);
+
+        // Import model from Moxel.
+        self.moxelModel = null;   // moxel model.
+        moxel.createModel(self.modelId).then((model) => {
+            self.moxelModel = model;
+            console.log('Moxel model created', self.moxelModel);
+        });
+
+        // Handle output visualization.
+        self.handleOutputs = function(outputs) {
+            var outputSpaces = self.state.model['output_space'];
+            for(var outputName in outputs) {
+                var outputSpace = outputSpaces[outputName];
+                var output = outputs[outputName];
+                var demoWidget = document.querySelector(`#demo-${outputName}`);
+                console.log('demo widget', demoWidget);
+                if(outputSpace == "Image") {
+                    output.toDataURL().then((url) => {
+                        demoWidget.src = url;
                     });
-                    // var dataDict = TypeUtils.base64FromDataURL(dataURL);
-                    // var inputData = dataDict.data;
-                    // var inputType = dataDict.dataType;
-                    // TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
-                    //     console.log('converted', convertedData.length)
-                    //     this.handleDemoRun = function() {
-                    //         var demoOutput = document.querySelector('#demo-output');
-                    //         demoOutput.src = '/images/spinner.gif';
-                    //         var pathname = window.location.pathname;
-                    //         fetch('/model' + pathname.substring('/models'.length, pathname.length), {
-                    //             method: 'POST', 
-                    //             headers: new Headers({
-                    //                 'Content-Type': 'application/json'
-                    //             }),
-                    //             body: JSON.stringify({
-                    //                 'img_in': inputData,
-                    //             })
-                    //         }).then(function(resp) {
-                    //             return resp.json();
-                    //         }).then(function(result) {
-                    //             demoOutput.src = 'data:image/png;base64,' + result['img_out'];
-                    //         })
-                    //     };
-                    // }.bind(this))
-                    
-                }.bind(this), false);
-            }.bind(this)
+                }else if(outputSpace == "JSON") {
+                    demoWidget.value = JSON.stringify(output);
+                }
+            }
         }
+
+        // Handle run button.
+        self.handleDemoRun = function() {
+            // Make sure the model and all inputs are loaded.
+            if(!self.moxelModel) {
+                return;
+            }
+
+            var inputSpaces = self.state.model['input_space'];
+            for(var inputName in inputSpaces) {
+                if(!self.inputs[inputName]) {
+                    console.error('Moxel model input ${inputName} not found.');
+                    return;
+                }
+            }
+
+            console.log('Moxel predicting...');
+            self.moxelModel.predict(self.inputs).then((outputs) => {
+                console.log('Moxel output', outputs);
+                self.handleOutputs(outputs);
+            });
+
+        };
+
+        // Handle inputs.
+        self.inputs = {};
+        
+        // Image Upload Component.
+        self.createImageUploadHandler = function(inputName) {
+            return { 
+                addedfile: function(file) {
+                    // const {userId, modelName, tag} = self.props.match.params;
+                    // console.log('file', file);
+                    // var parts = file.name.split('.')
+                    // var ext = parts[parts.length-1];
+                    // var uid = DataStore.uuid() + '.' + ext;
+                    // DataStore.uploadData(userId, modelName, `inputs/${inputName}/${uid}`, file);
+                    
+                    // Output demo.
+                    // var demoOutput = document.querySelector('#demo-output');
+                    // demoOutput.src = '/images/spinner.gif';
+                    
+                    // Read data.
+                    var reader = new FileReader();
+                    // reader.readAsDataURL(file);
+                    reader.readAsArrayBuffer(file);
+                    reader.addEventListener("load", function () {
+                        var bytes = reader.result;
+
+                        moxel.space.Image.fromBytes(bytes).then((image) => {
+                          self.inputs[inputName] = image;
+                          console.log('Model input updated', self.inputs);
+                        })
+                        
+                        // var dataDict = TypeUtils.base64FromDataURL(dataURL);
+                        // var inputData = dataDict.data;
+                        // var inputType = dataDict.dataType;
+                        // TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
+                        //     console.log('converted', convertedData.length)
+                        //     this.handleDemoRun = function() {
+                        //         var demoOutput = document.querySelector('#demo-output');
+                        //         demoOutput.src = '/images/spinner.gif';
+                        //         var pathname = window.location.pathname;
+                        //         fetch('/model' + pathname.substring('/models'.length, pathname.length), {
+                        //             method: 'POST', 
+                        //             headers: new Headers({
+                        //                 'Content-Type': 'application/json'
+                        //             }),
+                        //             body: JSON.stringify({
+                        //                 'img_in': inputData,
+                        //             })
+                        //         }).then(function(resp) {
+                        //             return resp.json();
+                        //         }).then(function(result) {
+                        //             demoOutput.src = 'data:image/png;base64,' + result['img_out'];
+                        //         })
+                        //     };
+                        // }.bind(this))
+                        
+                    }, false);
+                }
+            }
+        }
+        
 
         // Set up edit mode.
         console.log(userId, AuthStore.username());
@@ -530,6 +580,35 @@ class ModelView extends Component {
 
 
         // Demo UI.
+        // Input widgets.
+        console.log('model', model);
+        var inputSpaces = model['input_space'];
+        var inputWidgets = {}; 
+        for(var inputName in inputSpaces) {
+            var inputSpace = inputSpaces[inputName];
+            if(inputSpace == "Image") {
+                inputWidgets[inputName] = (
+                    <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
+                );
+            }
+        }
+        this.inputWidgets = inputWidgets;
+        
+        // Output widgets.
+        var outputSpaces = model['output_space'];
+        var outputWidgets = {};
+        for(var outputName in outputSpaces) {
+            var outputSpace = outputSpaces[outputName];
+            var outputWidget = null;
+            if(outputSpace == "JSON") {
+                outputWidget = <textarea id={`demo-${outputName}`} style={{height: "100%", width: "100%", padding: "10px", color: "#888"}}/>
+            }else if(outputSpace == "Image") {
+                outputWidget = <img id={`demo-${outputName}`} src="/images/question-256.png"></img>
+            }
+            outputWidgets[outputName] = outputWidget;
+        }
+        this.outputWidgets = outputWidgets;
+
         var demoUI = (
             <FixedWidthRow>
                 <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -542,10 +621,10 @@ class ModelView extends Component {
                                         <div className="row"></div> 
                                         <div className="row">
                                             <div className="col m6">
-                                                <ImageUploader uploadEventHandlers={this.uploadEventHandlers}></ImageUploader>
+                                                {Object.values(inputWidgets)}
                                             </div>
                                             <div className="col m6 question-mark" style={{textAlign: "center"}} >
-                                                <img id="demo-output" src="/images/question-256.png"></img>
+                                                {Object.values(outputWidgets)}
                                             </div>
                                         </div>
                                         <div className="row">
