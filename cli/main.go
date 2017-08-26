@@ -241,34 +241,41 @@ func main() {
 		},
 		{
 			Name:  "list",
-			Usage: "moxel list deploy",
+			Usage: "moxel list",
 			Action: func(c *cli.Context) error {
 				if err := InitGlobal(c); err != nil {
 					return err
 				}
 
-				userName := GlobalUser.Username()
+				userId := GlobalUser.Username()
+				modelName := c.Args().Get(0)
 
-				fmt.Println("userName", userName)
+				format := "%40s | %20s | %10s\n"
 
-				kind := c.Args().Get(0)
+				var results []map[string]interface{}
+				var err error
 
-				if kind == "deploy" {
-					format := "%40s | %20s | %10s\n"
-					results, err := GlobalAPI.ListDeployModel(userName)
+				if modelName == "" {
+					// List all models under user name.
+					results, err = GlobalAPI.ListModels(userId)
 					if err != nil {
 						return err
 					}
-
-					fmt.Printf(format, "Name", "Tag", "Status")
-					fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
-					for _, result := range results {
-						fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
-					}
-					return nil
 				} else {
-					return errors.New(fmt.Sprintf("Unknown command %s", kind))
+					// List versions of the given model.
+					results, err = GlobalAPI.ListModelTags(userId, modelName)
+					if err != nil {
+						return err
+					}
 				}
+
+				// Print the list of models.
+				fmt.Printf(format, "Name", "Tag", "Status")
+				fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
+				for _, result := range results {
+					fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+				}
+				return nil
 			},
 		},
 		{

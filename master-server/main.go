@@ -194,7 +194,18 @@ func listModelTags(w http.ResponseWriter, r *http.Request) {
 		results = append(results, model.ToMap())
 	}
 
-	response, _ := json.Marshal(results)
+	// Special handling for empty list.
+	// json.Marshal would return "null".
+	if len(results) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+
+	response, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }
