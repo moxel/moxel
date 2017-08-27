@@ -32,6 +32,19 @@ The dummy architecture is built to scale. We created microservice framework usin
 
 With features like Kubernetes Federation, we can not only deploy the cluster to Google Cloud, AWS, Azure or private cloud, but also join these clouds to provide unified interface.
 
+## Development
+
+To deploy everything to `dev`,
+
+```
+./deploy-all dev
+```
+
+This will build and deploy components, including `master-server`, `web-server` and `cli`. Use the following to deploy to production.
+
+```
+./deploy-all prod
+```
 
 ## Compoments
 
