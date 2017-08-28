@@ -363,9 +363,11 @@ func main() {
 							}
 						}
 						// Delete model.
-						if err := DeleteModel(modelName, tag); err != nil {
-							return err
-						}
+						// Following Github-style: https://github.com/moxel/moxel/pull/44
+						// Models are created (and deleted) from Web UI.
+						// if err := DeleteModel(modelName, tag); err != nil {
+						//      return err
+						// }
 					} else {
 						return nil
 					}
