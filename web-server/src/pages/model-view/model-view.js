@@ -28,9 +28,19 @@ import NotificationSystem from 'react-notification-system';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
 import Moxel from 'moxel'
-const moxel = Moxel({
-    endpoint: 'http://dev.moxel.ai'
-})
+
+var moxel = null;
+
+if(window.location.host == "localhost:3000") {
+    moxel = Moxel({
+        endpoint: 'http://dev.moxel.ai'
+    });   
+}else{
+    moxel = Moxel({
+        endpoint: 'http://' + window.location.host
+    });
+}
+
 // import '../../libs/moxel/browser/lib/moxel.js'
 
 
