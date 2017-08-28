@@ -1,0 +1,54 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Welcome to Moxel Documentation.",
+            "title": "Home"
+        },
+        {
+            "location": "/#welcome-to-moxel-documentation",
+            "text": "",
+            "title": "Welcome to Moxel Documentation."
+        },
+        {
+            "location": "/moxel/install/",
+            "text": "Installation Guide\n\n\nMac OS X\n\n\nFirst, install Warpdrive:\n\n\nsudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/osx/warp && sudo chmod 777 /usr/local/bin/warp\n\n\nAfter installation, please login\n\n\nwarp login\n\n\n\n\nIf you are using dev environment, simply use \nENV=dev\n before each \nwarp\n command. For example,\n\n\nENV=dev warp login",
+            "title": "Install"
+        },
+        {
+            "location": "/moxel/install/#installation-guide",
+            "text": "",
+            "title": "Installation Guide"
+        },
+        {
+            "location": "/moxel/install/#mac-os-x",
+            "text": "First, install Warpdrive:  sudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/osx/warp && sudo chmod 777 /usr/local/bin/warp  After installation, please login  warp login  If you are using dev environment, simply use  ENV=dev  before each  warp  command. For example,  ENV=dev warp login",
+            "title": "Mac OS X"
+        },
+        {
+            "location": "/tutorials/caffe-colorization/",
+            "text": "Image Colorization in Caffe\n\n\n\n\nAutomatic colorization using deep neural networks. \"Colorful Image Colorization.\" In ECCV, 2016. \nhttp://richzhang.github.io/colorization/\n.\n\n\nOverview\n\n\nThe first step is to make sure you've logged in. Try listing your models:\n\n\nmoxel list\n\n\n\n\nIf you haven't logged in yet, run the following command and you would be redirected to the login portal in browser.\n\n\nmoxel login\n\n\n\n\nSimilar to Github, Moxel hosts model in \nrepos\n. A model repo is uniquely identified as \n<userName>/<modelName>\n. A model can have multiple versions, just like git version controls code. We assign a tag to the model, and label it as \n\n\n<userName>/<modelName>:<tag>\n\n\n\n\nCreate a Model Repo\n\n\nJust like Github, you can create a model repo on Moxel website. Go to \nbeta.dummy.ai/new\n\n\n\n\nAfter filling out the model name and a one-line pitch, you will see the model page. It is easy to edit things like the model title, the description, README files, ... \n\n\n\n\nDeploy the Model\n\n\nStep 1\n. \n\n\nCreate a flask server that serves the following prediction procedure.\n\n\napp = Flask(__name__)\n\n@app.route('/', methods=['GET'])\ndef health_check():\n    return jsonify({\n        'status': 'OK'\n    })\n\n\n@app.route('/', methods=['POST'])\ndef detect():\n    data = request.json\n\n    image_binary = base64.b64decode(data['img_in'])\n\n    image_f = BytesIO()\n    image_f.write(image_binary)\n    image_f.seek(0)\n\n    image = Image.open(image_f)\n    image_np = load_image_into_numpy_array(image)\n\n    img_out = model.predict(image_np)['img_out']\n    vis_file = BytesIO()\n    scipy.misc.imsave(vis_file, img_out, format='png')\n    vis_file.seek(0)\n    vis_binary = vis_file.read()\n\n    return jsonify({\n        'img_out': base64.b64encode(vis_binary).decode('utf-8'),\n    })\n\nif __name__ == '__main__':\n    app.run(debug=False, port=5900, host='0.0.0.0')\n\n\n\n\nStep 2\n.\n\n\nWrite down \nmoxel.yml\n\n\nimage: dummyai/py3-caffe-cpu\nassets:\n- ./models/colorization_deploy_v2.prototxt\n- ./models/colorization_release_v2.caffemodel\n- ./resources/pts_in_hull.npy\nresources:\n  memory: 512Mi\n  cpu: \"1\"\ninput_space:\n  img_in: Image\noutput_space:\n  img_out: Image\ncmd:\n- pip install -r requirements.txt\n- python serve_model.py\n\n\n\n\nStep 3\n. \n\n\nPush the model to Moxel, and have it deployed.\n\n\nmoxel push -f moxel.yml colorization:latest\n\n\n\n\nBy default, the tag \nlatest\n is added when the model repo is created. You may also push to other versions, such as \n0.0.1\n. Moxel allows you to switch to different versions easily.",
+            "title": "Caffe colorization"
+        },
+        {
+            "location": "/tutorials/caffe-colorization/#image-colorization-in-caffe",
+            "text": "Automatic colorization using deep neural networks. \"Colorful Image Colorization.\" In ECCV, 2016.  http://richzhang.github.io/colorization/ .",
+            "title": "Image Colorization in Caffe"
+        },
+        {
+            "location": "/tutorials/caffe-colorization/#overview",
+            "text": "The first step is to make sure you've logged in. Try listing your models:  moxel list  If you haven't logged in yet, run the following command and you would be redirected to the login portal in browser.  moxel login  Similar to Github, Moxel hosts model in  repos . A model repo is uniquely identified as  <userName>/<modelName> . A model can have multiple versions, just like git version controls code. We assign a tag to the model, and label it as   <userName>/<modelName>:<tag>",
+            "title": "Overview"
+        },
+        {
+            "location": "/tutorials/caffe-colorization/#create-a-model-repo",
+            "text": "Just like Github, you can create a model repo on Moxel website. Go to  beta.dummy.ai/new   After filling out the model name and a one-line pitch, you will see the model page. It is easy to edit things like the model title, the description, README files, ...",
+            "title": "Create a Model Repo"
+        },
+        {
+            "location": "/tutorials/caffe-colorization/#deploy-the-model",
+            "text": "Step 1 .   Create a flask server that serves the following prediction procedure.  app = Flask(__name__)\n\n@app.route('/', methods=['GET'])\ndef health_check():\n    return jsonify({\n        'status': 'OK'\n    })\n\n\n@app.route('/', methods=['POST'])\ndef detect():\n    data = request.json\n\n    image_binary = base64.b64decode(data['img_in'])\n\n    image_f = BytesIO()\n    image_f.write(image_binary)\n    image_f.seek(0)\n\n    image = Image.open(image_f)\n    image_np = load_image_into_numpy_array(image)\n\n    img_out = model.predict(image_np)['img_out']\n    vis_file = BytesIO()\n    scipy.misc.imsave(vis_file, img_out, format='png')\n    vis_file.seek(0)\n    vis_binary = vis_file.read()\n\n    return jsonify({\n        'img_out': base64.b64encode(vis_binary).decode('utf-8'),\n    })\n\nif __name__ == '__main__':\n    app.run(debug=False, port=5900, host='0.0.0.0')  Step 2 .  Write down  moxel.yml  image: dummyai/py3-caffe-cpu\nassets:\n- ./models/colorization_deploy_v2.prototxt\n- ./models/colorization_release_v2.caffemodel\n- ./resources/pts_in_hull.npy\nresources:\n  memory: 512Mi\n  cpu: \"1\"\ninput_space:\n  img_in: Image\noutput_space:\n  img_out: Image\ncmd:\n- pip install -r requirements.txt\n- python serve_model.py  Step 3 .   Push the model to Moxel, and have it deployed.  moxel push -f moxel.yml colorization:latest  By default, the tag  latest  is added when the model repo is created. You may also push to other versions, such as  0.0.1 . Moxel allows you to switch to different versions easily.",
+            "title": "Deploy the Model"
+        }
+    ]
+}
