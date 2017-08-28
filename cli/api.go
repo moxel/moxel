@@ -94,6 +94,10 @@ func (api *MasterAPI) GetModel(user string, name string, tag string) (*grequests
 	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{})
 }
 
+func (api *MasterAPI) LogModel(user string, name string, tag string) (*grequests.Response, error) {
+	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log", user, name, tag)), &grequests.RequestOptions{})
+}
+
 func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, yaml string) (*grequests.Response, error) {
 	return grequests.Put(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{
 		JSON: map[string]string{
@@ -123,7 +127,33 @@ func (api *MasterAPI) TeardownDeployModel(user string, name string, tag string) 
 	})
 }
 
-func (api *MasterAPI) ListDeployModel(user string) ([]map[string]interface{}, error) {
+func (api *MasterAPI) ListModelTags(userId string, modelName string) ([]map[string]interface{}, error) {
+	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s", userId, modelName)), &grequests.RequestOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var results []map[string]interface{}
+
+	if resp.StatusCode == 200 {
+		var data interface{}
+		err = resp.JSON(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		if data == nil {
+			return []map[string]interface{}{}, nil
+		}
+
+		interfaces := data.([]interface{})
+		for _, item := range interfaces {
+			results = append(results, item.(map[string]interface{}))
+		}
+	}
+	return results, nil
+}
+
+func (api *MasterAPI) ListModels(user string) ([]map[string]interface{}, error) {
 	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models", user)), &grequests.RequestOptions{})
 	if err != nil {
 		return nil, err

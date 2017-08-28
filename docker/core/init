@@ -47,7 +47,8 @@ class GCloudStorageManager(object):
                                     shell=True)
 
     def mount(self, key, local_path):
-        if not exists(dirname(local_path)): os.makedirs(dirname(local_path))
+        local_dir = dirname(local_path)
+        if local_dir and not exists(local_dir): os.makedirs(local_dir)
         subprocess.check_output('ln -fs {} {}'
                                 .format(join(self.GCS_MOUNT, key), local_path),
                                 shell=True)

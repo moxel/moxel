@@ -144,7 +144,7 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func listModel(w http.ResponseWriter, r *http.Request) {
+func listModels(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
 
@@ -165,22 +165,47 @@ func listModel(w http.ResponseWriter, r *http.Request) {
 	var results []map[string]interface{}
 
 	for _, model := range ms {
-		var metadata map[interface{}]interface{}
-		yaml.Unmarshal([]byte(model.Yaml), &metadata)
-
-		result := cleanupInterfaceMap(map[interface{}]interface{}{
-			"uid":      model.Uid,
-			"name":     model.Name,
-			"tag":      model.Tag,
-			"status":   model.Status,
-			"yaml":     model.Yaml,
-			"metadata": metadata,
-		})
-
-		results = append(results, result)
+		results = append(results, model.ToMap())
 	}
 
 	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(response)
+}
+
+func listModelTags(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["user"]
+	modelName := vars["model"]
+
+	var err error
+	var ms []models.Model
+
+	ms, err = models.ListModelByUserAndName(db, userId, modelName)
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+		return
+	}
+
+	var results []map[string]interface{}
+
+	for _, model := range ms {
+		results = append(results, model.ToMap())
+	}
+
+	// Special handling for empty list.
+	// json.Marshal would return "null".
+	if len(results) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+
+	response, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(response)
 }
@@ -338,7 +363,7 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	model, err := models.GetModelById(db, modelId)
 
 	// Read status and YAML string.
-	status := "UNKNOWN"
+	status := "NONE"
 	yamlString := ""
 
 	if err == nil {
@@ -527,6 +552,7 @@ func putJob(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(""))
 }
 
+// For Jobs. Deprecated.
 func logJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -542,6 +568,20 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 	err := StreamLogsFromJob(kubeClient, jobName, true, w)
 
 	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+	}
+}
+
+func logModel(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId := vars["user"]
+	modelId := vars["model"]
+	tag := vars["tag"]
+
+	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
+		userId, modelId, tag))
+
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, false, w); err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 	}
 }
@@ -673,7 +713,9 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
-		router.HandleFunc("/users/{user}/models", listModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/log", logModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
 		router.HandleFunc("/job/{user}/{repo}/{commit}/log", logJob).Methods("GET")
 		// Endpoints for manipulating user rating for models.

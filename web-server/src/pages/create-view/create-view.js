@@ -11,6 +11,7 @@ import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
+import NotificationSystem from 'react-notification-system';
 
 class CreateView extends Component {
     gotoUpload() {
@@ -19,16 +20,26 @@ class CreateView extends Component {
         var modelDescription = document.querySelector('#modelDescription').value;
         var modelTitle = document.querySelector('#modelTitle').value;
         var tag = "latest";
-        // caching the description.
-        localStorage.setItem(userId + "/" + modelId, modelDescription);
-
-        ModelStore.updateModel(userId, modelId, tag, {
-            'title': modelTitle,
-            'description': modelDescription,
-            'status': 'METADATA'
-        }).then(function(resp) {
-            window.location.href = "/models/" + userId + "/" + modelId  + "/" + tag;
-        })
+        var self = this;
+        // Check to see if the model already exists.
+        ModelStore.listModelTags(userId, modelId).then((models) => {
+            if(models.length != 0) {
+                // Model already exists.
+                self.notificationSystem.addNotification({
+                  message: `Model ${modelId} already exists.`,
+                  level: 'error'
+                });
+            }else{
+                ModelStore.updateModel(userId, modelId, tag, {
+                    'title': modelTitle,
+                    'description': modelDescription,
+                    'status': 'METADATA'
+                }).then(function(resp) {
+                    window.location.href = "/models/" + userId + "/" + modelId  + "/" + tag;
+                })    
+            }
+        });
+        
         return false;
     }
 
@@ -108,6 +119,7 @@ class CreateView extends Component {
                         </div>
                     </form>
                 </div>
+                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
             </div>
         );
     }

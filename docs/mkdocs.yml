@@ -1,13 +1,12 @@
-site_name: Warpdrive
+site_name: Moxel
 theme: 'material'
 extra:
   palette:
     primary: 'indigo'
     accent: 'light blue'
 pages:
-- Warpdrive:
-  - 'warpdrive/install.md'
-  - 'warpdrive/proposal.md'
+- index.md
+- Moxel:
+  - 'moxel/install.md'
 - Tutorial:
-  - 'tensorflow-object-detection.md'
-  - 'caffe-colorization.md'
+  - 'tutorials/caffe-colorization.md'

@@ -33,7 +33,9 @@ def build(command='build', args=[]):
         # set up temporary gopath
         if not os.path.exists('.build'):
             os.makedirs(os.path.normpath('.build/src/github.com/dummy-ai/mvp'))
-            os.symlink('../../../../..', '.build/src/github.com/dummy-ai/mvp/warp')
+
+        if not os.path.exists('.build/src/github.com/dummy-ai/mvp/moxel'):
+            os.symlink('../../../../..', '.build/src/github.com/dummy-ai/mvp/moxel')
 
         env['GOPATH'] = os.path.join(os.getcwd(), '.build')
         env['go15vendorexperiment'] = '1' # needed on go 1.5, no-op on go 1.6+
@@ -43,12 +45,12 @@ def build(command='build', args=[]):
             os.environ[k] = v
 
         if command == 'install':
-            os.system('cd .build/src/github.com/dummy-ai/mvp/warp && go get -t && go install')
+            os.system('cd .build/src/github.com/dummy-ai/mvp/moxel && go get -t && go install')
             # Use custom go-git
             # os.system('cd .build/src/gopkg.in/src-d/go-git.v4 && (git remote add -f dummy https://github.com/dummy-ai/go-git || git pull dummy v4)')
 
         elif command == 'build':
-            cmd = 'go build -i -o bin/warp github.com/dummy-ai/mvp/warp'
+            cmd = 'go build -i -o bin/moxel github.com/dummy-ai/mvp/moxel'
             try:
                 subprocess.check_call(cmd.split())
                 return 0

@@ -40,7 +40,8 @@ test:
 	./manage.py test ${ARGS}
 
 
-MASTER_DEV="35.197.60.175"
+# MASTER_DEV="35.197.60.175"
+MASTER_DEV="35.196.226.10"
 
 ssh:
 	ssh -ti secrets-dev/warpdrive warp@$(MASTER_DEV) "source ~/.profile; cd ~/master-server; bash"

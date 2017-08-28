@@ -76,6 +76,40 @@ class ModelStoreClass {
 		}.bind(this));
 	}
 
+	listModelTags(userId, modelId) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelId}`).then((response)=>{
+	            return response.json();
+	        }).then(function(data) {
+	        	var results = [];
+	        	for(var model of data) {
+	        		results.push(self.formatModel(userId, modelId, model.tag, model));
+	        	}
+	        	resolve(results);
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
+	listModel(userId) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models`).then((response)=>{
+	            return response.json();
+	        }).then(function(data) {
+	        	var results = [];
+	        	for(var model of data) {
+	        		results.push(self.formatModel(userId, model.id, model.tag, model));
+	        	}
+	        	resolve(results);
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
 	updateModel(userId, modelId, tag, modelProps) {
 		var body = {
 			'yaml': yaml.safeDump(modelProps)

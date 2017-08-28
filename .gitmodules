@@ -1,9 +1,9 @@
 [submodule "examples/tf-bare"]
 	path = examples/tf-bare
-	url = https://github.com/dummy-ai/tf-bare
-[submodule "examples/models"]
+	url = https://github.com/moxel/tf-bare
+[submodule "examples/tf-models"]
 	path = examples/tf-models
-	url = https://github.com/dummy-ai/models
+	url = https://github.com/moxel/tf-models
 [submodule "master-server/test/tf-bare"]
 	path = master-server/test/tf-bare
 	url = https://github.com/dummy-ai/tf-bare
@@ -13,12 +13,18 @@
 [submodule "kube/kube-gcloud"]
 	path = kube/gcloud
 	url = https://github.com/dummy-ai/kube-gcloud
-[submodule "warp/test/tf-bare"]
-	path = warp/test/tf-bare
-	url = https://github.com/dummy-ai/tf-bare
 [submodule "examples/iris_flower_classifier_demo"]
 	path = examples/iris_flower_classifier_demo
 	url = https://github.com/predictors/iris_flower_classifier_demo
-[submodule "examples/colorization"]
-	path = examples/colorization
-	url = https://github.com/richzhang/colorization
+[submodule "examples/caffe-colorization"]
+	path = examples/caffe-colorization
+	url = https://github.com/moxel/caffe-colorization
+[submodule "examples/show-attend-and-tell"]
+	path = examples/show-attend-and-tell
+	url = https://github.com/yunjey/show-attend-and-tell
+[submodule "cli/test/tf-bare"]
+	path = cli/test/tf-bare
+	url = https://github.com/moxel/tf-bare
+[submodule "examples/OpenNMT-py"]
+	path = examples/OpenNMT-py
+	url = https://github.com/OpenNMT/OpenNMT-py
