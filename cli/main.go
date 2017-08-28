@@ -250,6 +250,8 @@ func main() {
 				userId := GlobalUser.Username()
 				modelName := c.Args().Get(0)
 
+				fmt.Println("Logged in as", "\""+userId+"\"")
+
 				format := "%40s | %20s | %10s\n"
 
 				var results []map[string]interface{}
