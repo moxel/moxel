@@ -185,18 +185,6 @@ const StyledModelLayout = styled(Flex)`
         width: 100%;
         height: 100%;
     }
-
-    .demo-column {
-        /* width: 300px !important;*/
-    }
-
-    .demo-column img {
-        margin: auto, auto, auto, auto;
-        max-width: 100%;
-        max-height: 100%;
-        margin-top: 50%;
-        transform: translateY(-50%);
-    }
 `;
 
 class ModelView extends Component {
@@ -680,7 +668,7 @@ class ModelView extends Component {
                               <Tabs className='tab-demo white'>
                                 <Tab title="Demo" active >
                                     <span className="white-text">
-                                        <div className="row" style={{color: "black"}}>
+                                        <div className="row" style={{color: "black", marginTop: "10px"}}>
                                             <div className="col m6" style={{textAlign: "center"}}>
                                             Model Input
                                             </div>
@@ -742,32 +730,6 @@ class ModelView extends Component {
                                     `}
                                     </Markdown>   
 
-                                </Tab>
-                                <Tab title="Input Type">
-                                    <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
-                                        {/*<thead>
-                                          <tr>
-                                              <th>Name</th>
-                                              <th>Type</th>
-                                          </tr>
-                                        </thead>*/}
-                                        <tbody>
-                                            {inputType}
-                                        </tbody>
-                                    </table>
-                                </Tab>
-                                <Tab title="Output Type">
-                                    <table className="white-text" style={{width: "300px", marginLeft: "150px"}}>
-                                        {/*<thead>
-                                          <tr>
-                                              <th>Name</th>
-                                              <th>Type</th>
-                                          </tr>
-                                        </thead>*/}
-                                        <tbody>
-                                            {outputType}
-                                        </tbody>
-                                    </table>
                                 </Tab>
                             </Tabs>
 
