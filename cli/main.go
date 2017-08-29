@@ -138,17 +138,8 @@ func DeleteModel(modelName string, tag string) error {
 
 // Verify if the model configuration has the correct format.
 func VerifyModelConfig(config map[string]interface{}) error {
-	// A whitelist that maps <key> => <isRequired>
-	YAMLWhitelist := map[string]bool{
-		"image":        true,
-		"assets":       false,
-		"resources":    false,
-		"input_space":  true,
-		"output_space": true,
-		"cmd":          false,
-	}
-
 	// Check if all keys in config are in whitelist.
+	// `YAMLWhitelist` is defined in `constants.go`
 	for k, _ := range config {
 		if _, ok := YAMLWhitelist[k]; ok {
 		} else {
@@ -161,6 +152,22 @@ func VerifyModelConfig(config map[string]interface{}) error {
 		_, ok := config[k]
 		if v && !ok {
 			return errors.New(fmt.Sprintf("Required key %s is not in YAML", k))
+		}
+	}
+
+	// Check model input types.
+	inputSpace := config["input_space"].(map[interface{}]interface{})
+	for _, v := range inputSpace {
+		if _, ok := TypeWhitelist[v.(string)]; !ok {
+			return errors.New(fmt.Sprintf("Input type %s is not valid", v.(string)))
+		}
+	}
+
+	// Check model output types.
+	outputSpace := config["output_space"].(map[interface{}]interface{})
+	for _, v := range outputSpace {
+		if _, ok := TypeWhitelist[v.(string)]; !ok {
+			return errors.New(fmt.Sprintf("Output type %s is not valid", v.(string)))
 		}
 	}
 

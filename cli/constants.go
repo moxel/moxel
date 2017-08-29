@@ -28,6 +28,24 @@ var GlobalUser *User
 var GlobalAPI *MasterAPI
 var callbackPort string
 
+// A moxel.yml whitelist that maps <key> => <isRequired>
+var YAMLWhitelist = map[string]bool{
+	"image":        true,
+	"assets":       false,
+	"resources":    false,
+	"input_space":  true,
+	"output_space": true,
+	"cmd":          false,
+}
+
+// A whitelist for model input/output types.
+// the values don't have meaning, and are always "true".
+var TypeWhitelist = map[string]bool{
+	"Image":  true,
+	"JSON":   true,
+	"String": true,
+}
+
 // Checks if the user has logged in.
 func CheckLogin() error {
 	if GlobalUser.Initialized() {

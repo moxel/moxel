@@ -1,4 +1,4 @@
-.PHONY: bulid, test, install, release
+.PHONY: bulid, test, install, release, test
 
 install:
 	./manage.py install	
