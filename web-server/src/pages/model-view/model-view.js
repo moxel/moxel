@@ -291,6 +291,9 @@ class ModelView extends Component {
                     if(outputSpace == "Image") {
                         output.toDataURL().then((url) => {
                             demoWidget.src = url;
+                            demoWidget.style.marginTop = "0%";
+                            demoWidget.style.marginBottom = "0%";
+                            demoWidget.style.width = "100%";
                             resolve();
                         });
                     }else if(outputSpace == "JSON") {
@@ -654,9 +657,11 @@ class ModelView extends Component {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
-                        <img id={`demo-${outputName}`} src="/images/question-256.png" 
-                                    style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
-                                            width: "300px"}}/>
+                        <div style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
+                                            width: "300px", marginLeft: "auto", marginRight: "auto"}}>
+                            <img src="/images/pic-template.png" id={`demo-${outputName}`} 
+                                style={{width: "50%", height: "auto", marginTop: "25%", marginBottom: "25%"}}/>
+                        </div>
                         <br/>
                     </div>
             }
