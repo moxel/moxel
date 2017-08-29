@@ -186,14 +186,11 @@ const StyledModelLayout = styled(Flex)`
         height: 100%;
     }
 
-    .question-mark {
-        height: 300px !important;
-        width: 300px !important;
-        border-radius: 5px;
-        border: 2px dashed #C7C7C7;
+    .demo-column {
+        /* width: 300px !important;*/
     }
 
-    .question-mark img {
+    .demo-column img {
         margin: auto, auto, auto, auto;
         max-width: 100%;
         max-height: 100%;
@@ -309,7 +306,7 @@ class ModelView extends Component {
                             resolve();
                         });
                     }else if(outputSpace == "JSON") {
-                        demoWidget.value = JSON.stringify(output);
+                        demoWidget.value = JSON.stringify(output, undefined, 4);
                         resolve();
                     }
                 }    
@@ -611,6 +608,20 @@ class ModelView extends Component {
 
 
         // Demo UI.
+        // Display of variable name and space.
+        var displayVariable = function(name, space) {
+            return (
+                <div style={{color: "black"}}>
+                    <p style={{display: "inline", borderRadius: "5px 0px 0px 5px", border: "1px solid #777777",
+                               backgroundColor: "none", padding: "3px", marginBottom: "3px", borderWidth: "1px 0px 1px 1px",
+                             }}>{name}</p>
+                    <p style={{display: "inline", borderRadius: "0px 5px 5px 0px", border: "1px solid #777777",
+                               backgroundColor: "#deeaf9", padding: "3px", marginBottom: "3px",
+                             }}><b>{space}</b></p>
+                    <p></p>
+                </div>
+            )
+        }
         // Input widgets.
         console.log('model', model);
         var inputSpaces = model['input_space'];
@@ -619,7 +630,10 @@ class ModelView extends Component {
             var inputSpace = inputSpaces[inputName];
             if(inputSpace == "Image") {
                 inputWidgets[inputName] = (
-                    <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(inputName, inputSpace)}
+                        <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
+                    </div>
                 );
             }
         }
@@ -632,9 +646,26 @@ class ModelView extends Component {
             var outputSpace = outputSpaces[outputName];
             var outputWidget = null;
             if(outputSpace == "JSON") {
-                outputWidget = <textarea id={`demo-${outputName}`} style={{height: "100%", width: "100%", padding: "10px", color: "#888"}}/>
+                outputWidget = 
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(outputName, outputSpace)}
+                        <textarea id={`demo-${outputName}`} style={{height: "150px", width: "100%", 
+                                                                           padding: "10px", color: "#888",
+                                                                           padding: 0, width: "100%",
+                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                        <br/>
+                    </div>
+                    
             }else if(outputSpace == "Image") {
-                outputWidget = <img id={`demo-${outputName}`} src="/images/question-256.png"></img>
+                outputWidget = 
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(outputName, outputSpace)}
+                        <img id={`demo-${outputName}`} src="/images/question-256.png" 
+                                    style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
+                                            width: "300px"}}/>
+                        <br/>
+                    </div>
             }
             outputWidgets[outputName] = outputWidget;
         }
@@ -649,31 +680,31 @@ class ModelView extends Component {
                               <Tabs className='tab-demo white'>
                                 <Tab title="Demo" active >
                                     <span className="white-text">
-                                        <div className="row"></div> 
+                                        <div className="row" style={{color: "black"}}>
+                                            <div className="col m6" style={{textAlign: "center"}}>
+                                            Model Input
+                                            </div>
+                                            <div className="col m6" style={{textAlign: "center"}}>
+                                            Model Output
+                                            </div>
+                                        </div> 
                                         <div className="row">
-                                            <div className="col m6">
+                                            <div className="col m6" style={{textAlign: "center"}}>
                                                 {Object.values(inputWidgets)}
-                                            </div>
-                                            <div className="col m6 question-mark" style={{textAlign: "center"}} >
-                                                {Object.values(outputWidgets)}
-                                            </div>
-                                        </div>
-                                        <div className="row">
-                                            <div className="col m5">
-                                                
-                                            </div>
-                                            <div className="col m2">
+
+                                                <br/>
+
                                                 {
                                                     this.state.isRunning 
                                                     ?
-                                                    <img src="/images/spinner.gif" style={{width: "100%", height: "auto"}}></img>
+                                                    <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
                                                     :    
-                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100%", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
+                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100px", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
                                                 }
                                             </div>
-                                            <div className="col m5">
+                                            <div className="col m6 demo-column" style={{textAlign: "center"}} >
+                                                {Object.values(outputWidgets)}
                                             </div>
-                                            
                                         </div>
                                     </span>
                                 </Tab>
