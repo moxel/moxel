@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import styled from "styled-components";
 import DropzoneComponent from 'react-dropzone-component';
@@ -43,7 +44,7 @@ var djsConfig = {
         'Content-Type': 'application/octet-stream',
         'Cache-Control': null,
         'X-Requested-With': null
-    }
+    },
 };
 
 // type Props {

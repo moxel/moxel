@@ -349,6 +349,8 @@ class ModelView extends Component {
                     // Output demo.
                     // var demoOutput = document.querySelector('#demo-output');
                     // demoOutput.src = '/images/spinner.gif';
+                    var errorMessageView = document.querySelector('.dz-error-message');
+                    errorMessageView.outerHTML = '';
                     
                     // Read data.
                     var reader = new FileReader();
@@ -388,7 +390,10 @@ class ModelView extends Component {
                         // }.bind(this))
                         
                     }, false);
-                }
+                },
+                // error: function(e) {
+                //     console.error("error", e);
+                // }
             }
         }
         
