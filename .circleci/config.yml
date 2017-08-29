@@ -18,3 +18,5 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: echo 'hello'
+      - run: ls -l
+      - run: cd cli && make install && make test ARGS="github.com/dummy-ai/mvp/moxel"
