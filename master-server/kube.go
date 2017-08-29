@@ -666,14 +666,17 @@ func RemoveServiceFromIngress(client *kube.Clientset, path string) error {
 
 		paths = ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths
 
-		var index int
-		var rule v1beta1Extensions.HTTPIngressPath
-		for index, rule = range paths {
+		index := -1
+		for i, rule := range paths {
 			if rule.Path == path {
+				index = i
 				break
 			}
 		}
 
+		if index == -1 {
+			return errors.New(fmt.Sprintf("Path %s not found in ingress", path))
+		}
 		paths = append(paths[:index], paths[index+1:]...)
 		fmt.Println("paths", paths)
 
