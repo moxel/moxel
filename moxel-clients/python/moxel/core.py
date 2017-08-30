@@ -59,6 +59,7 @@ class Model(object):
                         ),
                         json=input_dict
                     )
+
         try:
             result = raw_result.json()
         except simplejson.scanner.JSONDecodeError:

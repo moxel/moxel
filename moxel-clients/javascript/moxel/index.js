@@ -115,9 +115,55 @@ var Moxel = function(config) {
 		}
 	}
 
+	class MoxelString {
+		// img is Jimp image.
+		constructor(text) {
+			this.text = text;
+
+			this.toText = this.toText.bind(this);
+		}
+
+		static fromText(text) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelString(text));
+			});
+		}
+
+		toText() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(self.text);
+			});
+		}
+	}
+
+	class MoxelJSON {
+		// JSON object type.
+		constructor(object) {
+			this.object = object;
+
+			this.toObject = this.toObject.bind(this);
+		}
+
+		static fromObject(object) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelJSON(object));
+			});
+		}
+
+		toObject() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(self.object);
+			});
+		}
+	}
+
 	// define submodule space.
 	var space = {
 		Image: Image,
+		String: MoxelString,
+		JSON: MoxelJSON
 	};
 
 	class Utils {
@@ -165,8 +211,8 @@ var Moxel = function(config) {
 			this.tag = tag;
 			this.metadata = result.metadata;
 			this.status = result.status;
-			this.inputSpace = this.metadata['input_space'];
-			this.outputSpace = this.metadata['output_space'];
+			this.inputSpace = Utils.parseSpaceObject(this.metadata['input_space']);
+			this.outputSpace = Utils.parseSpaceObject(this.metadata['output_space']);
 
 			this.predict = this.predict.bind(this);			
 		}
@@ -186,10 +232,20 @@ var Moxel = function(config) {
 								throw 'Input must have argument ' + varName;
 							}
 							// console.log(kwargs[varName]);
-							kwargs[varName].toBase64('image/png').then((inputItem) => {
-								inputObject[varName] = inputItem;
-								callback();	
-							});
+							if(varSpace == space.Image) {
+								// Image.
+								kwargs[varName].toBase64('image/png').then((inputItem) => {
+									inputObject[varName] = inputItem;
+									callback();	
+								});
+							}else if(varSpace == space.String) {
+								kwargs[varName].toText().then((text) => {
+									inputObject[varName] = text;
+									callback();
+								})
+							}else{
+								console.error('Unknown variable input space', varSpace);
+							}
 						},
 
 						(err) => {
@@ -216,20 +272,22 @@ var Moxel = function(config) {
 					return response.json();
 				}).then((result) => {
 					// Parse result.
-					// console.log('Moxel result', result);
+					console.log('Moxel result', result);
 					var outputObject = {};
 
 					return new Promise((resolve, reject) => {
 						async.forEachOf(self.outputSpace,
 						(varSpace, varName, callback) => {
-							if(varSpace == 'Image') {
-								Image.fromBase64(result[varName]).then((outputItem) => {
+							if(varSpace == space.Image) {
+								space.Image.fromBase64(result[varName]).then((outputItem) => {
 									outputObject[varName] = outputItem;
 									callback();
 								});							
-							}else if(varSpace == 'JSON') {
-								outputObject[varName] = result[varName];
-								callback();
+							}else if(varSpace == space.JSON) {
+								space.JSON.fromObject(result[varName]).then((outputItem) => {
+									outputObject[varName] = outputItem;
+									callback();
+								})
 							}else{
 								console.error('Unknown variable output space', varSpace);
 							}
@@ -271,7 +329,8 @@ var Moxel = function(config) {
 
 	return {
 		space: space,
-		createModel: createModel
+		createModel: createModel,
+		utils: Utils
 	}
 };
 
