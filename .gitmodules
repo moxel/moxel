@@ -28,3 +28,6 @@
 [submodule "examples/OpenNMT-py"]
 	path = examples/OpenNMT-py
 	url = https://github.com/OpenNMT/OpenNMT-py
+[submodule "examples/glove-setup"]
+	path = examples/glove-setup
+	url = https://github.com/strin/glove-setup

@@ -55,7 +55,8 @@ class Model(object):
         try:
             result = raw_result.json()
         except simplejson.scanner.JSONDecodeError:
-            raise Exception('Cannot decode JSON')
+            import pdb; pdb.set_trace();
+            raise Exception('Cannot decode JSON', raw_result)
 
         # Parse result.
         output_dict = {}
