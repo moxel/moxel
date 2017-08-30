@@ -25,6 +25,10 @@ RUN mkdir -p /mnt/cloudfs
 
 RUN pip3 install pexpect pyyaml
 
+# create symlinks
+RUN ln -fs /usr/bin/python3 /usr/bin/python \
+    && ln -fs /usr/bin/pip3 /usr/bin/pip
+
 COPY core /core
 
 ENTRYPOINT ["/core/init"]
