@@ -265,11 +265,14 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 	command = append(command, workPath)
 
 	// Add assets
-	assetsInterface := config["assets"]
-
-	command = append(command, "--assets")
-	for _, asset := range assetsInterface.([]interface{}) {
-		command = append(command, asset.(string))
+	if config["assets"] != nil {
+		assetInterfaces := config["assets"].([]interface{})
+		if len(assetInterfaces) > 0 {
+			command = append(command, "--assets")
+			for _, asset := range assetInterfaces {
+				command = append(command, asset.(string))
+			}
+		}
 	}
 
 	// Add command.
