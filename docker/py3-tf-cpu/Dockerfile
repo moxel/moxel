@@ -2,7 +2,7 @@ FROM dummyai/python3
 
 MAINTAINER Tim Shi <tianlins@cs.stanford.edu>
 
-RUN pip3 install --upgrade tensorflow
+RUN pip3 install tensorflow==0.12
 
 RUN apt update \
     && apt install -y sox libsox-fmt-all protobuf-compiler python-pil python-lxml tmux htop
