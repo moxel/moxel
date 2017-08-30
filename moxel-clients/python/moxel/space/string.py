@@ -3,6 +3,8 @@ from .core import Space
 
 def String(max_char=100):
     class StringClass(Space):
+        NAME='String'
+
         def __init__(self, text):
             if len(text) > max_char:
                 raise Exception('String exceeds length limit {}'.format(max_char))

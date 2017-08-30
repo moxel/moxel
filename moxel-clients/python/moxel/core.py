@@ -3,6 +3,7 @@ import simplejson
 
 from moxel.utils import parse_model_id, parse_space_dict
 from moxel.constants import API_ENDPOINT, MODEL_ENDPOINT
+import moxel.space as space
 
 
 class Model(object):
@@ -40,10 +41,16 @@ class Model(object):
             assert (type(kwargs[var_name]) == var_space,
                 'Type does not match for {}'.format(var_name))
 
-            # Assume base64 encoding.
-            # Only works for Image now.
-            input_object = kwargs[var_name].to_base64()
-            input_dict[var_name] = input_object
+            if var_space.NAME == 'Image':
+                # Assume base64 encoding.
+                input_object = kwargs[var_name].to_base64()
+                input_dict[var_name] = input_object
+            elif var_space.NAME == 'String':
+                input_dict[var_name] = kwargs[var_name].to_str()
+            elif var_space.NAME == 'JSON':
+                input_dict[var_name] = kwargs[var_name].to_object(input_object)
+            else:
+                raise Exception('Not implemented input space: ' + repr(var_space))
 
         # Make HTTP REST request.
         raw_result = requests.post(MODEL_ENDPOINT +
@@ -52,18 +59,27 @@ class Model(object):
                         ),
                         json=input_dict
                     )
+
         try:
             result = raw_result.json()
         except simplejson.scanner.JSONDecodeError:
-            raise Exception('Cannot decode JSON')
+            import pdb; pdb.set_trace();
+            raise Exception('Cannot decode JSON', raw_result)
 
         # Parse result.
         output_dict = {}
         for var_name, var_space in self.output_space.items():
             assert var_name in result, 'Output must have argument {}'.format(var_name)
 
-            output_object = var_space.from_base64(result[var_name])
-            output_dict[var_name] = output_object
+            if var_space.NAME == 'Image':
+                output_object = var_space.from_base64(result[var_name])
+                output_dict[var_name] = output_object
+            elif var_space.NAME == 'String':
+                output_dict[var_name] = var_space.from_str(result[var_name])
+            elif var_space.NAME == 'JSON':
+                output_dict[var_name] = var_space.from_object(result[var_name])
+            else:
+                raise Exception('Not implemented output space: ' + str(var_space))
 
         return output_dict
 

@@ -184,12 +184,16 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 }
 
 func GetDeployName(user string, model string, tag string) string {
-	return "deploy-" +
-		strings.Replace(user, "-", "--", -1) +
-		"-" +
-		strings.Replace(model, "-", "--", -1) +
-		"-" +
-		strings.Replace(tag, ".", "-1", -1)
+	user = strings.Replace(user, "-", "--", -1)
+	model = strings.Replace(model, "-", "--", -1)
+	model = strings.Replace(model, ".", "-1", -1)
+	// convert upper case characters to lower case with "-" prefix.
+	for ch := 'a'; ch <= 'z'; ch++ {
+		model = strings.Replace(model, string(ch+'A'-'a'), "-"+string(ch), -1)
+	}
+	tag = strings.Replace(tag, ".", "-1", -1)
+
+	return "deploy-" + user + "-" + model + "-" + tag
 }
 
 func GetJobName(user string, repo string, commit string) string {
@@ -261,11 +265,14 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 	command = append(command, workPath)
 
 	// Add assets
-	assetsInterface := config["assets"]
-
-	command = append(command, "--assets")
-	for _, asset := range assetsInterface.([]interface{}) {
-		command = append(command, asset.(string))
+	if config["assets"] != nil {
+		assetInterfaces := config["assets"].([]interface{})
+		if len(assetInterfaces) > 0 {
+			command = append(command, "--assets")
+			for _, asset := range assetInterfaces {
+				command = append(command, asset.(string))
+			}
+		}
 	}
 
 	// Add command.

@@ -185,6 +185,10 @@ const StyledModelLayout = styled(Flex)`
         width: 100%;
         height: 100%;
     }
+
+    textarea:focus {
+        outline: none;
+    }
 `;
 
 class ModelView extends Component {
@@ -209,8 +213,10 @@ class ModelView extends Component {
     }
 
     syncModel() {
+        var self = this;
+
         return new Promise(function(resolve, reject) {
-            const {userId, modelId, tag} = this.props.match.params;
+            const {userId, modelId, tag} = self.props.match.params;
 
             ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
                 console.log('[Fetch Model]', model);
@@ -219,22 +225,22 @@ class ModelView extends Component {
 
                 }
 
-                this.setState({
+                self.setState({
                     model: model
                 })
 
                 resolve(model);
-            }.bind(this)).catch(function() {
-                console.error('Cannot fetch model');
+            }).catch(function(e) {
+                console.error('Cannot fetch model', e);
                 var model = {
                     status: "UNKNOWN"
                 }
 
-                this.setState({
+                self.setState({
                     model: model
                 })
-            }.bind(this));
-        }.bind(this))
+            });
+        });
     }
 
     syncRating() {
@@ -282,24 +288,32 @@ class ModelView extends Component {
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
             return new Promise((resolve, reject) => {
-                var outputSpaces = self.state.model['output_space'];
+                var outputSpaces = self.moxelModel.outputSpace;
                 for(var outputName in outputs) {
-                    var outputSpace = outputSpaces[outputName];
-                    var output = outputs[outputName];
-                    var demoWidget = document.querySelector(`#demo-${outputName}`);
-                    console.log('demo widget', demoWidget);
-                    if(outputSpace == "Image") {
-                        output.toDataURL().then((url) => {
-                            demoWidget.src = url;
-                            demoWidget.style.marginTop = "0%";
-                            demoWidget.style.marginBottom = "0%";
-                            demoWidget.style.width = "100%";
-                            resolve();
-                        });
-                    }else if(outputSpace == "JSON") {
-                        demoWidget.value = JSON.stringify(output, undefined, 4);
-                        resolve();
-                    }
+                    setTimeout(function(outputName) {
+                        var outputSpace = outputSpaces[outputName];
+                        var output = outputs[outputName];
+                        var demoWidget = document.querySelector(`#demo-output-${outputName}`);
+                        if(outputSpace == moxel.space.Image) {
+                            output.toDataURL().then((url) => {
+                                demoWidget.src = url;
+                                demoWidget.style.marginTop = "0%";
+                                demoWidget.style.marginBottom = "0%";
+                                demoWidget.style.width = "100%";
+                                resolve();
+                            });
+                        }else if(outputSpace == moxel.space.JSON) {
+                            output.toObject().then((object) => {
+                                demoWidget.value = JSON.stringify(object, undefined, 4);    
+                                resolve();
+                            })
+                        }else if(outputSpace == moxel.space.String) {
+                            output.toText().then((text) => {
+                                demoWidget.value = text;
+                                resolve();
+                            });
+                        }
+                    }.bind(this, outputName), 0);
                 }    
             });
         }
@@ -342,16 +356,6 @@ class ModelView extends Component {
         self.createImageUploadHandler = function(inputName) {
             return { 
                 addedfile: function(file) {
-                    // const {userId, modelName, tag} = self.props.match.params;
-                    // console.log('file', file);
-                    // var parts = file.name.split('.')
-                    // var ext = parts[parts.length-1];
-                    // var uid = DataStore.uuid() + '.' + ext;
-                    // DataStore.uploadData(userId, modelName, `inputs/${inputName}/${uid}`, file);
-                    
-                    // Output demo.
-                    // var demoOutput = document.querySelector('#demo-output');
-                    // demoOutput.src = '/images/spinner.gif';
                     var errorMessageView = document.querySelector('.dz-error-message');
                     errorMessageView.outerHTML = '';
                     
@@ -366,32 +370,6 @@ class ModelView extends Component {
                           self.inputs[inputName] = image;
                           console.log('Model input updated', self.inputs);
                         })
-                        
-                        // var dataDict = TypeUtils.base64FromDataURL(dataURL);
-                        // var inputData = dataDict.data;
-                        // var inputType = dataDict.dataType;
-                        // TypeUtils.adaptDataType(inputType, inputData, 'base64.png').then(function(convertedData) {
-                        //     console.log('converted', convertedData.length)
-                        //     this.handleDemoRun = function() {
-                        //         var demoOutput = document.querySelector('#demo-output');
-                        //         demoOutput.src = '/images/spinner.gif';
-                        //         var pathname = window.location.pathname;
-                        //         fetch('/model' + pathname.substring('/models'.length, pathname.length), {
-                        //             method: 'POST', 
-                        //             headers: new Headers({
-                        //                 'Content-Type': 'application/json'
-                        //             }),
-                        //             body: JSON.stringify({
-                        //                 'img_in': inputData,
-                        //             })
-                        //         }).then(function(resp) {
-                        //             return resp.json();
-                        //         }).then(function(result) {
-                        //             demoOutput.src = 'data:image/png;base64,' + result['img_out'];
-                        //         })
-                        //     };
-                        // }.bind(this))
-                        
                     }, false);
                 },
                 // error: function(e) {
@@ -399,10 +377,18 @@ class ModelView extends Component {
                 // }
             }
         }
-        
 
-        // Set up edit mode.
-        console.log(userId, AuthStore.username());
+        self.createTextareaEditor = function(inputName) {
+            // onchange event handler.
+            return function(e) {
+                var text = document.querySelector('#demo-input-' + inputName).value;
+                moxel.space.String.fromText(text).then((str) => {
+                    self.inputs[inputName] = str;
+                    console.log('Model input updated', self.inputs);
+                })
+            }
+        }
+        
     }
 
     
@@ -624,14 +610,25 @@ class ModelView extends Component {
         var inputWidgets = {}; 
         for(var inputName in inputSpaces) {
             var inputSpace = inputSpaces[inputName];
+            var inputWidget = null;
             if(inputSpace == "Image") {
-                inputWidgets[inputName] = (
+                inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
                     </div>
                 );
+            }else if(inputSpace == "String") {
+                inputWidget = 
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(inputName, inputSpace)}
+                        <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
+                                                                           padding: "10px", color: "#333", width: "100%",
+                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
+                    </div>
             }
+            inputWidgets[inputName] = inputWidget;
         }
         this.inputWidgets = inputWidgets;
         
@@ -645,9 +642,8 @@ class ModelView extends Component {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
-                        <textarea id={`demo-${outputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#888",
-                                                                           padding: 0, width: "100%",
+                        <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
+                                                                           padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
                                                                     width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                         <br/>
@@ -659,10 +655,19 @@ class ModelView extends Component {
                         {displayVariable(outputName, outputSpace)}
                         <div style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
                                             width: "300px", marginLeft: "auto", marginRight: "auto"}}>
-                            <img src="/images/pic-template.png" id={`demo-${outputName}`} 
+                            <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
                                 style={{width: "50%", height: "auto", marginTop: "25%", marginBottom: "25%"}}/>
                         </div>
                         <br/>
+                    </div>
+            }else if(outputSpace == "String") {
+                outputWidget = 
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(outputName, outputSpace)}
+                        <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
+                                                                           padding: "10px", color: "#333", width: "100%",
+                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
@@ -700,7 +705,7 @@ class ModelView extends Component {
                                                     <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100px", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
                                                 }
                                             </div>
-                                            <div className="col m6 demo-column" style={{textAlign: "center"}} >
+                                            <div className="col m6" style={{textAlign: "center"}} >
                                                 {Object.values(outputWidgets)}
                                             </div>
                                         </div>
@@ -823,14 +828,8 @@ class ModelView extends Component {
                                     <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
                                     
-                                    <ul id='dropdown-share' className='dropdown-content'>
-                                      <li><a href="#!">one</a></li>
-                                      <li><a href="#!">two</a></li>
-                                    </ul>
-                                    
-
                                     <Dropdown trigger={
-                                        <a className="dropdown-button btn-flat white black-text model-action-btn" data-activates='dropdown-share'>
+                                        <a className="dropdown-button btn-flat white black-text model-action-btn">
                                             <i className="material-icons left">share</i>Share
                                         </a>
                                     }>

@@ -27,7 +27,7 @@ def parse_space_dict(space_dict):
 
     for k, v in space_dict.items():
         try:
-            new_space_dict[k] = getattr(space, v)
+            new_space_dict[k] = space.get_space(v)
         except:
             raise Exception('Unknown space name {}'.format(v))
 

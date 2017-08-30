@@ -181,9 +181,9 @@ class UploadView extends Component {
                                     
                             <div className="row">
                                 <div className="col s12 offset-m1 m10">
-                                     Warpdrive is a Command Line Tool (CLI) to help you upload models. 
+                                     Moxel has a Command Line Tool (CLI) to help you upload models. 
                                      <br/>
-                                     To install, run this command in your terminal:
+                                     To install, run this in your terminal:
                                 </div>
                             </div>
                            
@@ -191,7 +191,7 @@ class UploadView extends Component {
                             
                             <div className="row">
                                 <div className="col s12 offset-m1 m8">
-                                    <input id={`warp-install-${os}`} value={`sudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/${os}/warp && sudo chmod 777 /usr/local/bin/warp`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                    <input id={`warp-install-${os}`} value={`curl -Lo /usr/local/bin/moxel http://beta.moxel.ai/release/cli/0.0.1/${os}/moxel && chmod 777 /usr/local/bin/moxel`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
                                     <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-install-${os}`}>
@@ -210,7 +210,7 @@ class UploadView extends Component {
                             <div className="row">
 
                                 <div className="col s12 offset-m1 m8">
-                                        <input id={`warp-login-${os}`} value="warp login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id={`warp-login-${os}`} value="moxel login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
                                     <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-login-${os}`}>
@@ -287,13 +287,16 @@ class UploadView extends Component {
                 )
                 break; 
             case 2: // Deploy Your Model.
-                let yaml = (`user: ${this.userId}\n` +
-                            `name: ${this.modelId}\n` +
-                            `tag: ${this.tag}\n` +
-                            "image: dummyai/py3-tf-gpu\n" +
-                            "description: " + localStorage.getItem(this.userId + "/" + this.modelId) + "\n" +
+                let yaml = ("image: dummyai/py3-tf-gpu\n" +
                             "assets:\n" +
                             "- (path to weight file)\n" +
+                            "resources:\n" +
+                            "  memory: 1Gi\n" +
+                            "  cpu: 1\n" +
+                            "input_space:\n" +
+                            "  (key):(value):\n" +
+                            "output_space:\n" +
+                            "  (key):(value):\n" +
                             "cmd:\n" +
                             "- (command 1)\n" +
                             "- (command 2)\n" +
@@ -315,14 +318,14 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">     
-                                        Now, let's upload your model with Warpdrive CLI.
+                                        Now, let's upload your model with Moxel CLI.
                                     </div>
                                 </div>
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">     
                                         <Markdown tagName="instruction" className="markdown-body">
-                                            Warpdrive is tightly integrated with Git. So first make sure your model code is in a git repository. Now, create a `dummy.yaml` inside the repo directory:
+                                            Moxel CLI is tightly integrated with Git. So first make sure your model code is in a git repository. Now, create a `moxel.yml` inside the repo directory:
                                         </Markdown>
                                     </div>
                                 </div>
@@ -348,27 +351,10 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                        <input id="warp-create" value="warp create -f dummy.yml" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id="warp-create" value="moxel push -f moxel.yml <model>:<tag>" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                     </div>
                                     <div className="col s12 m2">
                                         <ClipboardButton className="btn-flat" data-clipboard-target="#warp-create">
-                                            <i className="material-icons">content_copy</i>
-                                        </ClipboardButton>    
-                                    </div>
-                                </div>
-
-                                <div className="row">
-                                    <div className="col s12 offset-m1 m8">
-                                    To create a model with this configuration, run
-                                    </div>
-                                </div>
-
-                                <div className="row">
-                                    <div className="col s12 offset-m1 m8">
-                                        <input id="warp-deploy" value={`warp deploy ${this.modelId}:${this.tag}`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
-                                    </div>
-                                    <div className="col s12 m2">
-                                        <ClipboardButton className="btn-flat" data-clipboard-target="#warp-deploy">
                                             <i className="material-icons">content_copy</i>
                                         </ClipboardButton>    
                                     </div>

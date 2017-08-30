@@ -11,7 +11,6 @@ class ModelStoreClass {
             user: userId,
             id: modelId,
             tag: tag,
-            status: data.status,
             title: "Untitled",
             description: "This is some magic machine learning model",
             labels: ["deep learning"],
@@ -30,7 +29,8 @@ class ModelStoreClass {
         	model[k] = data.metadata[k];
         }
 
-        model["stars"] = parseInt(model["stars"])
+        model["stars"] = parseInt(model["stars"]);
+        model["status"] = data.status;
 
         return model;
 	}

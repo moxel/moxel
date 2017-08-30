@@ -7,6 +7,8 @@ from six import BytesIO
 class Image(Space):
     """ Logical semantic space for images.
     """
+    NAME='Image'
+
     def __init__(self, im):
         self.im = im
 
@@ -67,6 +69,7 @@ class Image(Space):
         image_pil.save(buf, 'png')
         buf.seek(0)
         return base64.b64encode(buf.read()).decode('utf_8')
+
 
 
 
