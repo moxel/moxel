@@ -1,5 +1,8 @@
 URL='linxifan/conda3'
 
+test:
+	docker run -ti --privileged -v `pwd`/../../:/code -v `pwd`/../secrets/:/secrets $(URL) --asset_root `pwd` --cmd 'python /code/docker/conda3/test.py'
+
 push:
 	docker push $(URL):`cat VERSION`
 	docker push $(URL):latest

@@ -1,7 +1,7 @@
-URL='linxifan/py3-pytorch-cpu'
+URL='linxifan/conda3-gpu'
 
 test:
-	docker run -ti --privileged -v `pwd`/../../:/code -v `pwd`/../secrets/:/secrets $(URL) --asset_root `pwd` --cmd 'python /code/docker/py3-pytorch-cpu/test.py'
+	nvidia-docker run -ti --privileged -v `pwd`/../../:/code -v `pwd`/../secrets/:/secrets $(URL) --asset_root `pwd` --cmd 'python /code/docker/conda3-gpu/test.py'
 
 push:
 	docker push $(URL):`cat VERSION`
