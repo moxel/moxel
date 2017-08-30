@@ -1,4 +1,4 @@
-URL='linxifan/conda3'
+URL='linxifan/py3-pytorch-cpu'
 
 push:
 	docker push $(URL):`cat VERSION`
