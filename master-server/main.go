@@ -696,7 +696,7 @@ func main() {
 		router := mux.NewRouter()
 
 		// Authentication based on JWT.
-		router.Handle(`/git/{rest:[a-zA-Z0-9=\-\/]+}`, negroni.New(
+		router.Handle(`/git/{rest:[a-zA-Z0-9=\.\-\/]+}`, negroni.New(
 			negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 			negroni.Wrap(GetGitRequestHandler()),
 		))
