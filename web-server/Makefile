@@ -3,6 +3,7 @@ URL='dummyai/web-server'
 .PHONY: build
 
 build:
+	rm -r node_modules/moxel-build || true
 	cp -r ../moxel-clients/javascript/moxel node_modules/moxel-build
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest

@@ -288,6 +288,11 @@ var Moxel = function(config) {
 									outputObject[varName] = outputItem;
 									callback();
 								})
+							}else if(varSpace == space.String) {
+								space.String.fromText(result[varName]).then((outputItem) => {
+									outputObject[varName] = outputItem;
+									callback();
+								})
 							}else{
 								console.error('Unknown variable output space', varSpace);
 							}

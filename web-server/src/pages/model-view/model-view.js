@@ -185,6 +185,10 @@ const StyledModelLayout = styled(Flex)`
         width: 100%;
         height: 100%;
     }
+
+    textarea:focus {
+        outline: none;
+    }
 `;
 
 class ModelView extends Component {
@@ -209,8 +213,10 @@ class ModelView extends Component {
     }
 
     syncModel() {
+        var self = this;
+
         return new Promise(function(resolve, reject) {
-            const {userId, modelId, tag} = this.props.match.params;
+            const {userId, modelId, tag} = self.props.match.params;
 
             ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
                 console.log('[Fetch Model]', model);
@@ -219,22 +225,22 @@ class ModelView extends Component {
 
                 }
 
-                this.setState({
+                self.setState({
                     model: model
                 })
 
                 resolve(model);
-            }.bind(this)).catch(function() {
-                console.error('Cannot fetch model');
+            }).catch(function(e) {
+                console.error('Cannot fetch model', e);
                 var model = {
                     status: "UNKNOWN"
                 }
 
-                this.setState({
+                self.setState({
                     model: model
                 })
-            }.bind(this));
-        }.bind(this))
+            });
+        });
     }
 
     syncRating() {
@@ -301,6 +307,11 @@ class ModelView extends Component {
                                 demoWidget.value = JSON.stringify(object, undefined, 4);    
                                 resolve();
                             })
+                        }else if(outputSpace == moxel.space.String) {
+                            output.toText().then((text) => {
+                                demoWidget.value = text;
+                                resolve();
+                            });
                         }
                     }.bind(this, outputName), 0);
                 }    
@@ -612,7 +623,7 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
                         <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#888", width: "100%",
+                                                                           padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
                                                                     width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
                     </div>
@@ -632,7 +643,7 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
                         <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#888", width: "100%",
+                                                                           padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
                                                                     width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                         <br/>
@@ -648,6 +659,15 @@ class ModelView extends Component {
                                 style={{width: "50%", height: "auto", marginTop: "25%", marginBottom: "25%"}}/>
                         </div>
                         <br/>
+                    </div>
+            }else if(outputSpace == "String") {
+                outputWidget = 
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(outputName, outputSpace)}
+                        <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
+                                                                           padding: "10px", color: "#333", width: "100%",
+                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
