@@ -31,3 +31,6 @@
 [submodule "examples/glove-setup"]
 	path = examples/glove-setup
 	url = https://github.com/strin/glove-setup
+[submodule "examples/tf-bi-att-flow"]
+	path = examples/tf-bi-att-flow
+	url = https://github.com/moxel/tf-bi-att-flow
