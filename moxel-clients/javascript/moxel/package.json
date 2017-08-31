@@ -5,12 +5,13 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "node test.js",
-    "build": "./node_modules/.bin/babel  --presets es2015,stage-0 -d lib src"
+    "build": "./node_modules/.bin/babel  --presets es2015,stage-0 -d lib src; cp lib/node_modules/pngjs/lib/* node_modules/pngjs/lib/"
   },
   "author": "Tim Shi",
   "license": "ISC",
   "dependencies": {
     "async": "^2.5.0",
+    "babel-register": "^6.26.0",
     "buffer": "^5.0.7",
     "es6-promise": "^4.1.1",
     "file-type": "^6.1.0",
