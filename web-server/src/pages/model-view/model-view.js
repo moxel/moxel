@@ -268,7 +268,26 @@ class ModelView extends Component {
             editMode: (userId == AuthStore.username())
         })
         
-        this.syncModel();
+        this.syncModel().then((model) => {
+            // Update meta tags.
+            function updateMeta(type, name, content) {
+                var oldElement = document.querySelector(`meta[${type}='${name}']`);
+                if(oldElement) {
+                    oldElement.remove()
+                }
+                var element = document.createElement('meta');
+                element[type] = name;
+                element.content = content;    
+                document.querySelector('head').appendChild(element);
+            }
+            
+            document.title = `${model.title} | Moxel`;
+            updateMeta('property', 'og:title', model.title);
+            updateMeta('property', 'og:description', model.description);
+            updateMeta('name', 'description', model.description);
+            updateMeta('name', 'keywords', model.labels.join(','));
+            updateMeta('name', 'author', model.user);
+        });
         this.syncRating();
 
         // Add event handler for image upload.
