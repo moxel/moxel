@@ -54,6 +54,7 @@ class ModelStoreClass {
 	fetchModelAll() { 
 		return new Promise(function(resolve) {
 			fetch(`/api/users/_/models`).then((response)=>{
+				console.log(response.text);
 	            return response.json();
 	        }).then(function(data) {	        	
 	        	var models = [];

@@ -3,8 +3,7 @@ URL='dummyai/web-server'
 .PHONY: build
 
 build:
-	rm -r node_modules/moxel-build || true
-	cp -r ../moxel-clients/javascript/moxel node_modules/moxel-build
+	./node_modules/.bin/react-scripts build
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest
 
@@ -12,10 +11,10 @@ shell:
 	docker run --entrypoint /bin/bash -it $(URL) 
 
 run:
-	docker run -p 3000:3000 -p 3001:3001 -ti $(URL) npm run start:browser-dev
+	./run.sh
 
 dev:
-	docker run -v `pwd`:/app -p 3000:3000 -p 3001:3001 -ti $(URL) npm run start:browser-dev
+	npm run start:browser-dev
 
 push: 
 	docker push $(URL)

@@ -13,10 +13,6 @@ spec:
       containers:
       - name: main
         image: dummyai/web-server
-        command: 
-        - npm 
-        - run
-        - start:browser-dev
         ports:
         - containerPort: 3000
         tty: true

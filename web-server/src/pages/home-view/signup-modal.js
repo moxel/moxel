@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {Flex} from "layout-components";
-import styles from './signup-modal.css';
 import AuthStore from "../../stores/AuthStore";
 
 class SignupModal extends Component {

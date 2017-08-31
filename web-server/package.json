@@ -41,6 +41,7 @@
     "react-slick": "^0.14.11",
     "react-stepper-horizontal": "^1.0.9",
     "react-timeseries-charts": "^0.12.8",
+    "serve": "^6.0.6",
     "slick-carousel": "^1.6.0",
     "styled-components": "^2.1.1",
     "superagent": "^3.5.2"

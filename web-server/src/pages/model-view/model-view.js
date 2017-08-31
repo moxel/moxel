@@ -29,6 +29,11 @@ import 'markdown-it';
 import Markdown from 'react-markdownit';
 import Moxel from 'moxel'
 
+// Most browsers don't support Object.values
+Object.values = function(obj) {
+    return Object.keys(obj).map(function(key) { return obj[key];});
+}
+
 var moxel = null;
 
 if(window.location.host == "localhost:3000") {
@@ -356,8 +361,10 @@ class ModelView extends Component {
         self.createImageUploadHandler = function(inputName) {
             return { 
                 addedfile: function(file) {
-                    var errorMessageView = document.querySelector('.dz-error-message');
-                    errorMessageView.outerHTML = '';
+                    for(var selector of ['.dz-error-mark', '.dz-error-message']) {
+                        var ignoreView = document.querySelector(selector);    
+                        ignoreView.outerHTML = '';
+                    }
                     
                     // Read data.
                     var reader = new FileReader();
@@ -499,6 +506,18 @@ class ModelView extends Component {
 
     handleToggleEdit() {
         this.setState({editMode: !this.state.editMode});
+    }
+
+    componentDidUpdate() {
+        console.log('did update');
+        const scriptId = 'add-this-script';
+        var element = document.querySelector('#' + scriptId);
+        if(!element) {
+            const script = document.createElement("script");
+            script.src = "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-598845f9cbaea48c";
+            script.id = scriptId;
+            document.body.appendChild(script);
+        }
     }
 
     render() {
@@ -782,7 +801,7 @@ class ModelView extends Component {
         );
 
         return (
-            <StyledModelLayout column className="catalogue-layout-container">
+            <StyledModelLayout column className="catalogue-layout-container" style={{marginTop: "75px"}}>
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
                 {/*>Search For Your Favorite Model</FixedWidthRow>*/}
                 {/*<FixedWidthRow component={SearchBar}*/}
@@ -827,13 +846,13 @@ class ModelView extends Component {
                                     &nbsp;
                                     <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
                                     &nbsp;
-                                    
                                     <Dropdown trigger={
                                         <a className="dropdown-button btn-flat white black-text model-action-btn">
                                             <i className="material-icons left">share</i>Share
                                         </a>
                                     }>
-                                        <NavItem><div className="addthis_inline_share_toolbox" style={{width: "150px"}}></div></NavItem>
+
+                                    <NavItem><div className="addthis_inline_share_toolbox_5dtc"></div></NavItem>
                                     </Dropdown>
 
                                 </span>

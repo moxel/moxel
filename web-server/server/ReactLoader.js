@@ -15,13 +15,13 @@ if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "production")
     rootComponentPath = "../src/Root";
 }
 
-const Root = require(rootComponentPath).default;
-const HTML = fs.readFileSync(__dirname + '/../public/index.html').toString();
-
 // todo: add index.html loading
 export default function ReactLoader(req, res, next) {
+    const Root = require(rootComponentPath).default;
+    const HTML = fs.readFileSync(__dirname + '/../public/index.html').toString();
     const location = req.url.toString();
 
+    console.log(3)
     const sheet = new ServerStyleSheet();
     const html = renderToString(sheet.collectStyles(
         <StaticRouter location={location} context={{}}>
