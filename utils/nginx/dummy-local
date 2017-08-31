@@ -1,0 +1,27 @@
+server {
+        listen   80; 
+        server_name localhost; 
+
+        location /api {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://master-dev.dummy.ai:8080;
+        }
+
+        location /model/ {
+                add_header Access-Control-Allow-Origin *;
+                add_header Access-Control-Allow-Methods "GET,POST,PUT,DELETE,OPTIONS";
+                add_header Access-Control-Allow-Headers "Content-Type, Access-Control-Allow-
+Headers, Authorization, X-Requested-With";
+                proxy_pass http://dev.dummy.ai;
+        }
+
+
+        location / {
+                proxy_set_header X-Real-IP  $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+                proxy_set_header Host $host;
+                proxy_pass http://localhost:3001;
+        }
+}
