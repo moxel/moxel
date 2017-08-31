@@ -7,6 +7,7 @@ import AuthStore from "../../stores/AuthStore";
 
 const PageBody = styled(Flex)`{
     min-height: 600px;
+    min-width: 860px;
     background-color: rgb(246, 249, 255);
     ${PageBody} {
         flex: 1 0 auto;

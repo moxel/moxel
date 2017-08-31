@@ -102,9 +102,9 @@ class PageHeader extends Component {
                 </ul>
             )
         }else{
+            /*<ul className="right  hide-on-med-and-down">*/
             menu = (
-                <ul className="right hide-on-med-and-down">
-
+                <ul className="right">
                     <li><a href="/models">Models</a></li>
 
                     <li><a href="/new">Create</a></li>
@@ -131,7 +131,13 @@ class PageHeader extends Component {
                     </div>
                     <div className="nav-wrapper container">
                         <a href="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></a>
-                        <a href="#" data-activates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i></a>
+                        {/*<ul id="nav-mobile" className="side-nav">
+                            <li><a href="/models">Models</a></li>
+                            <li><a href="/new">Create</a></li>
+                            <li><a href="/logout" className="black-text">Logout</a></li>
+                        </ul>
+                        <a href="#" dataActivates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i>
+                        </a>*/}
                         {menu}
                         {banner}
                     </div>
