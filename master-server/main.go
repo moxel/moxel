@@ -10,6 +10,7 @@ import (
 	"github.com/dummy-ai/mvp/master-server/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"github.com/levigross/grequests"
 	"gopkg.in/yaml.v2"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -232,6 +233,62 @@ func postLanding(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(200)
+}
+
+func getAuth(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	fmt.Println("[GET] User Auth with Code", query)
+
+	code := query.Get("code") // dummy user
+	redirect_uri := query.Get("redirect_uri")
+
+	// Get authentication token.
+	resp, err := grequests.Post("https://dummyai.auth0.com/oauth/token",
+		&grequests.RequestOptions{
+			Headers: map[string]string{
+				"Content-type": "application/x-www-form-urlencoded",
+			},
+			Data: map[string]string{
+				"client_id":     "MJciGnUXnD850clHoLM4tkltFlkgJGPs",
+				"redirect_uri":  redirect_uri,
+				"client_secret": "Ck7IWvxkZ0rXq4AVIe6wzP_VNJk1bYRG7rV_IAzdNcE5UKKKItLfdBIPPWfma9Jb",
+				"code":          code,
+				"grant_type":    "authorization_code",
+			}})
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var data map[string]interface{}
+	if err := resp.JSON(&data); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	resp, err = grequests.Get("https://dummyai.auth0.com/userinfo?access_token="+data["access_token"].(string),
+		&grequests.RequestOptions{})
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var profile map[string]interface{}
+	if err := resp.JSON(&profile); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	data["profile"] = profile
+	response, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
 }
 
 func putModel(w http.ResponseWriter, r *http.Request) {
@@ -724,6 +781,7 @@ func main() {
 		router.HandleFunc(`/rating/{userId}/{modelId:[.\/]*}`, deleteRating).Methods("DELETE")
 		// Other endpoints.
 		router.HandleFunc("/landing", postLanding).Methods("POST")
+		router.HandleFunc("/auth", getAuth).Methods("GET")
 
 		fmt.Println(fmt.Sprintf("0.0.0.0:%d", MasterPort))
 		fmt.Println("Starting HTTP master server")

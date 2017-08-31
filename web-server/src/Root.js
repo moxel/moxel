@@ -5,6 +5,7 @@ import UploadViews from './pages/upload-view';
 import SearchViews from './pages/search-view';
 import ModelViews from './pages/model-view';
 import CreateView from './pages/create-view';
+import LoggedInView from './pages/logged-in-view';
 import LandingPage from './pages/home-view/landing-page';
 import AuthStore from "./stores/AuthStore";
 
@@ -23,6 +24,10 @@ export default function Root() {
 
             <Route exact path="/new" component={() => 
                 <CreateView/>
+            }/>
+
+            <Route exact path="/logged-in" component={() => 
+                <LoggedInView/>
             }/>
             
             {UploadViews}

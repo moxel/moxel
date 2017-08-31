@@ -7,12 +7,15 @@ var lockOptions = {
       primaryColor: '#2196FA',
   },
   languageDictionary: {
-      emailInputPlaceholder: "you@dummy.ai",
-      title: "Dummy.ai"
+      emailInputPlaceholder: "you@moxel.ai",
+      title: "Moxel"
   },
   allowedConnections: ['Username-Password-Authentication'],
   rememberLastLogin: false, // disable sso.
-  redirect: false
+  // redirect: false
+  auth: {
+    redirectUrl: window.location.protocol + '//' + window.location.host + '/logged-in'
+  }
 };
 
 class AuthStoreClass {
@@ -51,9 +54,13 @@ class AuthStoreClass {
   	  return false;
 	}
 
-	login(callbackURL) {
+	login(callbackPath) {
+    if(!callbackPath) {
+      callbackPath = '/';
+    }
+    var callbackURL = document.location.host + callbackPath;
     if(this.isAuthenticated()) {
-      window.location.href = callbackURL;
+      window.location.href = callbackPath;
       return;
     }
 
@@ -61,9 +68,6 @@ class AuthStoreClass {
     // Auth0 Lock handles redirect before "authenticated" event.
     localStorage.setItem('auth0RedirectUrl', callbackURL);
     this.lock.show({
-        // auth: {
-        //   redirectUrl: document.location.host + callbackURL
-        // }
     });
 	}
 
@@ -76,7 +80,7 @@ class AuthStoreClass {
   profile() {
       var rawProfile = localStorage.getItem('profile');
       if(!rawProfile) {
-        this.login('/');
+        this.login(window.location.pathname);
         throw "No profile is available."
         return;
       }
