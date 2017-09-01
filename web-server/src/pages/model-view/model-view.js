@@ -749,7 +749,7 @@ class ModelView extends Component {
                                         </div>
                                     </span>
                                 </Tab>
-                                <Tab title="API">
+                                {/*<Tab title="API">
                                     <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
                                     {`   
                                         \`\`\`python
@@ -783,7 +783,7 @@ class ModelView extends Component {
                                     `}
                                     </Markdown>   
 
-                                </Tab>
+                                </Tab>*/}
                             </Tabs>
 
                             
