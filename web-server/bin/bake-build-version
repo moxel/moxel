@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "<p style='font-family: Helvetica, san-serif; color: #ccc;'>BUILD &nbsp; "`date +%d%m%Y`"</p>" > public/version.html

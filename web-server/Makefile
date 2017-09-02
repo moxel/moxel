@@ -3,6 +3,7 @@ URL='dummyai/web-server'
 .PHONY: build
 
 build:
+	./bin/bake-build-version
 	./node_modules/.bin/react-scripts build
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest
