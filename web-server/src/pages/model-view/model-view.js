@@ -276,13 +276,17 @@ class ModelView extends Component {
                     oldElement.remove()
                 }
                 var element = document.createElement('meta');
-                element[type] = name;
-                element.content = content;    
+                element.setAttribute(type, name);
+                element.setAttribute('content', content);    
                 document.querySelector('head').appendChild(element);
+                console.log('metadata updated', type, name, content, element);
             }
             
             document.title = `${model.title} | Moxel`;
-            updateMeta('property', 'og:title', model.title);
+            updateMeta('property', 'og:title', model.title + ' by ' + userId + ' | Moxel');
+            updateMeta('property', 'og:description', model.description);
+            updateMeta('property', 'og:type', 'article');
+            updateMeta('property', 'og:url', document.URL);
             updateMeta('property', 'og:description', model.description);
             updateMeta('name', 'description', model.description);
             updateMeta('name', 'keywords', model.labels.join(','));

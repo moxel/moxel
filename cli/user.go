@@ -20,7 +20,6 @@ func (user *User) UpdateUserConfig(newConfig map[string]interface{}) {
 	// create dummy file if not exists
 	_, err := os.Stat(GetUserConfigPath())
 	if os.IsNotExist(err) {
-		fmt.Println("not exist")
 		var file, err = os.Create(user.GetConfigPath())
 		if err != nil {
 			fmt.Println("Error:", err.Error())
