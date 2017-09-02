@@ -52,11 +52,24 @@ var djsConfig = {
 // }
 
 export default function ImageUploader({uploadEventHandlers}: props) {
+    var imageDropzone = null;
+    var imageFile = null;
     return (
         <StyledImageUploader>
             <div className="dropzone-col">
                 <DropzoneComponent config={componentConfig}
-                   eventHandlers={uploadEventHandlers}
+                    eventHandlers={{
+                        addedfile: function(file) {
+                            if(imageFile) {
+                                imageDropzone.removeFile(imageFile);
+                            }
+                            imageFile = file;
+                            uploadEventHandlers.addedfile(file);
+                        },
+                        init: function(dropzone) {
+                            imageDropzone = dropzone;
+                        }
+                    }}
                    djsConfig={djsConfig} />           
             </div>
         </StyledImageUploader>
