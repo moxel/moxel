@@ -1,28 +1,46 @@
 ## Development
 
-To start development in browser, 
+To start development in browser, run
 
 ```
-npm run start:browser-dev
+make dev
 ```
 
-Environment variables:
-
-* `NODE_ENV`: dev, production.
-* `API_SERVER`: the address for API server.
-
-### Configure Cloud Storage to Enable CORS
-
-When the user is uploading data using the web client, sometimes the client will request urls like `example.storage.googleapis.com`. 
+and you will be automatically redirected to the Moxel homepage. Please make sure the backend is running on devbox. To change the address of the devbox you are using, change the proxy target in `package.json`:
 
 ```
-gsutil cors set cors/enable-gcloud.json gs://dummy-dev
+"proxy": {
+	"/api": {
+	  "target": "http://master-dev.dummy.ai:8080",
+	  "ws": true,
+	  "pathRewrite": {
+	    "^/api": ""
+	  }
+	}
+}
 ```
 
+To start the backend, go to `master-server` and run 
+
+```
+make devbox-deploy
+```
+
+Make sure you have your own devbox, so there is no conflict between Moxel developers.
 
 ## Deployment
 
-tl;dr: `make build && make push && make deploy`
+Once you have tested the changes, you can deploy the web-server.
+
+To simplest way to do this is, at moxel repo root, run
+
+```
+./bin/deploy-web dev
+```
+
+Change `dev` to `prod` if you'd like to deploy changes to production (with CAUTION!).
+
+This script runs the following steps,
 
 First, build the docker container,
 
@@ -43,6 +61,14 @@ make deploy
 ```
 
 
+
+### Configure Cloud Storage to Enable CORS
+
+When the user is uploading data using the web client directly to Cloud Storage, sometimes the client will request urls like `example.storage.googleapis.com`. To enable access to such addresses, you need to enable CORS with `gsutil`:
+
+```
+gsutil cors set cors/enable-gcloud.json gs://dummy-dev
+```
 
 
 
