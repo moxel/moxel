@@ -4,6 +4,11 @@ COPY package.json /app/package.json
 WORKDIR /app
 
 COPY build /app/build
-RUN npm install -g babel-cli
+COPY server /app/server
 
-CMD PORT=3000 babel-node server/index.js
+# Install server dependencies
+RUN cd server && \
+  npm install -g babel-cli && \
+  npm install --save babel-preset-es2015 express compression body-parser morgan isomorphic-fetch
+
+CMD PORT=3000 babel-node --presets es2015 server/index.js
