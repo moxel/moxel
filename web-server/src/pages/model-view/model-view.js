@@ -50,6 +50,14 @@ if(window.location.host == "localhost:3000") {
 
 
 const StyledModelLayout = styled(Flex)`
+    .blur {
+        filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');
+        -webkit-filter: url(#blur-filter);
+        filter: url(#blur-filter);
+        -webkit-filter: blur(3px);
+        filter: blur(3px);
+    }
+
     .model-snippet {
         width: 100%;
     }
@@ -200,11 +208,17 @@ class ModelView extends Component {
     constructor() {
         super()
 
+        var username = null;
+        if(AuthStore.isAuthenticated()) {
+            username = AuthStore.username();
+        }
+
         this.state = {
             model: null,
             isRunning: false,
             rating: 0,
-            editMode: false
+            editMode: false,
+            username: username
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
@@ -249,13 +263,20 @@ class ModelView extends Component {
     }
 
     syncRating() {
-        const {userId, modelName, tag} = this.props.match.params;
         var self = this;
+        if(!self.state.username) {
+            return;
+        }
+
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelId = ModelStore.modelId(userId, modelName, tag); 
-        var myId = AuthStore.username()
+        var myId = self.state.username;
+
+        console.log('modelId', myId, modelId)
 
         RatingStore.fetchRating(myId, modelId).then(function(rating) {
+            console.log('rating', rating, myId, modelId)
             self.setState({
                 rating: rating
             });
@@ -263,10 +284,11 @@ class ModelView extends Component {
     }
 
     componentDidMount() {
+        var self = this;
         const {userId, modelId, tag} = this.props.match.params;
 
         this.setState({
-            editMode: (userId == AuthStore.username())
+            editMode: (userId == this.state.username)
         })
         
         this.syncModel().then((model) => {
@@ -278,8 +300,6 @@ class ModelView extends Component {
 
         // Add event handler for image upload.
         this.handleDemoRun = null;
-
-        var self = this;
 
         // Get modelId.
         var pathname = window.location.pathname;
@@ -406,30 +426,32 @@ class ModelView extends Component {
     
 
     handleUpvote() {
-        if(this.doingHandleUpvote) {
-            window.setTimeout(this.handleUpvote, 100);
+        var self = this;
+
+        if(self.doingHandleUpvote) {
+            window.setTimeout(self.handleUpvote, 100);
             return
         }
-        this.doingHandleUpvote = true;
+        self.doingHandleUpvote = true;
 
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelId, tag} = self.props.match.params;
 
         var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
-        var myId = AuthStore.username()
+        var myId = self.state.username;
 
         var newRating = 0.;
-        if(this.state.rating > 0) {
+        if(self.state.rating > 0) {
             newRating = 0.;
         }else{
             newRating = 1.;
         }
 
         // First, create the illusion that update is done.
-        this.setState({
+        self.setState({
             rating: newRating
         })
 
-        var model = this.state.model;
+        var model = self.state.model;
 
         if(newRating == 1.) {
             model['stars'] = model['stars'] + 1;
@@ -437,31 +459,33 @@ class ModelView extends Component {
             model['stars'] = model['stars'] - 1;
         }
 
-        this.setState({
+        self.setState({
             model: model
         })
 
         // Then, do the real update.
-        RatingStore.updateRating(myId, modelUid, newRating).then(function() {
-            this.syncRating();
-            this.syncModel().then(function(model) {
-                if(newRating == 1.) {
-                    model['stars'] = model.stars + 1;
-                }else{
-                    model['stars'] = model.stars - 1;
-                }
+        RatingStore.updateRating(myId, modelUid, newRating)
+        .then(() => {
+            self.syncRating();
+            return self.syncModel();
+        })
+        .then((model) => {
+            if(newRating == 1.) {
+                model['stars'] = model.stars + 1;
+            }else{
+                model['stars'] = model.stars - 1;
+            }
 
-                this.setState({
-                    model: model
-                })
+            self.setState({
+                model: model
+            })
 
-                ModelStore.updateModel(userId, modelId, tag, {'stars': model['stars']}).then(function() {
-                    this.syncModel().then(function() {
-                        this.doingHandleUpvote = false;
-                    }.bind(this));
-                }.bind(this));
-            }.bind(this));
-        }.bind(this))
+            ModelStore.updateModel(userId, modelId, tag, {'stars': model['stars']}).then(function() {
+                self.syncModel().then(function() {
+                    self.doingHandleUpvote = false;
+                });
+            });
+        });
     }
 
     handleUpdateTitle() {
@@ -818,7 +842,7 @@ class ModelView extends Component {
                             <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
                         </span>
                         {
-                            userId == AuthStore.username()
+                            userId == this.state.username
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
                                 <div className="switch">
@@ -979,12 +1003,19 @@ class ModelView extends Component {
                             <div className="col s12 m12">
                                 <div className="card">
                                     <div className="card-content">
+                                        {/* force to sign in to discuss.
+                                        <div>
+                                        <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
+                                        </div>
+                                        <div className="blur">
+                                            
+                                        </div>*/}
                                         <ReactDisqusThread
                                             id={`$[userId}/${modelId}:${tag}`}
                                             title="Example Thread"
                                             url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>
-                                            
+                                        
                                     </div>
                                 </div>
                             </div>

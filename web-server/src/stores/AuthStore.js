@@ -10,7 +10,8 @@ var lockOptions = {
       emailInputPlaceholder: "you@moxel.ai",
       title: "Moxel"
   },
-  allowedConnections: ['google-oauth2', 'github', 'linkedin', 'Username-Password-Authentication'],
+  // allowedConnections: ['google-oauth2', 'github', 'linkedin', 'Username-Password-Authentication'],
+  allowedConnections: ['Username-Password-Authentication'],
   socialButtonStyle: 'small',
   rememberLastLogin: true, // disable sso.
   auth: {
@@ -76,6 +77,8 @@ class AuthStoreClass {
   }
 
 	login(callbackPath) {
+    var err = new Error();
+    console.error(err.stack);
     this.loginOrSignup(callbackPath, {});
 	}
 
