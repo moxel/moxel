@@ -11,6 +11,7 @@ import { Button, Card, Row, Col } from 'react-materialize';
 import SignupModal from "../home-view/signup-modal";
 import Mask from "../home-view/mask";
 import AuthStore from "../../stores/AuthStore";
+import {Link} from "react-router-dom";
 
 const StyledPageHeader = styled(FlexItem)`
     position: relative;
@@ -83,7 +84,7 @@ class PageHeader extends Component {
                     <div>
                         <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
                         &nbsp;&nbsp;&nbsp;&nbsp;
-                        <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
+                        <Button waves="light" className="green"><Link to="/models">Discover Model</Link></Button>
                         &nbsp;
                     </div> 
                     
@@ -105,14 +106,18 @@ class PageHeader extends Component {
             /*<ul className="right  hide-on-med-and-down">*/
             menu = (
                 <ul className="right">
-                    <li><a href="/models">Models</a></li>
+                    <li><Link to="/models">Models</Link></li>
 
-                    <li><a href="/new">Create</a></li>
+                    <li><Link to="/new">Create</Link></li>
 
                     <ul id="dropdown1" className="dropdown-content">
-                        <li><a href="/logout" className="black-text">Logout</a></li>
+                        <li><Link to="/logout" className="black-text">Logout</Link></li>
                     </ul>
-                    <li><a className="dropdown-button" href="#!" data-activates="dropdown1">{AuthStore.username()}<i className="material-icons right">arrow_drop_down</i></a></li>
+                    <li>
+                        <a className="dropdown-button" href="#!" data-activates="dropdown1">{AuthStore.username()}
+                            <i className="material-icons right">arrow_drop_down</i>
+                        </a>
+                    </li>
 
 
                 </ul>
@@ -125,7 +130,7 @@ class PageHeader extends Component {
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
                     </div>
                     <div className="nav-wrapper container">
-                        <a href="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></a>
+                        <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
                         {/*<ul id="nav-mobile" className="side-nav">
                             <li><a href="/models">Models</a></li>
                             <li><a href="/new">Create</a></li>

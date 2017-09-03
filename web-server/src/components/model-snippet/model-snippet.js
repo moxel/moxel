@@ -4,6 +4,7 @@ import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import ProfileImage from "../profile-image/profile-image";
 import SimpleTag from "../simple-tag";
 import styled from "styled-components";
+import {Link} from "react-router-dom";
 
 const StyledModelSnippet = styled(FlexItem)`
 
@@ -85,7 +86,7 @@ export default function ModelSnippet({
                   </div>*/}
                   <div className="card-stacked">
                     <div className="card-content">
-                      <a href={`/models/${user}/${id}/${tag}`}>
+                      <Link to={`/models/${user}/${id}/${tag}`}>
                             <FlexItem className="snippet-id">{user} / {id}</FlexItem>
                             <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
                             <FlexItem className="snippet-body">
@@ -102,7 +103,7 @@ export default function ModelSnippet({
                                 <FlexSpacer/>
                                 <FlexItem></FlexItem>
                             </Flex>*/}
-                        </a>
+                        </Link>
                     </div>
                     <div className="card-action">
                         <span>{
