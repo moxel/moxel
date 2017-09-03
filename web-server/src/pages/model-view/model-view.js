@@ -513,14 +513,8 @@ class ModelView extends Component {
     }
 
     componentDidUpdate() {
-        console.log('did update');
-        const scriptId = 'add-this-script';
-        var element = document.querySelector('#' + scriptId);
-        if(!element) {
-            const script = document.createElement("script");
-            script.src = "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-598845f9cbaea48c";
-            script.id = scriptId;
-            document.body.appendChild(script);
+        if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
+            window.addthis.layers.refresh();
         }
     }
 
