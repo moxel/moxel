@@ -235,9 +235,9 @@ class ModelView extends Component {
         var self = this;
 
         return new Promise(function(resolve, reject) {
-            const {userId, modelId, tag} = self.props.match.params;
+            const {userId, modelName, tag} = self.props.match.params;
 
-            ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
+            ModelStore.fetchModel(userId, modelName, tag).then(function(model) {
                 console.log('[Fetch Model]', model);
                 if(model.status == 'NONE') {
                     // This model does not exist.
@@ -273,8 +273,6 @@ class ModelView extends Component {
         var modelId = ModelStore.modelId(userId, modelName, tag); 
         var myId = self.state.username;
 
-        console.log('modelId', myId, modelId)
-
         RatingStore.fetchRating(myId, modelId).then(function(rating) {
             console.log('rating', rating, myId, modelId)
             self.setState({
@@ -285,7 +283,7 @@ class ModelView extends Component {
 
     componentDidMount() {
         var self = this;
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         this.setState({
             editMode: (userId == this.state.username)
@@ -301,16 +299,10 @@ class ModelView extends Component {
         // Add event handler for image upload.
         this.handleDemoRun = null;
 
-        // Get modelId.
-        var pathname = window.location.pathname;
-        var modelPath = pathname.substring('/models'.length + 1, pathname.length);
-        var modelPathParts = modelPath.split('/');
-        self.modelId = modelPathParts[0] + '/' + modelPathParts[1] + ':' + modelPathParts[2];
-        console.log('modelId', self.modelId);
-
         // Import model from Moxel.
+        var modelId = ModelStore.modelId(userId, modelName, tag);
         self.moxelModel = null;   // moxel model.
-        moxel.createModel(self.modelId).then((model) => {
+        moxel.createModel(modelId).then((model) => {
             self.moxelModel = model;
             console.log('Moxel model created', self.moxelModel);
         });
@@ -434,9 +426,9 @@ class ModelView extends Component {
         }
         self.doingHandleUpvote = true;
 
-        const {userId, modelId, tag} = self.props.match.params;
+        const {userId, modelName, tag} = self.props.match.params;
 
-        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
+        var modelId = ModelStore.modelId(userId, modelName, tag);  // TODO: resolve the confusion of modelId.
         var myId = self.state.username;
 
         var newRating = 0.;
@@ -464,7 +456,7 @@ class ModelView extends Component {
         })
 
         // Then, do the real update.
-        RatingStore.updateRating(myId, modelUid, newRating)
+        RatingStore.updateRating(myId, modelId, newRating)
         .then(() => {
             self.syncRating();
             return self.syncModel();
@@ -480,7 +472,7 @@ class ModelView extends Component {
                 model: model
             })
 
-            ModelStore.updateModel(userId, modelId, tag, {'stars': model['stars']}).then(function() {
+            ModelStore.updateModel(userId, modelName, tag, {'stars': model['stars']}).then(function() {
                 self.syncModel().then(function() {
                     self.doingHandleUpvote = false;
                 });
@@ -489,11 +481,11 @@ class ModelView extends Component {
     }
 
     handleUpdateTitle() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelTitle = document.querySelector('#model-title').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'title': modelTitle}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'title': modelTitle}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model title.',
@@ -504,11 +496,11 @@ class ModelView extends Component {
     }
 
     handleUpdateReadMe() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelReadMe = document.querySelector('#model-readme').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'readme': modelReadMe}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'readme': modelReadMe}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model README.',
@@ -519,11 +511,11 @@ class ModelView extends Component {
     }
 
     handleUpdateDescription() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelDescription = document.querySelector('#model-description').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'description': modelDescription}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'description': modelDescription}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                     message: 'Successfully updated model description.',
@@ -556,7 +548,7 @@ class ModelView extends Component {
             return <ErrorNoneView/>
         }
 
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
         const model = this.state.model;
 
         var statusButton = null;
@@ -988,7 +980,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelId}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
                                         </div>
                                     </div>
                                 </div>
@@ -1011,7 +1003,7 @@ class ModelView extends Component {
                                             
                                         </div>*/}
                                         <ReactDisqusThread
-                                            id={`$[userId}/${modelId}:${tag}`}
+                                            id={`$[userId}/${modelName}:${tag}`}
                                             title="Example Thread"
                                             url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>

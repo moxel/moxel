@@ -4,11 +4,11 @@ import {Route} from "react-router-dom";
 import ModelView from "./model-view";
 
 export const ModelViews = [
-    <Route path="/models/:userId/:modelId/:tag" key="/models" component={ModelView}/>,
-    <Route exact path="/models/:userId/:modelId" component={({match, ..._props}) => {
-    	const {userId, modelId} = match.params;
+    <Route path="/models/:userId/:modelName/:tag" key="/models" component={ModelView}/>,
+    <Route exact path="/models/:userId/:modelName" component={({match, ..._props}) => {
+    	const {userId, modelName} = match.params;
 		return (
-	    	<Redirect to={`/models/${userId}/${modelId}/latest`}/>
+	    	<Redirect to={`/models/${userId}/${modelName}/latest`}/>
 		)
 	}}/>
 ];
