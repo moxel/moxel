@@ -13,6 +13,7 @@ import Mask from "../home-view/mask";
 import AuthStore from "../../stores/AuthStore";
 import {Link} from "react-router-dom";
 
+
 const StyledPageHeader = styled(FlexItem)`
     position: relative;
     top: 0;
@@ -97,9 +98,12 @@ class PageHeader extends Component {
         if(!AuthStore.isAuthenticated()) {
             menu = (
                 <ul className="right hide-on-med-and-down">
-
-                    <li><a onClick={()=>{AuthStore.login('/');}}>Login</a></li>
-
+                    <li>
+                        <Button waves="light" className="green" onClick={()=>{AuthStore.signup(window.location.pathname)}}>
+                            Sign Up
+                        </Button>
+                    </li>
+                    <li><a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a></li>
                 </ul>
             )
         }else{
@@ -111,11 +115,20 @@ class PageHeader extends Component {
                     <li><Link to="/new">Create</Link></li>
 
                     <ul id="dropdown1" className="dropdown-content">
-                        <li><Link to="/logout" className="black-text">Logout</Link></li>
+                        <li>
+                            <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                        </li>
+                        <li className="divider"></li>
+                        <li>
+                            <Link className="black-text" to="/logout">Logout</Link>
+                        </li>
                     </ul>
                     <li>
-                        <a className="dropdown-button" href="#!" data-activates="dropdown1">{AuthStore.username()}
-                            <i className="material-icons right">arrow_drop_down</i>
+                        <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
+                            <div>
+                                <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
+                                <i className="material-icons right">arrow_drop_down</i>
+                            </div>
                         </a>
                     </li>
 

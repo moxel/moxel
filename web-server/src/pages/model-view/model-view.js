@@ -203,8 +203,8 @@ class ModelView extends Component {
         this.state = {
             model: null,
             isRunning: false,
-            rating: 0, // user rating for this model.
-            editMode: false,
+            rating: 0,
+            editMode: false
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
@@ -249,16 +249,17 @@ class ModelView extends Component {
     }
 
     syncRating() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
+        var self = this;
 
-        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
+        var modelId = ModelStore.modelId(userId, modelName, tag); 
         var myId = AuthStore.username()
 
-        RatingStore.fetchRating(myId, modelUid).then(function(rating) {
-            this.setState({
+        RatingStore.fetchRating(myId, modelId).then(function(rating) {
+            self.setState({
                 rating: rating
             });
-        }.bind(this));
+        });
     }
 
     componentDidMount() {
