@@ -4,6 +4,6 @@ COPY package.json /app/package.json
 WORKDIR /app
 
 COPY build /app/build
-RUN npm install -g serve
+RUN npm install -g babel-cli
 
-CMD serve -s build -p 3000
+CMD PORT=3000 babel-node server/index.js

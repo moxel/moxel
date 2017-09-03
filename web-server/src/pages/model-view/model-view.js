@@ -269,28 +269,9 @@ class ModelView extends Component {
         })
         
         this.syncModel().then((model) => {
-            // Update meta tags.
-            function updateMeta(type, name, content) {
-                var oldElement = document.querySelector(`meta[${type}='${name}']`);
-                if(oldElement) {
-                    oldElement.remove()
-                }
-                var element = document.createElement('meta');
-                element.setAttribute(type, name);
-                element.setAttribute('content', content);    
-                document.querySelector('head').appendChild(element);
-                console.log('metadata updated', type, name, content, element);
-            }
-            
+            // Update document title.
             document.title = `${model.title} | Moxel`;
-            updateMeta('property', 'og:title', model.title + ' by ' + userId + ' | Moxel');
-            updateMeta('property', 'og:description', model.description);
-            updateMeta('property', 'og:type', 'article');
-            updateMeta('property', 'og:url', document.URL);
-            updateMeta('property', 'og:description', model.description);
-            updateMeta('name', 'description', model.description);
-            updateMeta('name', 'keywords', model.labels.join(','));
-            updateMeta('name', 'author', model.user);
+            // Meta tags are handled at server-side rendering.
         });
         this.syncRating();
 
