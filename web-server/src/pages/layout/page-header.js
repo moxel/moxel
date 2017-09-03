@@ -120,11 +120,6 @@ class PageHeader extends Component {
         }
         return (
             <div>
-                <Mask show={this.state.isOpen}></Mask>
-                <SignupModal show={this.state.isOpen}
-                  onClose={this.toggleModal} useAuth0="true">
-                </SignupModal>
-
                 <nav className="nav-extended" style={{boxShadow: "none"}}>
                     <div className="nav-background">
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
