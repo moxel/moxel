@@ -65,10 +65,12 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 	if assets, ok := config["assets"]; ok {
 		// Normalize the asset paths.
 		var assetPaths []string
-		for _, asset := range assets.([]interface{}) {
-			assetPath, _ := filepath.Abs(asset.(string))
-			assetPath, _ = filepath.Rel(repo.Path, assetPath)
-			assetPaths = append(assetPaths, assetPath)
+		if assets != nil {
+			for _, asset := range assets.([]interface{}) {
+				assetPath, _ := filepath.Abs(asset.(string))
+				assetPath, _ = filepath.Rel(repo.Path, assetPath)
+				assetPaths = append(assetPaths, assetPath)
+			}
 		}
 		// Push data to cloud.
 		if err := repo.PushData(assetPaths, GlobalUser.Username(), modelName, commit); err != nil {
