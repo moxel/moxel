@@ -816,7 +816,7 @@ class ModelView extends Component {
         );
 
         return (
-            <StyledModelLayout column className="catalogue-layout-container" style={{marginTop: "50px"}}>
+            <StyledModelLayout column className="catalogue-layout-container" style={{marginTop: "80px"}}>
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
                 {/*>Search For Your Favorite Model</FixedWidthRow>*/}
                 {/*<FixedWidthRow component={SearchBar}*/}

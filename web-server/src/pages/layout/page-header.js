@@ -14,25 +14,19 @@ import AuthStore from "../../stores/AuthStore";
 import {Link} from "react-router-dom";
 
 
-const StyledPageHeader = styled(FlexItem)`
-    position: relative;
-    top: 0;
-    bottom: 0;
-    background-color: rgb(51, 72, 101);
-    > .page-header-inner {
-        height: 100%;
-    }
-`;
-
-
 class PageHeader extends Component {    
     constructor(props) {
         super(props);
 
         this.state = {
             width: window.innerWidth,
+            scrollTop: window.scrollY
         };
+
         this.state = { isOpen: false };
+
+        this.handleWindowSizeChange = this.handleWindowSizeChange.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
       }
 
     toggleModal = () => {
@@ -44,15 +38,21 @@ class PageHeader extends Component {
     componentWillMount() {
         this.setState({ width: window.innerWidth });
         window.addEventListener('resize', this.handleWindowSizeChange);
+        window.addEventListener('scroll', this.handleScroll);
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleWindowSizeChange);
+        window.removeEventListener('scroll', this.handleScroll);
     }
 
     handleWindowSizeChange = () => {
         this.setState({ width: window.innerWidth });
-    };
+    }
+
+    handleScroll() {
+        this.setState({ scrollTop: window.scrollY });
+    }
 
     landing(e) {
         console.log('landing', e);
@@ -68,76 +68,105 @@ class PageHeader extends Component {
     }
 
 
+
+   
+
     render() {
-        const screenWidth = this.state.width;
+        var self = this;
+
+        const screenWidth = self.state.width;
         const isMobile = screenWidth <= 900;    
 
-        let banner = null;
-
-        if(this.props.showBanner) {
-            banner = (
-                <div className="nav-header center">
-                    <br/>
-                    <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
-                    <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
-                        Moxel is a platform to build and share machine intelligence.
+        function getBanner() {
+            if(self.props.showBanner) {
+                return (
+                    <div className="nav-header center">
+                        <br/>
+                        <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
+                        <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
+                            Moxel is a platform to build and share machine intelligence.
+                        </div>
+                        <div>
+                            <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <Button waves="light" className="green"><Link to="/models">Discover Model</Link></Button>
+                            &nbsp;
+                        </div> 
+                        
+                        <br/>
                     </div>
-                    <div>
-                        <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <Button waves="light" className="green"><Link to="/models">Discover Model</Link></Button>
-                        &nbsp;
-                    </div> 
-                    
-                    <br/>
-                </div>
-            )
+                )
+            }else{
+                return null;
+            }
         }
 
-        var menu = null;
-        if(!AuthStore.isAuthenticated()) {
-            menu = (
-                <ul className="right hide-on-med-and-down">
-                    <li>
-                        <Button waves="light" className="green" onClick={()=>{AuthStore.signup(window.location.pathname)}}>
-                            Sign Up
-                        </Button>
-                    </li>
-                    <li><a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a></li>
-                </ul>
-            )
-        }else{
-            /*<ul className="right  hide-on-med-and-down">*/
-            menu = (
-                <ul className="right">
-                    <li><Link to="/models">Models</Link></li>
-
-                    <li><Link to="/new">Create</Link></li>
-
-                    <ul id="dropdown1" className="dropdown-content">
+        function getMenu() {
+            if(!AuthStore.isAuthenticated()) {
+                return (
+                    <ul className="right hide-on-med-and-down">
                         <li>
-                            <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                            <Button waves="light" className="green" onClick={()=>{AuthStore.signup(window.location.pathname)}}>
+                                Sign Up
+                            </Button>
                         </li>
-                        <li className="divider"></li>
-                        <li>
-                            <Link className="black-text" to="/logout">Logout</Link>
-                        </li>
+                        <li><a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a></li>
                     </ul>
-                    <li>
-                        <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
-                            <div>
-                                <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
-                                <i className="material-icons right">arrow_drop_down</i>
-                            </div>
-                        </a>
-                    </li>
+                )
+            }else{
+                /*<ul className="right  hide-on-med-and-down">*/
+                return (
+                    <ul className="right">
+                        <li><Link to="/models">Models</Link></li>
 
+                        <li><Link to="/new">Create</Link></li>
 
-                </ul>
-            )
+                        <ul id="dropdown1" className="dropdown-content">
+                            <li>
+                                <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                            </li>
+                            <li className="divider"></li>
+                            <li>
+                                <Link className="black-text" to="/logout">Logout</Link>
+                            </li>
+                        </ul>
+                        <li>
+                            <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
+                                <div>
+                                    <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
+                                    <i className="material-icons right">arrow_drop_down</i>
+                                </div>
+                            </a>
+                        </li>
+
+                    </ul>
+                )
+            }
         }
+
+        function getNavbarStyle() {
+            if(self.props.showBanner) {
+                return {}
+            }else{
+                var style = {
+                    position: "fixed",
+                    top: "0px",
+                    width: "100%",
+                    zIndex: 99999,
+                };
+
+                if(self.state.scrollTop > 0) {
+                    style['boxShadow'] = '0 0 10px #333';
+                };
+
+                console.log('self.state.scrollTop', self.state.scrollTop, style);
+
+                return style;
+            }
+        }
+
         return (
-            <div>
+            <div style={getNavbarStyle()}>
                 <nav className="nav-extended" style={{boxShadow: "none"}}>
                     <div className="nav-background">
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
@@ -151,15 +180,13 @@ class PageHeader extends Component {
                         </ul>
                         <a href="#" dataActivates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i>
                         </a>*/}
-                        {menu}
-                        {banner}
+                        {getMenu()}
+                        {getBanner()}
                     </div>
                 </nav>
 
                
             </div>
-
-           
         )
     }
 }
