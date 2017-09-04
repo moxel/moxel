@@ -530,9 +530,15 @@ class ModelView extends Component {
     }
 
     componentDidUpdate() {
-        if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
-            window.addthis.layers.refresh();
+        function updateAddThisUntilSuccessful() {
+            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
+                window.addthis.layers.refresh();
+            }else{
+                setTimeout(updateAddThisUntilSuccessful, 500);
+            }
         }
+
+        setTimeout(updateAddThisUntilSuccessful, 0);
     }
 
     render() {
