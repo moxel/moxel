@@ -10,6 +10,7 @@ app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('combined'));
+app.use('/$', HTMLLoader);
 app.use(express.static('build'))
 app.use('/', HTMLLoader);
 

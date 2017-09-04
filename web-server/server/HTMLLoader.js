@@ -4,6 +4,7 @@ import fetch from 'isomorphic-fetch'
 
 // todo: add index.html loading
 export default function HTMLLoader(req, res, next) {
+    console.log('HTMLLoader', req.url)
     var HTML = fs.readFileSync(__dirname + '/../build/index.html').toString();
     const location = req.url.toString();
     var chunks = location.split('/');
@@ -17,11 +18,11 @@ export default function HTMLLoader(req, res, next) {
     }
 
     // Render meta tags on model page.
-    console.log(chunks)
+    console.log('chunks', chunks)
     if(chunks.length >= 5 && chunks[1] == 'models') {
-        var userId = 'strin';
-        var modelId = 'bi-att-flow';
-        var tag = 'latest';
+        var userId = chunks[2];
+        var modelId = chunks[3];
+        var tag = chunks[4];
         console.log(`${req.protocol}://${host}/api/users/${userId}/models/${modelId}/${tag}`)
         fetch(`${req.protocol}://${host}/api/users/${userId}/models/${modelId}/${tag}`).then((response)=>{
             return response.json();
@@ -40,7 +41,8 @@ export default function HTMLLoader(req, res, next) {
 
             HTML = HTML
                 .replace("__META:AUTHOR__", "Moxel Inc.")
-                .replace("__META:DESCRIPTION__", "World's Best Models, Built by Community")
+                .replace("__META:TITLE__", modelData.metadata.title)
+                .replace("__META:DESCRIPTION__", modelData.metadata.description)
                 .replace('__META:KEYWORDS__', labels.join(','));
             
 
@@ -49,12 +51,16 @@ export default function HTMLLoader(req, res, next) {
             console.error(e);
         });
 
-    }else{
-        res.status(200).send(
-            HTML
+    }else if(chunks.length < 1 || chunks[1] != "fonts"){
+        HTML = HTML
             .replace("__META:DESCRIPTION__", "World's Best Models, Built by Community")
             .replace("__META:KEYWORDS__", "Machine Learning,Model,Community,Artificial Intelligence, Deep Learning")
             .replace("__META:AUTHOR__", "Moxel Inc.")
-        );
+            .replace("__META:TITLE__", "Moxel");
+        
+        console.log(HTML);
+        res.status(200).send(HTML);
+    }else{
+        res.status(404).send();
     }
 }

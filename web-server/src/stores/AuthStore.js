@@ -3,7 +3,7 @@ import Auth0Lock from 'auth0-lock'
 
 var lockOptions = {
   theme: {
-      logo: 'images/x.png',
+      logo: '/images/x.png',
       primaryColor: '#2196FA',
   },
   languageDictionary: {

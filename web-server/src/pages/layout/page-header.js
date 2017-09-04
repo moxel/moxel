@@ -159,8 +159,6 @@ class PageHeader extends Component {
                     style['boxShadow'] = '0 0 10px #333';
                 };
 
-                console.log('self.state.scrollTop', self.state.scrollTop, style);
-
                 return style;
             }
         }
