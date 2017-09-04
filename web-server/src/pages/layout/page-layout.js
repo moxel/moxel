@@ -5,16 +5,25 @@ import PageFooter from "./page-footer";
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 
-const PageBody = styled(Flex)`{
+const Page = styled(Flex)`{
     min-height: 600px;
     min-width: 860px;
+    padding-top: 0;
+    padding-bottom: 0;
+    ${PageBody} {
+        flex: 1 0 auto;
+    }
+}`;
+
+const PageBody = styled(Flex)`{
     padding-top: 50px;
-    padding-bottom: 50px;
     background-color: rgb(246, 249, 255);
     ${PageBody} {
         flex: 1 0 auto;
     }
 }`;
+
+
 class PageLayout extends Component {
     render() {
         var isLoggedIn = AuthStore.isAuthenticated();
@@ -26,11 +35,11 @@ class PageLayout extends Component {
         }
 
         return (
-            <PageBody column>
+            <Page column>
                 <PageHeader showBanner={showBanner}/>
                 <PageBody className="page-body">{this.props.children}</PageBody>
                 <PageFooter/>
-            </PageBody>
+            </Page>
         );
     }
 }

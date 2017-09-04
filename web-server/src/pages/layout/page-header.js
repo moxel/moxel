@@ -146,7 +146,12 @@ class PageHeader extends Component {
 
         function getNavbarStyle() {
             if(self.props.showBanner) {
-                return {}
+                return {
+                    position: "absolute",
+                    width: "100%",
+                    top: "0px",
+                    zIndex: 99999,
+                }
             }else{
                 var style = {
                     position: "fixed",

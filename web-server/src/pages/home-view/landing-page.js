@@ -97,29 +97,27 @@ class LandingPage extends Component {
 
 
     return (  
-      <div>
-        <div>
-            {
-              isMobile 
-                ?
-                (<div>
-                  <div className="row" style={{paddingTop: "100px", paddingBottom: "0px", marginBottom: "0px"}}>
-                    {deployText}
-                  </div>
-                  <div className="row" style={{paddingTop: "50px", paddingBottom: "0px", marginBottom: "50px"}}>
-                    {deployVideo}
-                  </div>
+      <div style={{marginTop: "700px"}}>
+          {
+            isMobile 
+              ?
+              (<div>
+                <div className="row" style={{paddingTop: "100px", paddingBottom: "0px", marginBottom: "0px"}}>
+                  {deployText}
                 </div>
-                )
-                : 
-                (
-                  <div className="row" style={{paddingTop: "100px", paddingBottom: "0px", marginBottom: "100px"}}>
-                    {deployText}
-                    {deployVideo}
-                  </div>
-                )
-            }
-        </div>
+                <div className="row" style={{paddingTop: "50px", paddingBottom: "0px", marginBottom: "50px"}}>
+                  {deployVideo}
+                </div>
+              </div>
+              )
+              : 
+              (
+                <div className="row" style={{paddingTop: "100px", paddingBottom: "0px", marginBottom: "100px", height: "700px"}}>
+                  {deployText}
+                  {deployVideo}
+                </div>
+              )
+          }
 
         <div className="row" style={{height: "700px", backgroundColor: "#f6f9fc", marginBottom: "0px"}}>
           <div className={isMobile ? "col s12" : "col s8 offset-s2 m10 offset-m1"} >
