@@ -47,7 +47,7 @@ class CreateView extends Component {
         var username = AuthStore.username();
 
         return (
-            <div className="row">
+            <div className="row" style={{marginTop: "80px"}}>
                 <div className="col s12  m8 offset-m2">
                     <form className="card" onSubmit={(event) => {event.preventDefault(); this.gotoUpload();}}>
                         <div className="row">
