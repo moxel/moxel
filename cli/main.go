@@ -281,10 +281,15 @@ func main() {
 				}
 
 				// Print the list of models.
-				fmt.Printf(format, "Name", "Tag", "Status")
-				fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
-				for _, result := range results {
-					fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+				fmt.Println()
+				if len(results) > 0 {
+					fmt.Printf(format, "Name", "Tag", "Status")
+					fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
+					for _, result := range results {
+						fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+					}
+				} else {
+					fmt.Println("You haven't uploaded any models yet :)")
 				}
 				return nil
 			},
