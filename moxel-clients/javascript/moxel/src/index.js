@@ -10,8 +10,10 @@ if(typeof(window) != 'undefined' && !window.Buffer) {
 
 const Jimp = require('jimp');
 const async = require('async');
+var md5 = require('md5');
 
 var pjson = require('../package.json');
+
 const VERSION = 'js-' + pjson.version;
 console.log('Moxel client version', VERSION);
 
@@ -163,7 +165,7 @@ var Moxel = function(config) {
 		}
 	}
 
-	masterAPI = new MasterAPI();
+	var masterAPI = new MasterAPI();
 
 	class Image {
 		// img is Jimp image.
@@ -347,8 +349,13 @@ var Moxel = function(config) {
 
 			return new Promise((resolve, reject) => {
 				// Example id.
-				var exampleId = Utils.uuidv4();
-				var timeStart = new Date().getTime();;
+				var timeStart = new Date().getTime();
+				var exampleBody = JSON.stringify({
+					'input': inputBlob,
+					'output': outputBlob
+				});
+
+				var exampleId = md5(`${self.user}/${self.name}:${self.tag}--` + exampleBody);
 
 				// fetch data URL from API.
 				console.log("About to store input and output");
@@ -358,10 +365,7 @@ var Moxel = function(config) {
 					console.log("Generated asset url " + url);
 					return fetch(url, {
 						method: 'PUT',
-						body: JSON.stringify({
-							'input': inputBlob,
-							'output': outputBlob
-						}),
+						body: exampleBody,
 						headers: {
 							'Content-Type': 'application/octet-stream'
 						}

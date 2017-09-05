@@ -60,6 +60,6 @@ function testLoadExample() {
 		console.log('Error', err);
 	});
 }
-// testColorization();
+testColorization();
 // testImage();
-testLoadExample();
+// testLoadExample();
