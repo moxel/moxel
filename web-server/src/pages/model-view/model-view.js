@@ -359,7 +359,6 @@ class ModelView extends Component {
             self.setState({
                 isRunning: true
             })
-
             // Make sure the model and all inputs are loaded.
             if(!self.moxelModel) {
                 return;
@@ -730,7 +729,7 @@ class ModelView extends Component {
         }
         this.outputWidgets = outputWidgets;
 
-        function DemoComponent(props) {
+        function renderDemoComponent() {
             return (
                 <FixedWidthRow>
                     <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -904,6 +903,63 @@ class ModelView extends Component {
             )
         }
 
+        function renderModelStatus() {
+            if(LayoutUtils.isMobile()) {
+                var style = {
+                    height: "80px"
+                };    
+            }else{
+                var style = {
+                    height: "50px"
+                };    
+            }
+            
+
+            return (
+                <div style={style}>
+                    <span style={{float: "left"}}>
+                        {statusButton}
+                        &nbsp;
+                        <Dropdown trigger={
+                            <a className='dropdown-button btn-flat white black-text model-status-btn'>
+                                <i className="material-icons left">loyalty</i>
+                                {model.tag}
+                            </a>
+                        }>
+                            {/*<NavItem><a href="#!">one</a></NavItem>
+                            <NavItem><a href="#!">two</a></NavItem>*/}
+                        </Dropdown>
+                    </span>
+                </div>
+            );
+        }
+
+        function renderModelDescription() {
+            if(LayoutUtils.isMobile()) {
+                var descriptionStyle = {
+                    marginTop: "20px"
+                };
+            }else{
+                var descriptionStyle = {};
+            }
+            return (
+                <div style={descriptionStyle}>
+                    {
+                        self.state.editMode
+                        ?
+                        (
+                            <textarea id="model-description" defaultValue={model.description} className="editable-input" 
+                                style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
+                        )
+                        :
+                        (
+                            <p>{model.description}</p>
+                        )
+                    }
+                </div>
+            );
+        }
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -953,36 +1009,9 @@ class ModelView extends Component {
 
                                     </div>
 
-                                    
-                                    <div style={{height: "80px"}}>
-                                        <span style={{float: "left"}}>
-                                            {statusButton}
-                                            &nbsp;
-                                            <Dropdown trigger={
-                                                <a className='dropdown-button btn-flat white black-text model-status-btn'>
-                                                    <i className="material-icons left">loyalty</i>
-                                                    {model.tag}
-                                                </a>
-                                            }>
-                                                {/*<NavItem><a href="#!">one</a></NavItem>
-                                                <NavItem><a href="#!">two</a></NavItem>*/}
-                                            </Dropdown>
-                                        </span>
-                                    </div>
+                                    {renderModelStatus()}
 
-                                    <div style={{marginTop: "20px"}}>
-                                        {
-                                            this.state.editMode
-                                            ?
-                                            (
-                                                <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
-                                            )
-                                            :
-                                            (
-                                                <p>{model.description}</p>
-                                            )
-                                        }
-                                    </div>
+                                    {renderModelDescription()}
 
                                       <br/>
 
@@ -1039,7 +1068,7 @@ class ModelView extends Component {
                     {
                         model.status == 'LIVE' 
                         ?
-                        <DemoComponent/>
+                        renderDemoComponent()
                         :
                         (<FixedWidthRow>
                             <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -1057,7 +1086,6 @@ class ModelView extends Component {
                         )
                     }
                 
-
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
