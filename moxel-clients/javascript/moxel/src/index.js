@@ -101,17 +101,18 @@ var Moxel = function(config) {
 		}
 
 		// Get data URL for cloud storage.
-		getAssetURL(user, name, tag, path) {
+		getAssetURL(user, name, tag, path, verb) {
 			if(!path.startsWith('/'))  {
 				throw 'path must start with /';
 			}
+			if(!verb) verb = 'GET';
 			return new Promise((resolve, reject) => {
 				var params = {
 					user: user,
 					name: name,
 					cloud: 'gcloud',
 					path: `${tag}${path}`,
-					verb: 'PUT'
+					verb: verb
 				}
 				fetch(
 					API_ENDPOINT + `/url/data?${Utils.encodeQueryParams(params)}`, 
@@ -146,6 +147,7 @@ var Moxel = function(config) {
 			this.toBytes = this.toBytes.bind(this);
 			this.toBase64 = this.toBase64.bind(this);
 			this.toDataURL = this.toDataURL.bind(this);
+			this.toJimp = this.toJimp.bind(this);
 		}
 
 		// get shape of the image.
@@ -227,6 +229,18 @@ var Moxel = function(config) {
 				})
 			})
 		}
+
+		// Return Jimp representation.
+		toJimp() {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				if(!self.img) {
+					reject('No image available.')
+				}
+				resolve(self.img);
+			})
+		}
 	}
 
 	class MoxelString {
@@ -294,9 +308,11 @@ var Moxel = function(config) {
 			this._store = this._store.bind(this);
 			this.encode = this.encode.bind(this);
 			this.decode = this.decode.bind(this);
+			this.loadExample = this.loadExample.bind(this);
 		}
 
-		// Save example to cloud, as 
+		// TODO: if user has access to this code, they can store anything on our cloud.
+		// Save examples to cloud, as 
 		// {'input': inputBlob, 'output': outputBlob}
 		// return exmapleId.
 		_store(inputBlob, outputBlob) {
@@ -309,7 +325,7 @@ var Moxel = function(config) {
 				// fetch data URL from API.
 				console.log("About to store input and output");
 
-				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`)
+				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`, 'PUT')
 				.then((url) => {
 					console.log("Generated asset url " + url);
 					return fetch(url, {
@@ -340,6 +356,12 @@ var Moxel = function(config) {
 		// - data: is a object mapping of varName to objects of Moxel Type.
 		// - space: is the corresponding mapping of varName to varSpace.
 		encode(data, dataSpace) {
+			if(!data) {
+				throw 'Must have data to encode';
+			}
+			if(!dataSpace) {
+				throw 'Must have data space to decode';
+			}
 			return new Promise((resolve, reject) => {
 				var blob = {};
 				async.forEachOf(dataSpace,
@@ -379,6 +401,12 @@ var Moxel = function(config) {
 
 		// Decode output from blobs.
 		decode(blob, dataSpace) {
+			if(!blob) {
+				throw 'Must have blob to decode';
+			}
+			if(!dataSpace) {
+				throw 'Must have data space to decode';
+			}
 			return new Promise((resolve, reject) => {
 				var outputObject = {};
 				async.forEachOf(dataSpace,
@@ -412,11 +440,48 @@ var Moxel = function(config) {
 			});
 		}
 
+		loadExample(exampleId) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`, 'GET')
+				.then((url) => {
+					return fetch(url, {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/octet-stream'
+						}
+					})
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					var inputObject = {};
+					var outputObject = {};
+					self.decode(result.input, self.inputSpace)
+					.then((object) => {
+						inputObject = object;
+						return self.decode(result.output, self.outputSpace);
+					})
+					.then((object) => {
+						outputObject = object;
+						resolve({
+							'input': inputObject,
+							'output': outputObject
+						});
+					});
+				})
+				.catch((err) => {
+					reject(err);
+				});	
+			});
+		}
+
 		// Main prediction function.
 		predict(kwargs) {
 			var self = this;
 			
-
 			// First encodes inputObject (kwargs) into inputBlob.
 			// Sends the inputBlob to API endpoint.
 			// Get back an outputBlob.
@@ -446,7 +511,7 @@ var Moxel = function(config) {
 					console.log('Moxel output blob', outputBlob);
 					var outputObject = {};
 
-					self._store(inputBlob, outputBlob);
+					self._store(inputBlob, outputBlob).then((exampleId) => {console.log('exampleId', exampleId);});
 
 					return self.decode(outputBlob, self.outputSpace);
 				}).then((outputObject) => {
