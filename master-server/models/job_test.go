@@ -13,10 +13,13 @@ const repo string = "tts"
 const commit string = "0x12345"
 
 func TestAddJob(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 	job := Job{Uid: "", UserId: user, Name: name, Repo: repo,
 		Commit: commit, Yaml: "test-yaml", Status: "Running"}
-	err := AddJob(db, job)
+	err = AddJob(db, job)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -30,7 +33,10 @@ func TestJobId(t *testing.T) {
 }
 
 func TestListJobByUser(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 
 	jobs, err := ListJobByUser(db, user)
 	if err != nil {
@@ -41,7 +47,11 @@ func TestListJobByUser(t *testing.T) {
 }
 
 func TestGetJobById(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	uid := JobId(user, repo, commit)
 	job, err := GetJobById(db, uid)
 	if err != nil {
@@ -57,9 +67,13 @@ func TestGetJobById(t *testing.T) {
 }
 
 func TestDeleteJob(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	uid := JobId(user, repo, commit)
-	err := DeleteJob(db, uid)
+	err = DeleteJob(db, uid)
 	if err != nil {
 		t.Errorf("Delete job failed: " + err.Error())
 	}

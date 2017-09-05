@@ -43,7 +43,7 @@ sudo mount -t nfs -o intr,tcp,port=2049,nfsvers=4 -v zfs-east-vm:/data /mnt/nfs
 ### Migrate DB Schema
 
 ```
-make build && make migrate
+make build && make migrate ENV=dev/prod
 ```
 
 ### Testing

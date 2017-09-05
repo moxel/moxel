@@ -8,26 +8,38 @@ import (
 var _ = fmt.Println
 
 func TestAddModel(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	model := Model{UserId: "dummy", Name: "tf-object-detection", Tag: "test",
 		Repo: "tf-object-detection", Commit: "test-commit", Yaml: "test-yaml", Status: "LIVE"}
-	err := AddModel(db, model)
+	err = AddModel(db, model)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 }
 
 func TestDeleteModel(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	modelId := "dummy/tf-object-detection:test"
-	err := DeleteModel(db, modelId)
+	err = DeleteModel(db, modelId)
 	if err != nil {
 		t.Errorf("Delete model failed: " + err.Error())
 	}
 }
 
 func TestGetModelById(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	modelId := "dummy/tf-object-detection:test"
 	model, err := GetModelById(db, modelId)
 	if err != nil {
@@ -56,7 +68,11 @@ func TestModelId(t *testing.T) {
 }
 
 func TestListModelByUser(t *testing.T) {
-	db := CreateDB()
+	db, err := CreateDefaultTestDB()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
 	const userId = "dummy"
 
 	models, err := ListModelByUser(db, userId)
