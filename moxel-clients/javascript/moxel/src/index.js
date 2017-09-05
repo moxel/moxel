@@ -25,6 +25,8 @@ var Moxel = function(config) {
 	}
 
 	var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
+	// // Use devbox endpoint for debugging only.
+	// var API_ENDPOINT = "http://master-dev.dummy.ai:8080"
 	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';	
 
 	class Utils {
@@ -132,6 +134,31 @@ var Moxel = function(config) {
 				.catch((err) => {
 					reject(err);
 				});
+			});
+		}
+
+		putExample(user, name, tag, exampleId, clientLatency) {
+			var clientVersion = VERSION;
+			return new Promise((resolve, reject) => {
+				var params = {
+					clientLatency: clientLatency,
+					clientVersion: clientVersion
+				};
+
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/examples/${exampleId}`, 
+				{
+					method: 'PUT',
+					headers: new Headers({
+						'Content-Type': 'application/json'
+					}),
+					body: JSON.stringify(params),
+				})
+				.then((response) => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
 			});
 		}
 	}
@@ -321,6 +348,7 @@ var Moxel = function(config) {
 			return new Promise((resolve, reject) => {
 				// Example id.
 				var exampleId = Utils.uuidv4();
+				var timeStart = new Date().getTime();;
 
 				// fetch data URL from API.
 				console.log("About to store input and output");
@@ -343,6 +371,10 @@ var Moxel = function(config) {
 					return response.text();
 				})
 				.then((text) => {
+					var clientLatency = new Date().getTime() - timeStart;
+					return masterAPI.putExample(self.user, self.name, self.tag, exampleId, clientLatency);
+				})
+				.then(() => {
 					resolve(exampleId);
 				})
 				.catch((err) => {

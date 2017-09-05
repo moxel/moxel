@@ -2,7 +2,7 @@
   "name": "moxel",
   "version": "0.0.1",
   "description": "Javascript client for Moxel",
-  "main": "src/index.js",
+  "main": "build/index.js",
   "scripts": {
     "test": "node test.js",
     "build": "./node_modules/.bin/babel  --presets es2015,stage-0 -d lib src; cp lib/node_modules/pngjs/lib/* node_modules/pngjs/lib/"

@@ -52,7 +52,7 @@ function testColorization() {
 
 function testLoadExample() {
 	moxel.createModel('strin/colorization:latest').then((model) => {
-		model.loadExample('e3104271-4434-48a5-9842-b0e83ab84d09').then((result) => {
+		model.loadExample('fe9d0915-67c7-4a49-9257-450364fcc64d').then((result) => {
 			result.input.img_in.toJimp().then((img) => img.write('examples/colorization-loaded-input.jpg'));
 			result.output.img_out.toJimp().then((img) => img.write('examples/colorization-loaded-output.jpg'));
 		})

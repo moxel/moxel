@@ -1,2 +1,5 @@
 node_modules
 /lib
+
+/examples/colorization-loaded-input.jpg
+/examples/colorization-loaded-output.jpg
