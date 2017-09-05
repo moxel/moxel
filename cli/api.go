@@ -167,9 +167,11 @@ func (api *MasterAPI) ListModels(user string) ([]map[string]interface{}, error) 
 			return nil, err
 		}
 
-		interfaces := data.([]interface{})
-		for _, item := range interfaces {
-			results = append(results, item.(map[string]interface{}))
+		if data != nil {
+			interfaces := data.([]interface{})
+			for _, item := range interfaces {
+				results = append(results, item.(map[string]interface{}))
+			}
 		}
 	}
 	return results, nil

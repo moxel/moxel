@@ -20,31 +20,37 @@ var DISQUS_SECRET = "QkO4HIOnea1QufMI8VeLlggeuVIG2ynnKp6gmZ4WjTN6V59F045Jsz9aPCl
 var DISQUS_PUBLIC = "w9QGLsNA2FbfVMFvQ9LYlnuU3KFLpFz7pPr452jWPWlxgGHaujTjXmg3Sw20ySIC";
 
 function disqusSignonMessage(user) {
-    var disqusData = {
-      id: AuthStore.username(),
-      username: AuthStore.username(),
-      email: AuthStore.email()
-    };
+  var username = "guest";
+  var email = "guest@moxel.ai";
+  if(AuthStore.isAuthenticated()) {
+    username = AuthStore.username();
+    email = AuthStore.email();
+  }
+  var disqusData  = {
+    id: username,
+    username: username,
+    email: email
+  };
 
-    var disqusStr = JSON.stringify(disqusData);
-    var timestamp = Math.round(+new Date() / 1000);
+  var disqusStr = JSON.stringify(disqusData);
+  var timestamp = Math.round(+new Date() / 1000);
 
-    /*
-     * Note that `Buffer` is part of node.js
-     * For pure Javascript or client-side methods of
-     * converting to base64, refer to this link:
-     * http://stackoverflow.com/questions/246801/how-can-you-encode-a-string-to-base64-in-javascript
-     */
-    var message = new Buffer(disqusStr).toString('base64');
+  /*
+   * Note that `Buffer` is part of node.js
+   * For pure Javascript or client-side methods of
+   * converting to base64, refer to this link:
+   * http://stackoverflow.com/questions/246801/how-can-you-encode-a-string-to-base64-in-javascript
+   */
+  var message = new Buffer(disqusStr).toString('base64');
 
-    /* 
-     * CryptoJS is required for hashing (included in dir)
-     * https://code.google.com/p/crypto-js/
-     */
-    var result = CryptoJS.HmacSHA1(message + " " + timestamp, DISQUS_SECRET);
-    var hexsig = CryptoJS.enc.Hex.stringify(result);
+  /* 
+   * CryptoJS is required for hashing (included in dir)
+   * https://code.google.com/p/crypto-js/
+   */
+  var result = CryptoJS.HmacSHA1(message + " " + timestamp, DISQUS_SECRET);
+  var hexsig = CryptoJS.enc.Hex.stringify(result);
 
-    return message + " " + hexsig + " " + timestamp
+  return message + " " + hexsig + " " + timestamp
 }
 
 class DisqusThread extends React.Component{

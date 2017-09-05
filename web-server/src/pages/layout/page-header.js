@@ -7,20 +7,12 @@ import FixedWidthRow from "../../components/fixed-width-row";
 import styled from 'styled-components';
 import {Route} from "react-router-dom";
 import {store} from "../../mock-data";  
-import { Button, Card, Row, Col } from 'react-materialize';
+import { SideNav, SideNavItem, Button, Card, Row, Col } from 'react-materialize';
 import SignupModal from "../home-view/signup-modal";
 import Mask from "../home-view/mask";
 import AuthStore from "../../stores/AuthStore";
-
-const StyledPageHeader = styled(FlexItem)`
-    position: relative;
-    top: 0;
-    bottom: 0;
-    background-color: rgb(51, 72, 101);
-    > .page-header-inner {
-        height: 100%;
-    }
-`;
+import LayoutUtils from "../../libs/LayoutUtils";
+import {Link} from "react-router-dom";
 
 
 class PageHeader extends Component {    
@@ -29,8 +21,13 @@ class PageHeader extends Component {
 
         this.state = {
             width: window.innerWidth,
+            scrollTop: window.scrollY
         };
+
         this.state = { isOpen: false };
+
+        this.handleWindowSizeChange = this.handleWindowSizeChange.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
       }
 
     toggleModal = () => {
@@ -42,15 +39,21 @@ class PageHeader extends Component {
     componentWillMount() {
         this.setState({ width: window.innerWidth });
         window.addEventListener('resize', this.handleWindowSizeChange);
+        window.addEventListener('scroll', this.handleScroll);
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleWindowSizeChange);
+        window.removeEventListener('scroll', this.handleScroll);
     }
 
     handleWindowSizeChange = () => {
         this.setState({ width: window.innerWidth });
-    };
+    }
+
+    handleScroll() {
+        this.setState({ scrollTop: window.scrollY });
+    }
 
     landing(e) {
         console.log('landing', e);
@@ -66,87 +69,136 @@ class PageHeader extends Component {
     }
 
 
+
+   
+
     render() {
-        const screenWidth = this.state.width;
+        var self = this;
+
+        const screenWidth = self.state.width;
         const isMobile = screenWidth <= 900;    
 
-        let banner = null;
-
-        if(this.props.showBanner) {
-            banner = (
-                <div className="nav-header center">
-                    <br/>
-                    <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
-                    <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
-                        Moxel is a platform to build and share machine intelligence.
+        function getBanner() {
+            if(self.props.showBanner) {
+                return (
+                    <div className="nav-header center">
+                        <br/>
+                        <h1 style={{fontSize: (isMobile ? "30px" : "65px"), fontWeight: 400, lineHeight: 1.3}}>World's Best Models <br/> Built by the Community</h1>
+                        <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "12px" : "20px")}}>
+                            A platform to build and share machine intelligence.
+                        </div>
+                        <div>
+                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
+                            <Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} ><Link to="/models">Discover Model</Link></Button>
+                        </div> 
+                        
+                        <br/>
                     </div>
-                    <div>
-                        <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <Button waves="light" className="green" onClick={() => window.location.href = "/models"}>Discover Model</Button>
-                        &nbsp;
-                    </div> 
-                    
-                    <br/>
-                </div>
-            )
+                )
+            }else{
+                return null;
+            }
         }
 
-        var menu = null;
-        if(!AuthStore.isAuthenticated()) {
-            menu = (
-                <ul className="right hide-on-med-and-down">
-
-                    <li><a onClick={()=>{AuthStore.login('/');}}>Login</a></li>
-
-                </ul>
-            )
-        }else{
-            /*<ul className="right  hide-on-med-and-down">*/
-            menu = (
-                <ul className="right">
-                    <li><a href="/models">Models</a></li>
-
-                    <li><a href="/new">Create</a></li>
-
-                    <ul id="dropdown1" className="dropdown-content">
-                        <li><a href="/logout" className="black-text">Logout</a></li>
+        function getMenu() {
+            if(!AuthStore.isAuthenticated()) {
+                return (
+                    <ul className="right hide-on-med-and-down">
+                        <li>
+                            <Button waves="light" className="green" onClick={()=>{AuthStore.signup(window.location.pathname)}}>
+                                Sign Up
+                            </Button>
+                        </li>
+                        <li><a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a></li>
                     </ul>
-                    <li><a className="dropdown-button" href="#!" data-activates="dropdown1">{AuthStore.username()}<i className="material-icons right">arrow_drop_down</i></a></li>
+                )
+            }else{
+                if(LayoutUtils.isMobile()) {
+                    return  <SideNav trigger={<i className="material-icons">menu</i>} options={{ closeOnClick: true }}>
+                                <SideNavItem waves icon="home"><Link to="/">Home</Link></SideNavItem>
+                                <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
+                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
+                                <SideNavItem divider />
+                                <SideNavItem waves style={{position: "relative"}}>
+                                    <ProfileImage size={32} url={AuthStore.picture()} style={{marginTop: "8px"}}/>
+                                    <a style={{fontSize: "12px", color: "#666", display: "inline-block", position: "absolute"}}>Signed in as <b>{AuthStore.username()}</b></a> 
+                                </SideNavItem>
+                                <SideNavItem waves icon="exit_to_app">
+                                    <Link className="black-text" to="/logout">Logout</Link>
+                                </SideNavItem>
 
+                            </SideNav>
+                }else{
+                    /*<ul className="right  hide-on-med-and-down">*/
+                    return (
+                        <ul className="right">
+                            <li><Link to="/models">Models</Link></li>
 
-                </ul>
-            )
+                            <li><Link to="/new">Create</Link></li>
+
+                            <ul id="dropdown1" className="dropdown-content">
+                                <li>
+                                    <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                                </li>
+                                <li className="divider"></li>
+                                <li>
+                                    <Link className="black-text" to="/logout">Logout</Link>
+                                </li>
+                            </ul>
+                            <li>
+                                <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
+                                    <div>
+                                        <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
+                                        <i className="material-icons right">arrow_drop_down</i>
+                                    </div>
+                                </a>
+                            </li>
+
+                        </ul>
+                    )
+                }
+            }
         }
-        return (
-            <div>
-                <Mask show={this.state.isOpen}></Mask>
-                <SignupModal show={this.state.isOpen}
-                  onClose={this.toggleModal} useAuth0="true">
-                </SignupModal>
 
+        function getNavbarStyle() {
+            if(self.props.showBanner) {
+                return {
+                    position: "absolute",
+                    width: "100%",
+                    top: "0px",
+                    zIndex: 99999,
+                }
+            }else{
+                var style = {
+                    position: "fixed",
+                    top: "0px",
+                    width: "100%",
+                    zIndex: 99999,
+                };
+
+                if(self.state.scrollTop > 0) {
+                    style['boxShadow'] = '0 0 10px #333';
+                };
+
+                return style;
+            }
+        }
+
+        return (
+            <div style={getNavbarStyle()}>
                 <nav className="nav-extended" style={{boxShadow: "none"}}>
                     <div className="nav-background">
                         <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
                     </div>
                     <div className="nav-wrapper container">
-                        <a href="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></a>
-                        {/*<ul id="nav-mobile" className="side-nav">
-                            <li><a href="/models">Models</a></li>
-                            <li><a href="/new">Create</a></li>
-                            <li><a href="/logout" className="black-text">Logout</a></li>
-                        </ul>
-                        <a href="#" dataActivates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i>
-                        </a>*/}
-                        {menu}
-                        {banner}
+                        <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
+                        {getMenu()}
+                        {getBanner()}
                     </div>
                 </nav>
 
                
             </div>
-
-           
         )
     }
 }

@@ -15,6 +15,7 @@ import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
 import AuthStore from "../../stores/AuthStore";
 import TypeUtils from "../../libs/TypeUtils"
+import LayoutUtils from "../../libs/LayoutUtils"
 import RatingStore from "../../stores/RatingStore";
 import Error404View from "../../pages/error-view/404";
 import ErrorNoneView from "../../pages/error-view/none";
@@ -50,6 +51,14 @@ if(window.location.host == "localhost:3000") {
 
 
 const StyledModelLayout = styled(Flex)`
+    .blur {
+        filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');
+        -webkit-filter: url(#blur-filter);
+        filter: url(#blur-filter);
+        -webkit-filter: blur(3px);
+        filter: blur(3px);
+    }
+
     .model-snippet {
         width: 100%;
     }
@@ -167,13 +176,17 @@ const StyledModelLayout = styled(Flex)`
     }
 
     .editable-input {
-        border: none;
         padding-left: 5px;
+        border-bottom: dashed;
+        border-color: #fff;
+        border-width: 1px;
     }
 
     .editable-input:hover {
         background-color: rgba(255, 255, 255, 0.14);
-        border: none;
+        border-bottom: solid;
+        border-color: #fff;
+        border-width: 1px;
     }
 
     .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview {
@@ -194,17 +207,32 @@ const StyledModelLayout = styled(Flex)`
     textarea:focus {
         outline: none;
     }
+
+    .notifications-wrapper {
+        z-index: 99999999;
+    }
+
+    .notification.notification-success.notification-visible {
+        position: absolute;
+        top: 30px;   
+    }
 `;
 
 class ModelView extends Component {
     constructor() {
         super()
 
+        var username = null;
+        if(AuthStore.isAuthenticated()) {
+            username = AuthStore.username();
+        }
+
         this.state = {
             model: null,
             isRunning: false,
-            rating: 0, // user rating for this model.
+            rating: 0,
             editMode: false,
+            username: username
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
@@ -221,9 +249,9 @@ class ModelView extends Component {
         var self = this;
 
         return new Promise(function(resolve, reject) {
-            const {userId, modelId, tag} = self.props.match.params;
+            const {userId, modelName, tag} = self.props.match.params;
 
-            ModelStore.fetchModel(userId, modelId, tag).then(function(model) {
+            ModelStore.fetchModel(userId, modelName, tag).then(function(model) {
                 console.log('[Fetch Model]', model);
                 if(model.status == 'NONE') {
                     // This model does not exist.
@@ -249,62 +277,46 @@ class ModelView extends Component {
     }
 
     syncRating() {
-        const {userId, modelId, tag} = this.props.match.params;
+        var self = this;
+        if(!self.state.username) {
+            return;
+        }
 
-        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
-        var myId = AuthStore.username()
+        const {userId, modelName, tag} = this.props.match.params;
 
-        RatingStore.fetchRating(myId, modelUid).then(function(rating) {
-            this.setState({
+        var modelId = ModelStore.modelId(userId, modelName, tag); 
+        var myId = self.state.username;
+
+        RatingStore.fetchRating(myId, modelId).then(function(rating) {
+            console.log('rating', rating, myId, modelId)
+            self.setState({
                 rating: rating
             });
-        }.bind(this));
+        });
     }
 
     componentDidMount() {
-        const {userId, modelId, tag} = this.props.match.params;
+        var self = this;
+        const {userId, modelName, tag} = this.props.match.params;
 
         this.setState({
-            editMode: (userId == AuthStore.username())
+            editMode: (userId == this.state.username)
         })
         
         this.syncModel().then((model) => {
-            // Update meta tags.
-            function updateMeta(type, name, content) {
-                var oldElement = document.querySelector(`meta[${type}='${name}']`);
-                if(oldElement) {
-                    oldElement.remove()
-                }
-                var element = document.createElement('meta');
-                element[type] = name;
-                element.content = content;    
-                document.querySelector('head').appendChild(element);
-            }
-            
+            // Update document title.
             document.title = `${model.title} | Moxel`;
-            updateMeta('property', 'og:title', model.title);
-            updateMeta('property', 'og:description', model.description);
-            updateMeta('name', 'description', model.description);
-            updateMeta('name', 'keywords', model.labels.join(','));
-            updateMeta('name', 'author', model.user);
+            // Meta tags are handled at server-side rendering.
         });
         this.syncRating();
 
         // Add event handler for image upload.
         this.handleDemoRun = null;
 
-        var self = this;
-
-        // Get modelId.
-        var pathname = window.location.pathname;
-        var modelPath = pathname.substring('/models'.length + 1, pathname.length);
-        var modelPathParts = modelPath.split('/');
-        self.modelId = modelPathParts[0] + '/' + modelPathParts[1] + ':' + modelPathParts[2];
-        console.log('modelId', self.modelId);
-
         // Import model from Moxel.
+        var modelId = ModelStore.modelId(userId, modelName, tag);
         self.moxelModel = null;   // moxel model.
-        moxel.createModel(self.modelId).then((model) => {
+        moxel.createModel(modelId).then((model) => {
             self.moxelModel = model;
             console.log('Moxel model created', self.moxelModel);
         });
@@ -420,30 +432,32 @@ class ModelView extends Component {
     
 
     handleUpvote() {
-        if(this.doingHandleUpvote) {
-            window.setTimeout(this.handleUpvote, 100);
+        var self = this;
+
+        if(self.doingHandleUpvote) {
+            window.setTimeout(self.handleUpvote, 100);
             return
         }
-        this.doingHandleUpvote = true;
+        self.doingHandleUpvote = true;
 
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = self.props.match.params;
 
-        var modelUid = ModelStore.modelId(userId, modelId, tag);  // TODO: resolve the confusion of modelId.
-        var myId = AuthStore.username()
+        var modelId = ModelStore.modelId(userId, modelName, tag);  // TODO: resolve the confusion of modelId.
+        var myId = self.state.username;
 
         var newRating = 0.;
-        if(this.state.rating > 0) {
+        if(self.state.rating > 0) {
             newRating = 0.;
         }else{
             newRating = 1.;
         }
 
         // First, create the illusion that update is done.
-        this.setState({
+        self.setState({
             rating: newRating
         })
 
-        var model = this.state.model;
+        var model = self.state.model;
 
         if(newRating == 1.) {
             model['stars'] = model['stars'] + 1;
@@ -451,39 +465,41 @@ class ModelView extends Component {
             model['stars'] = model['stars'] - 1;
         }
 
-        this.setState({
+        self.setState({
             model: model
         })
 
         // Then, do the real update.
-        RatingStore.updateRating(myId, modelUid, newRating).then(function() {
-            this.syncRating();
-            this.syncModel().then(function(model) {
-                if(newRating == 1.) {
-                    model['stars'] = model.stars + 1;
-                }else{
-                    model['stars'] = model.stars - 1;
-                }
+        RatingStore.updateRating(myId, modelId, newRating)
+        .then(() => {
+            self.syncRating();
+            return self.syncModel();
+        })
+        .then((model) => {
+            if(newRating == 1.) {
+                model['stars'] = model.stars + 1;
+            }else{
+                model['stars'] = model.stars - 1;
+            }
 
-                this.setState({
-                    model: model
-                })
+            self.setState({
+                model: model
+            })
 
-                ModelStore.updateModel(userId, modelId, tag, {'stars': model['stars']}).then(function() {
-                    this.syncModel().then(function() {
-                        this.doingHandleUpvote = false;
-                    }.bind(this));
-                }.bind(this));
-            }.bind(this));
-        }.bind(this))
+            ModelStore.updateModel(userId, modelName, tag, {'stars': model['stars']}).then(function() {
+                self.syncModel().then(function() {
+                    self.doingHandleUpvote = false;
+                });
+            });
+        });
     }
 
     handleUpdateTitle() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelTitle = document.querySelector('#model-title').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'title': modelTitle}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'title': modelTitle}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model title.',
@@ -494,11 +510,11 @@ class ModelView extends Component {
     }
 
     handleUpdateReadMe() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelReadMe = document.querySelector('#model-readme').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'readme': modelReadMe}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'readme': modelReadMe}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                   message: 'Successfully updated model README.',
@@ -509,11 +525,11 @@ class ModelView extends Component {
     }
 
     handleUpdateDescription() {
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
 
         var modelDescription = document.querySelector('#model-description').value;
 
-        ModelStore.updateModel(userId, modelId, tag, {'description': modelDescription}).then(function() {
+        ModelStore.updateModel(userId, modelName, tag, {'description': modelDescription}).then(function() {
             this.syncModel().then(function() {
                 this.notificationSystem.addNotification({
                     message: 'Successfully updated model description.',
@@ -528,18 +544,20 @@ class ModelView extends Component {
     }
 
     componentDidUpdate() {
-        console.log('did update');
-        const scriptId = 'add-this-script';
-        var element = document.querySelector('#' + scriptId);
-        if(!element) {
-            const script = document.createElement("script");
-            script.src = "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-598845f9cbaea48c";
-            script.id = scriptId;
-            document.body.appendChild(script);
+        function updateAddThisUntilSuccessful() {
+            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
+                window.addthis.layers.refresh();
+            }else{
+                setTimeout(updateAddThisUntilSuccessful, 500);
+            }
         }
+
+        setTimeout(updateAddThisUntilSuccessful, 0);
     }
 
     render() {
+        var self = this;
+
         if(!this.state.model) {
             return null
         }
@@ -552,7 +570,7 @@ class ModelView extends Component {
             return <ErrorNoneView/>
         }
 
-        const {userId, modelId, tag} = this.props.match.params;
+        const {userId, modelName, tag} = this.props.match.params;
         const model = this.state.model;
 
         var statusButton = null;
@@ -663,7 +681,7 @@ class ModelView extends Component {
                         <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
@@ -705,122 +723,189 @@ class ModelView extends Component {
                         <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
         }
         this.outputWidgets = outputWidgets;
 
-        var demoUI = (
-            <FixedWidthRow>
-                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                    <div className="col s12 m12">
-                        <div className="card">
-                            <div className="card-tabs white">
-                              <Tabs className='tab-demo white'>
-                                <Tab title="Demo" active >
-                                    <span className="white-text">
-                                        <div className="row" style={{color: "black", marginTop: "10px"}}>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                            Model Input
-                                            </div>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                            Model Output
-                                            </div>
-                                        </div> 
-                                        <div className="row">
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                                {Object.values(inputWidgets)}
-
+        function DemoComponent(props) {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-tabs white">
+                                  <Tabs className='tab-demo white'>
+                                    <Tab title="Demo" active >
+                                        <span className="black-text">
+                                            <div className="row">
                                                 <br/>
+                                                <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
+                                                    Model Input
+                                                    
+                                                    <br/><br/>
 
-                                                {
-                                                    this.state.isRunning 
-                                                    ?
-                                                    <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
-                                                    :    
-                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100px", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
-                                                }
+                                                    {Object.values(inputWidgets)}
+
+                                                    <br/>
+
+                                                    {
+                                                        self.state.isRunning 
+                                                        ?
+                                                        <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
+                                                        :    
+                                                        <a className="waves-effect btn-flat green white-text" 
+                                                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                                                            onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                                                            Run 
+                                                        </a>
+                                                    }
+                                                </div>
+                                                <div className="col m6" style={{textAlign: "center"}} >
+                                                    Model Output
+
+                                                    <br/><br/>
+
+                                                    {Object.values(outputWidgets)}
+                                                </div>
                                             </div>
-                                            <div className="col m6" style={{textAlign: "center"}} >
-                                                {Object.values(outputWidgets)}
-                                            </div>
+                                        </span>
+                                    </Tab>
+                                    {/*<Tab title="API">
+                                        <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                                        {`   
+                                            \`\`\`python
+                                            import requests
+                                            import base64
+                                            import os
+
+                                            # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
+                                            URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
+
+
+                                            with open('test_images/image1.jpg', 'rb') as f:
+                                                result = requests.post(URL, json={
+                                                    'image': base64.b64encode(f.read()).decode('utf-8'),
+                                                    'ext': 'jpg'
+                                                })
+                                                try:
+                                                    result = result.json()
+                                                except:
+                                                    print(result.text)
+                                                    exit(1)
+
+
+                                                image_binary = base64.b64decode(result['vis'])
+                                                with open('output.png', 'wb') as f:
+                                                    f.write(image_binary)
+                                                os.system('open output.png')
+                                            \`\`\`
+
+
+                                        `}
+                                        </Markdown>   
+
+                                    </Tab>*/}
+                                </Tabs>
+
+                                
+                                <hr/>
+
+                                  
+                                </div>
+
+                                <div className="card-content">
+                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                        <div className="col s12 m12">
+                                            {
+                                                self.state.editMode
+                                                ?
+                                                <div>
+                                                    <h5>Edit ReadMe</h5>
+                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
+                                                    </textarea>
+                                                </div>
+                                                :
+                                                <Markdown tagName="article" className="markdown-body">
+                                                    {model.readme}
+                                                </Markdown>
+                                            }
                                         </div>
-                                    </span>
-                                </Tab>
-                                {/*<Tab title="API">
-                                    <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
-                                    {`   
-                                        \`\`\`python
-                                        import requests
-                                        import base64
-                                        import os
-
-                                        # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
-                                        URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
-
-
-                                        with open('test_images/image1.jpg', 'rb') as f:
-                                            result = requests.post(URL, json={
-                                                'image': base64.b64encode(f.read()).decode('utf-8'),
-                                                'ext': 'jpg'
-                                            })
-                                            try:
-                                                result = result.json()
-                                            except:
-                                                print(result.text)
-                                                exit(1)
-
-
-                                            image_binary = base64.b64decode(result['vis'])
-                                            with open('output.png', 'wb') as f:
-                                                f.write(image_binary)
-                                            os.system('open output.png')
-                                        \`\`\`
-
-
-                                    `}
-                                    </Markdown>   
-
-                                </Tab>*/}
-                            </Tabs>
-
-                            
-                            <hr/>
-
-                              
-                            </div>
-
-                            <div className="card-content">
-                                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                                    <div className="col s12 m12">
-                                        {
-                                            this.state.editMode
-                                            ?
-                                            <div>
-                                                <h5>Edit ReadMe</h5>
-                                                <textarea style={{height: "300px"}} id="model-readme" onBlur={this.handleUpdateReadMe} defaultValue={model.readme}>
-                                                </textarea>
-                                            </div>
-                                            :
-                                            <Markdown tagName="article" className="markdown-body">
-                                                {model.readme}
-                                            </Markdown>
-                                        }
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-            </FixedWidthRow>
-        );
+                </FixedWidthRow>
+            );
+        }
+
+        function ModelTitle(props) {
+            if(LayoutUtils.isMobile()) {
+                var titleStyle = {
+                    width: "100%", 
+                    fontSize: "20px"
+                }
+            }else{
+                var titleStyle = {
+                    width: "60%", 
+                    fontSize: "20px",   
+                    display: "inline-block"
+                }
+            }
+            if(self.state.editMode) {
+                return (
+                    <span>
+                        <input id="model-title" defaultValue={model.title} className="editable-input" 
+                            style={titleStyle} onBlur={self.handleUpdateTitle}/>
+                    </span>
+                );
+            }else{
+                return <div style={titleStyle}>{model.title}</div>;
+            }
+        }
+
+        function ModelShare(props) {
+            if(LayoutUtils.isMobile()) {
+                var shareStyle = {
+                    float: "left", 
+                    fontSize: "15px",
+                    marginTop: "10px",
+                    marginBottom: "10px"
+                }
+            }else{
+                var shareStyle = {
+                    float: "right", 
+                    fontSize: "18px"
+                }
+            }
+            return (
+                <span style={shareStyle}>
+                    <a className={"waves-effect btn-flat black-text model-action-btn " + (self.state.rating > 0 ? "orange lighten-1" : "white")} 
+                        onClick={self.handleUpvote}><i className="material-icons left">
+                        arrow_drop_up
+                        </i>{model.stars}
+                    </a>
+                    
+                    &nbsp;
+
+                    <Dropdown trigger={
+                        <a className="dropdown-button btn-flat white black-text model-action-btn">
+                            <i className="material-icons left">share</i>Share
+                        </a>
+                    }>
+
+                        <NavItem><div className="addthis_inline_share_toolbox_5dtc"></div></NavItem>
+                    </Dropdown>
+                </span>
+            )
+        }
 
         return (
-            <StyledModelLayout column className="catalogue-layout-container" style={{marginTop: "50px"}}>
+            <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
                 {/*>Search For Your Favorite Model</FixedWidthRow>*/}
                 {/*<FixedWidthRow component={SearchBar}*/}
@@ -838,7 +923,7 @@ class ModelView extends Component {
                             <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
                         </span>
                         {
-                            userId == AuthStore.username()
+                            userId == this.state.username
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
                                 <div className="switch">
@@ -860,83 +945,62 @@ class ModelView extends Component {
                             <div className="col s12 m12">
                               <div className="card blue darken-3">
                                 <div className="card-content white-text">
-                                <span style={{float: "right"}}>
-                                    
-                                    &nbsp;
-                                    <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
-                                    &nbsp;
-                                    <Dropdown trigger={
-                                        <a className="dropdown-button btn-flat white black-text model-action-btn">
-                                            <i className="material-icons left">share</i>Share
-                                        </a>
-                                    }>
 
-                                    <NavItem><div className="addthis_inline_share_toolbox_5dtc"></div></NavItem>
-                                    </Dropdown>
+                                    <div className="card-title">
+                                        <ModelTitle/>
 
-                                </span>
+                                        <ModelShare/>
 
-                                <span className="card-title">
-                                    {
-                                        this.state.editMode
-                                        ?
-                                        (
-                                            <input id="model-title" defaultValue={model.title} className="editable-input" style={{width: "60%"}} onBlur={this.handleUpdateTitle}/>
-                                        )
-                                        :
-                                        (
-                                            model.title
-                                        )
-                                    }
-                                </span>
-
-                                <div style={{height: "50px"}}>
-                                    <span style={{float: "left"}}>
-                                        {statusButton}
-                                        &nbsp;
-                                        <Dropdown trigger={
-                                            <a className='dropdown-button btn-flat white black-text model-status-btn'>
-                                                <i className="material-icons left">loyalty</i>
-                                                {model.tag}
-                                            </a>
-                                        }>
-                                            {/*<NavItem><a href="#!">one</a></NavItem>
-                                            <NavItem><a href="#!">two</a></NavItem>*/}
-                                        </Dropdown>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    {
-                                        this.state.editMode
-                                        ?
-                                        (
-                                            <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
-                                        )
-                                        :
-                                        (
-                                            <p>{model.description}</p>
-                                        )
-                                    }
-                                </div>
-
-                                  <br/>
-
-                                    <div>
-                                        <p>{
-                                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                        }</p>
                                     </div>
-                                </div>
-                                
-                                <div className="card-action blue darken-4">
-                                  {
-                                    model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
-                                  }
-                                  {
-                                    model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
-                                  }
-                                </div>
+
+                                    
+                                    <div style={{height: "80px"}}>
+                                        <span style={{float: "left"}}>
+                                            {statusButton}
+                                            &nbsp;
+                                            <Dropdown trigger={
+                                                <a className='dropdown-button btn-flat white black-text model-status-btn'>
+                                                    <i className="material-icons left">loyalty</i>
+                                                    {model.tag}
+                                                </a>
+                                            }>
+                                                {/*<NavItem><a href="#!">one</a></NavItem>
+                                                <NavItem><a href="#!">two</a></NavItem>*/}
+                                            </Dropdown>
+                                        </span>
+                                    </div>
+
+                                    <div style={{marginTop: "20px"}}>
+                                        {
+                                            this.state.editMode
+                                            ?
+                                            (
+                                                <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
+                                            )
+                                            :
+                                            (
+                                                <p>{model.description}</p>
+                                            )
+                                        }
+                                    </div>
+
+                                      <br/>
+
+                                        <div>
+                                            <p>{
+                                                model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                                            }</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="card-action blue darken-4">
+                                      {
+                                        model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
+                                      }
+                                      {
+                                        model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
+                                      }
+                                    </div>
                               </div>
                             </div>
                         </div>
@@ -975,7 +1039,7 @@ class ModelView extends Component {
                     {
                         model.status == 'LIVE' 
                         ?
-                        demoUI
+                        <DemoComponent/>
                         :
                         (<FixedWidthRow>
                             <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -984,7 +1048,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelId}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
                                         </div>
                                     </div>
                                 </div>
@@ -999,12 +1063,19 @@ class ModelView extends Component {
                             <div className="col s12 m12">
                                 <div className="card">
                                     <div className="card-content">
+                                        {/* force to sign in to discuss.
+                                        <div>
+                                        <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
+                                        </div>
+                                        <div className="blur">
+                                            
+                                        </div>*/}
                                         <ReactDisqusThread
-                                            id={`$[userId}/${modelId}:${tag}`}
+                                            id={`$[userId}/${modelName}:${tag}`}
                                             title="Example Thread"
                                             url={`http://dummy.ai${window.location.pathname}`}>
                                         </ReactDisqusThread>
-                                            
+                                        
                                     </div>
                                 </div>
                             </div>
