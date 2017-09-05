@@ -300,6 +300,7 @@ class ModelView extends Component {
     }
 
     componentDidMount() {
+        console.log('mouting component');
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
@@ -445,6 +446,20 @@ class ModelView extends Component {
             }
         }
         
+        // Loading social sharing service.
+        function updateAddThisUntilSuccessful() {
+            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
+                window.addthis.layers.refresh();
+                // TODO: hack. Monitor until the share btns are created.
+                if(document.querySelector('.at-share-btn-elements')) {
+                    return;
+                }
+            }
+            console.log('Updating add this until success.')
+            setTimeout(updateAddThisUntilSuccessful, 500);
+        }
+
+        setTimeout(updateAddThisUntilSuccessful, 500);
     }
 
     
@@ -562,15 +577,7 @@ class ModelView extends Component {
     }
 
     componentDidUpdate() {
-        function updateAddThisUntilSuccessful() {
-            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
-                window.addthis.layers.refresh();
-            }else{
-                setTimeout(updateAddThisUntilSuccessful, 500);
-            }
-        }
-
-        setTimeout(updateAddThisUntilSuccessful, 0);
+        
     }
 
     render() {
