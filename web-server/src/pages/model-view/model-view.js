@@ -15,6 +15,7 @@ import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
 import AuthStore from "../../stores/AuthStore";
 import TypeUtils from "../../libs/TypeUtils"
+import LayoutUtils from "../../libs/LayoutUtils"
 import RatingStore from "../../stores/RatingStore";
 import Error404View from "../../pages/error-view/404";
 import ErrorNoneView from "../../pages/error-view/none";
@@ -175,13 +176,17 @@ const StyledModelLayout = styled(Flex)`
     }
 
     .editable-input {
-        border: none;
         padding-left: 5px;
+        border-bottom: dashed;
+        border-color: #fff;
+        border-width: 1px;
     }
 
     .editable-input:hover {
         background-color: rgba(255, 255, 255, 0.14);
-        border: none;
+        border-bottom: solid;
+        border-color: #fff;
+        border-width: 1px;
     }
 
     .dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview {
@@ -201,6 +206,15 @@ const StyledModelLayout = styled(Flex)`
 
     textarea:focus {
         outline: none;
+    }
+
+    .notifications-wrapper {
+        z-index: 99999999;
+    }
+
+    .notification.notification-success.notification-visible {
+        position: absolute;
+        top: 30px;   
     }
 `;
 
@@ -542,6 +556,8 @@ class ModelView extends Component {
     }
 
     render() {
+        var self = this;
+
         if(!this.state.model) {
             return null
         }
@@ -665,7 +681,7 @@ class ModelView extends Component {
                         <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
@@ -707,119 +723,186 @@ class ModelView extends Component {
                         <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>;
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
         }
         this.outputWidgets = outputWidgets;
 
-        var demoUI = (
-            <FixedWidthRow>
-                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                    <div className="col s12 m12">
-                        <div className="card">
-                            <div className="card-tabs white">
-                              <Tabs className='tab-demo white'>
-                                <Tab title="Demo" active >
-                                    <span className="white-text">
-                                        <div className="row" style={{color: "black", marginTop: "10px"}}>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                            Model Input
-                                            </div>
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                            Model Output
-                                            </div>
-                                        </div> 
-                                        <div className="row">
-                                            <div className="col m6" style={{textAlign: "center"}}>
-                                                {Object.values(inputWidgets)}
-
+        function DemoComponent(props) {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-tabs white">
+                                  <Tabs className='tab-demo white'>
+                                    <Tab title="Demo" active >
+                                        <span className="black-text">
+                                            <div className="row">
                                                 <br/>
+                                                <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
+                                                    Model Input
+                                                    
+                                                    <br/><br/>
 
-                                                {
-                                                    this.state.isRunning 
-                                                    ?
-                                                    <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
-                                                    :    
-                                                    <a className="waves-effect btn-flat green white-text" style={{padding: 0, width: "100px", textAlign: "center"}} onClick={()=>this.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}Run </a>
-                                                }
+                                                    {Object.values(inputWidgets)}
+
+                                                    <br/>
+
+                                                    {
+                                                        self.state.isRunning 
+                                                        ?
+                                                        <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
+                                                        :    
+                                                        <a className="waves-effect btn-flat green white-text" 
+                                                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                                                            onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                                                            Run 
+                                                        </a>
+                                                    }
+                                                </div>
+                                                <div className="col m6" style={{textAlign: "center"}} >
+                                                    Model Output
+
+                                                    <br/><br/>
+
+                                                    {Object.values(outputWidgets)}
+                                                </div>
                                             </div>
-                                            <div className="col m6" style={{textAlign: "center"}} >
-                                                {Object.values(outputWidgets)}
-                                            </div>
+                                        </span>
+                                    </Tab>
+                                    {/*<Tab title="API">
+                                        <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                                        {`   
+                                            \`\`\`python
+                                            import requests
+                                            import base64
+                                            import os
+
+                                            # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
+                                            URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
+
+
+                                            with open('test_images/image1.jpg', 'rb') as f:
+                                                result = requests.post(URL, json={
+                                                    'image': base64.b64encode(f.read()).decode('utf-8'),
+                                                    'ext': 'jpg'
+                                                })
+                                                try:
+                                                    result = result.json()
+                                                except:
+                                                    print(result.text)
+                                                    exit(1)
+
+
+                                                image_binary = base64.b64decode(result['vis'])
+                                                with open('output.png', 'wb') as f:
+                                                    f.write(image_binary)
+                                                os.system('open output.png')
+                                            \`\`\`
+
+
+                                        `}
+                                        </Markdown>   
+
+                                    </Tab>*/}
+                                </Tabs>
+
+                                
+                                <hr/>
+
+                                  
+                                </div>
+
+                                <div className="card-content">
+                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                        <div className="col s12 m12">
+                                            {
+                                                self.state.editMode
+                                                ?
+                                                <div>
+                                                    <h5>Edit ReadMe</h5>
+                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
+                                                    </textarea>
+                                                </div>
+                                                :
+                                                <Markdown tagName="article" className="markdown-body">
+                                                    {model.readme}
+                                                </Markdown>
+                                            }
                                         </div>
-                                    </span>
-                                </Tab>
-                                {/*<Tab title="API">
-                                    <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
-                                    {`   
-                                        \`\`\`python
-                                        import requests
-                                        import base64
-                                        import os
-
-                                        # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
-                                        URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
-
-
-                                        with open('test_images/image1.jpg', 'rb') as f:
-                                            result = requests.post(URL, json={
-                                                'image': base64.b64encode(f.read()).decode('utf-8'),
-                                                'ext': 'jpg'
-                                            })
-                                            try:
-                                                result = result.json()
-                                            except:
-                                                print(result.text)
-                                                exit(1)
-
-
-                                            image_binary = base64.b64decode(result['vis'])
-                                            with open('output.png', 'wb') as f:
-                                                f.write(image_binary)
-                                            os.system('open output.png')
-                                        \`\`\`
-
-
-                                    `}
-                                    </Markdown>   
-
-                                </Tab>*/}
-                            </Tabs>
-
-                            
-                            <hr/>
-
-                              
-                            </div>
-
-                            <div className="card-content">
-                                <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                                    <div className="col s12 m12">
-                                        {
-                                            this.state.editMode
-                                            ?
-                                            <div>
-                                                <h5>Edit ReadMe</h5>
-                                                <textarea style={{height: "300px"}} id="model-readme" onBlur={this.handleUpdateReadMe} defaultValue={model.readme}>
-                                                </textarea>
-                                            </div>
-                                            :
-                                            <Markdown tagName="article" className="markdown-body">
-                                                {model.readme}
-                                            </Markdown>
-                                        }
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-            </FixedWidthRow>
-        );
+                </FixedWidthRow>
+            );
+        }
+
+        function ModelTitle(props) {
+            if(LayoutUtils.isMobile()) {
+                var titleStyle = {
+                    width: "100%", 
+                    fontSize: "20px"
+                }
+            }else{
+                var titleStyle = {
+                    width: "60%", 
+                    fontSize: "20px",   
+                    display: "inline-block"
+                }
+            }
+            if(self.state.editMode) {
+                return (
+                    <span>
+                        <input id="model-title" defaultValue={model.title} className="editable-input" 
+                            style={titleStyle} onBlur={self.handleUpdateTitle}/>
+                    </span>
+                );
+            }else{
+                return <div style={titleStyle}>{model.title}</div>;
+            }
+        }
+
+        function ModelShare(props) {
+            if(LayoutUtils.isMobile()) {
+                var shareStyle = {
+                    float: "left", 
+                    fontSize: "15px",
+                    marginTop: "10px",
+                    marginBottom: "10px"
+                }
+            }else{
+                var shareStyle = {
+                    float: "right", 
+                    fontSize: "18px"
+                }
+            }
+            return (
+                <span style={shareStyle}>
+                    <a className={"waves-effect btn-flat black-text model-action-btn " + (self.state.rating > 0 ? "orange lighten-1" : "white")} 
+                        onClick={self.handleUpvote}><i className="material-icons left">
+                        arrow_drop_up
+                        </i>{model.stars}
+                    </a>
+                    
+                    &nbsp;
+
+                    <Dropdown trigger={
+                        <a className="dropdown-button btn-flat white black-text model-action-btn">
+                            <i className="material-icons left">share</i>Share
+                        </a>
+                    }>
+
+                        <NavItem><div className="addthis_inline_share_toolbox_5dtc"></div></NavItem>
+                    </Dropdown>
+                </span>
+            )
+        }
 
         return (
             <StyledModelLayout column className="catalogue-layout-container">
@@ -862,83 +945,62 @@ class ModelView extends Component {
                             <div className="col s12 m12">
                               <div className="card blue darken-3">
                                 <div className="card-content white-text">
-                                <span style={{float: "right"}}>
-                                    
-                                    &nbsp;
-                                    <a className={"waves-effect btn-flat black-text model-action-btn " + (this.state.rating > 0 ? "orange lighten-1" : "white")} onClick={this.handleUpvote}><i className="material-icons left">arrow_drop_up</i>{model.stars}</a>
-                                    &nbsp;
-                                    <Dropdown trigger={
-                                        <a className="dropdown-button btn-flat white black-text model-action-btn">
-                                            <i className="material-icons left">share</i>Share
-                                        </a>
-                                    }>
 
-                                    <NavItem><div className="addthis_inline_share_toolbox_5dtc"></div></NavItem>
-                                    </Dropdown>
+                                    <div className="card-title">
+                                        <ModelTitle/>
 
-                                </span>
+                                        <ModelShare/>
 
-                                <span className="card-title">
-                                    {
-                                        this.state.editMode
-                                        ?
-                                        (
-                                            <input id="model-title" defaultValue={model.title} className="editable-input" style={{width: "60%"}} onBlur={this.handleUpdateTitle}/>
-                                        )
-                                        :
-                                        (
-                                            model.title
-                                        )
-                                    }
-                                </span>
-
-                                <div style={{height: "50px"}}>
-                                    <span style={{float: "left"}}>
-                                        {statusButton}
-                                        &nbsp;
-                                        <Dropdown trigger={
-                                            <a className='dropdown-button btn-flat white black-text model-status-btn'>
-                                                <i className="material-icons left">loyalty</i>
-                                                {model.tag}
-                                            </a>
-                                        }>
-                                            {/*<NavItem><a href="#!">one</a></NavItem>
-                                            <NavItem><a href="#!">two</a></NavItem>*/}
-                                        </Dropdown>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    {
-                                        this.state.editMode
-                                        ?
-                                        (
-                                            <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
-                                        )
-                                        :
-                                        (
-                                            <p>{model.description}</p>
-                                        )
-                                    }
-                                </div>
-
-                                  <br/>
-
-                                    <div>
-                                        <p>{
-                                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                        }</p>
                                     </div>
-                                </div>
-                                
-                                <div className="card-action blue darken-4">
-                                  {
-                                    model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
-                                  }
-                                  {
-                                    model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
-                                  }
-                                </div>
+
+                                    
+                                    <div style={{height: "80px"}}>
+                                        <span style={{float: "left"}}>
+                                            {statusButton}
+                                            &nbsp;
+                                            <Dropdown trigger={
+                                                <a className='dropdown-button btn-flat white black-text model-status-btn'>
+                                                    <i className="material-icons left">loyalty</i>
+                                                    {model.tag}
+                                                </a>
+                                            }>
+                                                {/*<NavItem><a href="#!">one</a></NavItem>
+                                                <NavItem><a href="#!">two</a></NavItem>*/}
+                                            </Dropdown>
+                                        </span>
+                                    </div>
+
+                                    <div style={{marginTop: "20px"}}>
+                                        {
+                                            this.state.editMode
+                                            ?
+                                            (
+                                                <textarea id="model-description" defaultValue={model.description} className="editable-input" style={{resize: "none"}} onBlur={this.handleUpdateDescription}/>
+                                            )
+                                            :
+                                            (
+                                                <p>{model.description}</p>
+                                            )
+                                        }
+                                    </div>
+
+                                      <br/>
+
+                                        <div>
+                                            <p>{
+                                                model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                                            }</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="card-action blue darken-4">
+                                      {
+                                        model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
+                                      }
+                                      {
+                                        model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
+                                      }
+                                    </div>
                               </div>
                             </div>
                         </div>
@@ -977,7 +1039,7 @@ class ModelView extends Component {
                     {
                         model.status == 'LIVE' 
                         ?
-                        demoUI
+                        <DemoComponent/>
                         :
                         (<FixedWidthRow>
                             <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>

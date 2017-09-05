@@ -7,10 +7,11 @@ import FixedWidthRow from "../../components/fixed-width-row";
 import styled from 'styled-components';
 import {Route} from "react-router-dom";
 import {store} from "../../mock-data";  
-import { Button, Card, Row, Col } from 'react-materialize';
+import { SideNav, SideNavItem, Button, Card, Row, Col } from 'react-materialize';
 import SignupModal from "../home-view/signup-modal";
 import Mask from "../home-view/mask";
 import AuthStore from "../../stores/AuthStore";
+import LayoutUtils from "../../libs/LayoutUtils";
 import {Link} from "react-router-dom";
 
 
@@ -82,15 +83,13 @@ class PageHeader extends Component {
                 return (
                     <div className="nav-header center">
                         <br/>
-                        <h1 style={{fontSize: (isMobile ? "35px" : "65px"), fontWeight: 400}}>World's Best Models <br/> Built by the Community</h1>
-                        <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "10px" : "20px")}}>
-                            Moxel is a platform to build and share machine intelligence.
+                        <h1 style={{fontSize: (isMobile ? "30px" : "65px"), fontWeight: 400, lineHeight: 1.3}}>World's Best Models <br/> Built by the Community</h1>
+                        <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "12px" : "20px")}}>
+                            A platform to build and share machine intelligence.
                         </div>
                         <div>
-                            <Button waves="light" className="blue" onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                            &nbsp;&nbsp;&nbsp;&nbsp;
-                            <Button waves="light" className="green"><Link to="/models">Discover Model</Link></Button>
-                            &nbsp;
+                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
+                            <Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} ><Link to="/models">Discover Model</Link></Button>
                         </div> 
                         
                         <br/>
@@ -114,33 +113,50 @@ class PageHeader extends Component {
                     </ul>
                 )
             }else{
-                /*<ul className="right  hide-on-med-and-down">*/
-                return (
-                    <ul className="right">
-                        <li><Link to="/models">Models</Link></li>
+                if(LayoutUtils.isMobile()) {
+                    return  <SideNav trigger={<i className="material-icons">menu</i>} options={{ closeOnClick: true }}>
+                                <SideNavItem waves icon="home"><Link to="/">Home</Link></SideNavItem>
+                                <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
+                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
+                                <SideNavItem divider />
+                                <SideNavItem waves style={{position: "relative"}}>
+                                    <ProfileImage size={32} url={AuthStore.picture()} style={{marginTop: "8px"}}/>
+                                    <a style={{fontSize: "12px", color: "#666", display: "inline-block", position: "absolute"}}>Signed in as <b>{AuthStore.username()}</b></a> 
+                                </SideNavItem>
+                                <SideNavItem waves icon="exit_to_app">
+                                    <Link className="black-text" to="/logout">Logout</Link>
+                                </SideNavItem>
 
-                        <li><Link to="/new">Create</Link></li>
+                            </SideNav>
+                }else{
+                    /*<ul className="right  hide-on-med-and-down">*/
+                    return (
+                        <ul className="right">
+                            <li><Link to="/models">Models</Link></li>
 
-                        <ul id="dropdown1" className="dropdown-content">
+                            <li><Link to="/new">Create</Link></li>
+
+                            <ul id="dropdown1" className="dropdown-content">
+                                <li>
+                                    <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                                </li>
+                                <li className="divider"></li>
+                                <li>
+                                    <Link className="black-text" to="/logout">Logout</Link>
+                                </li>
+                            </ul>
                             <li>
-                                <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
+                                <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
+                                    <div>
+                                        <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
+                                        <i className="material-icons right">arrow_drop_down</i>
+                                    </div>
+                                </a>
                             </li>
-                            <li className="divider"></li>
-                            <li>
-                                <Link className="black-text" to="/logout">Logout</Link>
-                            </li>
+
                         </ul>
-                        <li>
-                            <a className="dropdown-button" href="#!" data-activates="dropdown1" style={{height: "64px", width: "120px", textAlign: "center"}}>
-                                <div>
-                                    <ProfileImage username={AuthStore.username()} size={32} url={AuthStore.picture()} style={{marginTop: "16px"}}/>
-                                    <i className="material-icons right">arrow_drop_down</i>
-                                </div>
-                            </a>
-                        </li>
-
-                    </ul>
-                )
+                    )
+                }
             }
         }
 
@@ -176,13 +192,6 @@ class PageHeader extends Component {
                     </div>
                     <div className="nav-wrapper container">
                         <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
-                        {/*<ul id="nav-mobile" className="side-nav">
-                            <li><a href="/models">Models</a></li>
-                            <li><a href="/new">Create</a></li>
-                            <li><a href="/logout" className="black-text">Logout</a></li>
-                        </ul>
-                        <a href="#" dataActivates="nav-mobile" className="button-collapse"><i className="material-icons">menu</i>
-                        </a>*/}
                         {getMenu()}
                         {getBanner()}
                     </div>

@@ -97,7 +97,7 @@ class LandingPage extends Component {
 
 
     return (  
-      <div style={{marginTop: "700px"}}>
+      <div style={isMobile ? {marginTop: "500px"} : {marginTop: "700px"}}>
           {
             isMobile 
               ?
