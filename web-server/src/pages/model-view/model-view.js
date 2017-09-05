@@ -177,9 +177,13 @@ const StyledModelLayout = styled(Flex)`
 
     .editable-input {
         padding-left: 5px;
-        border-bottom: dashed;
         border-color: #fff;
         border-width: 1px;
+        border-top-style: none;
+        border-right-style: none;
+        border-bottom-style: dashed;
+        border-left-style: none;
+        overflow: hidden;
     }
 
     .editable-input:hover {
@@ -214,7 +218,7 @@ const StyledModelLayout = styled(Flex)`
 
     .notification.notification-success.notification-visible {
         position: absolute;
-        top: 30px;   
+        top: 50px;   
     }
 `;
 
@@ -299,9 +303,24 @@ class ModelView extends Component {
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
+        var editMode = (userId == this.state.username);
         this.setState({
-            editMode: (userId == this.state.username)
+            editMode: editMode
         })
+
+        if(editMode) {
+            function addNotification() {
+                if(!self.notificationSystem) {
+                    window.setTimeout(addNotification, 500);
+                    return;
+                }
+                self.notificationSystem.addNotification({
+                  message: 'As the author, you can edit this page.',
+                  level: 'success'
+                });
+            }
+            window.setTimeout(addNotification, 500);
+        }
         
         this.syncModel().then((model) => {
             // Update document title.
@@ -677,10 +696,11 @@ class ModelView extends Component {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
-                        <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#333", width: "100%",
-                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                        <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} 
+                            style={{height: "150px", width: "100%", 
+                                    padding: "10px", color: "#333", width: "100%",
+                                    borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
