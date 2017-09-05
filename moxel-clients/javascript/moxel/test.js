@@ -28,7 +28,7 @@ function testImage() {
 
 
 function testColorization() {
-	moxel.createModel('jimfan/colorization:0.0.1').then((model) => {
+	moxel.createModel('strin/colorization:latest').then((model) => {
 		fs.readFile('examples/ansel_adams3.jpg', 
 			function (err, data) {
 			  if (err) throw err;
@@ -50,5 +50,5 @@ function testColorization() {
 	});
 }
 
-// testColorization();
-testImage();
+testColorization();
+// testImage();

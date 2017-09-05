@@ -7,8 +7,13 @@ if(typeof(window) != 'undefined' && !window.Buffer) {
 	require('es6-promise').polyfill();
 	require('isomorphic-fetch');
 }
+
 const Jimp = require('jimp');
 const async = require('async');
+
+var pjson = require('../package.json');
+const VERSION = 'js-' + pjson.version;
+console.log('Moxel client version', VERSION);
 
 
 var Moxel = function(config) {
@@ -19,9 +24,118 @@ var Moxel = function(config) {
 		var MOXEL_ENDPOINT = config.endpoint
 	}
 
-	// var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
-	var API_ENDPOINT = '/api'; // TODO: CORS for APIs.
+	var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
 	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';	
+
+	class Utils {
+		static parseModelId(modelId) {
+			var parts = modelId.split(':');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+			var tag = parts[1];
+
+			parts = parts[0].split('/');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+
+			var user = parts[0];
+			var model = parts[1];
+
+			return {
+				user: user,
+				model: model,
+				tag: tag
+			}
+		}
+
+		static parseSpaceObject(spaceObject) {
+			var result = {};
+
+			for(var k in spaceObject) {
+				var v = spaceObject[k];
+				if(!space[v]) {
+					throw 'Type ' + v + ' is unknown.'
+				}
+				result[k] = space[v];
+			}
+
+			return result;
+		}
+
+		static encodeQueryParams(params) {
+			var esc = encodeURIComponent;
+			return Object.keys(params)
+			    .map(k => esc(k) + '=' + esc(params[k]))
+			    .join('&');
+		}
+
+		static uuidv4() {
+		  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		    return v.toString(16);
+		  });
+		}
+	}
+
+	class MasterAPI {
+		constructor() {
+
+		}
+
+		// Get model metadata from Master Server.
+		getModel(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + '/users/' + user + '/models/' + name + '/' + tag)
+				.then(function(response) {
+					return response.json();
+				})
+				.then(function(result) {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				});
+			})
+		}
+
+		// Get data URL for cloud storage.
+		getAssetURL(user, name, tag, path) {
+			if(!path.startsWith('/'))  {
+				throw 'path must start with /';
+			}
+			return new Promise((resolve, reject) => {
+				var params = {
+					user: user,
+					name: name,
+					cloud: 'gcloud',
+					path: `${tag}${path}`,
+					verb: 'PUT'
+				}
+				fetch(
+					API_ENDPOINT + `/url/data?${Utils.encodeQueryParams(params)}`, 
+					{
+						method: 'GET',
+					}) 
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					if(result.url) {
+						resolve(result.url);
+					}else{
+						reject('Cannot get asset URL');
+					}
+				})
+				.catch((err) => {
+					reject(err);
+				});
+			});
+		}
+	}
+
+	masterAPI = new MasterAPI();
 
 	class Image {
 		// img is Jimp image.
@@ -166,44 +280,6 @@ var Moxel = function(config) {
 		JSON: MoxelJSON
 	};
 
-	class Utils {
-		static parseModelId(modelId) {
-			var parts = modelId.split(':');
-			if(parts.length != 2) {
-				throw 'Ill-formated modelId: ' + modelId;
-			}
-			var tag = parts[1];
-
-			parts = parts[0].split('/');
-			if(parts.length != 2) {
-				throw 'Ill-formated modelId: ' + modelId;
-			}
-
-			var user = parts[0];
-			var model = parts[1];
-
-			return {
-				user: user,
-				model: model,
-				tag: tag
-			}
-		}
-
-		static parseSpaceObject(spaceObject) {
-			var result = {};
-
-			for(var k in spaceObject) {
-				var v = spaceObject[k];
-				if(!space[v]) {
-					throw 'Type ' + v + ' is unknown.'
-				}
-				result[k] = space[v];
-			}
-
-			return result;
-		}
-	}
-
 	class Model {
 		constructor(user, name, tag, result) {
 			this.user = user;
@@ -215,49 +291,144 @@ var Moxel = function(config) {
 			this.outputSpace = Utils.parseSpaceObject(this.metadata['output_space']);
 
 			this.predict = this.predict.bind(this);			
+			this._store = this._store.bind(this);
+			this.encode = this.encode.bind(this);
+			this.decode = this.decode.bind(this);
 		}
 
+		// Save example to cloud, as 
+		// {'input': inputBlob, 'output': outputBlob}
+		// return exmapleId.
+		_store(inputBlob, outputBlob) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				// Example id.
+				var exampleId = Utils.uuidv4();
+
+				// fetch data URL from API.
+				console.log("About to store input and output");
+
+				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`)
+				.then((url) => {
+					console.log("Generated asset url " + url);
+					return fetch(url, {
+						method: 'PUT',
+						body: JSON.stringify({
+							'input': inputBlob,
+							'output': outputBlob
+						}),
+						headers: {
+							'Content-Type': 'application/octet-stream'
+						}
+					})
+				})
+				.then((response) => {
+					return response.text();
+				})
+				.then((text) => {
+					resolve(exampleId);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		// Encode input into blobs.
+		// Arguments:
+		// - data: is a object mapping of varName to objects of Moxel Type.
+		// - space: is the corresponding mapping of varName to varSpace.
+		encode(data, dataSpace) {
+			return new Promise((resolve, reject) => {
+				var blob = {};
+				async.forEachOf(dataSpace,
+					(varSpace, varName, callback) => {
+						// Assume base64 encoding.
+						// Only works for Image now.
+						if(!data[varName]) {
+							throw 'Input must have argument ' + varName;
+						}
+						// console.log(data[varName]);
+						if(varSpace == space.Image) {
+							// Image.
+							data[varName].toBase64('image/png').then((item) => {
+								blob[varName] = item;
+								callback();	
+							});
+						}else if(varSpace == space.String) {
+							data[varName].toText().then((text) => {
+								blob[varName] = text;
+								callback();
+							})
+						}else{
+							console.error('Unknown variable input space', varSpace);
+						}
+					},
+
+					(err) => {
+						if(err) {
+							reject(err);
+						}else{
+							resolve(blob);
+						}
+					}
+				)
+			});
+		}
+
+		// Decode output from blobs.
+		decode(blob, dataSpace) {
+			return new Promise((resolve, reject) => {
+				var outputObject = {};
+				async.forEachOf(dataSpace,
+				(varSpace, varName, callback) => {
+					if(varSpace == space.Image) {
+						space.Image.fromBase64(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						});							
+					}else if(varSpace == space.JSON) {
+						space.JSON.fromObject(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						})
+					}else if(varSpace == space.String) {
+						space.String.fromText(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						})
+					}else{
+						console.error('Unknown variable output space', varSpace);
+					}
+				},
+				(err) => {
+					if(err) {
+						reject(err);
+					}else{
+						resolve(outputObject);
+					}
+				})
+			});
+		}
+
+		// Main prediction function.
 		predict(kwargs) {
 			var self = this;
+			
+
+			// First encodes inputObject (kwargs) into inputBlob.
+			// Sends the inputBlob to API endpoint.
+			// Get back an outputBlob.
+			// Decode the outputBlob into outputObject.
 			return new Promise(function(resolve, reject) {
-				// Wrap input.
-				var inputObject = {};
+				// Input encoding.
+				var inputBlob = {};
 
-				new Promise((resolve, reject) => {
-					async.forEachOf(self.inputSpace,
-						(varSpace, varName, callback) => {
-							// Assume base64 encoding.
-							// Only works for Image now.
-							if(!kwargs[varName]) {
-								throw 'Input must have argument ' + varName;
-							}
-							// console.log(kwargs[varName]);
-							if(varSpace == space.Image) {
-								// Image.
-								kwargs[varName].toBase64('image/png').then((inputItem) => {
-									inputObject[varName] = inputItem;
-									callback();	
-								});
-							}else if(varSpace == space.String) {
-								kwargs[varName].toText().then((text) => {
-									inputObject[varName] = text;
-									callback();
-								})
-							}else{
-								console.error('Unknown variable input space', varSpace);
-							}
-						},
-
-						(err) => {
-							if(err) {
-								reject(err);
-							}else{
-								resolve();
-							}
-						}
-					)	
-				}).then(() => {
-					console.log('Moxel input', inputObject);
+				self.encode(kwargs, self.inputSpace)
+				.then((blob) => {
+					inputBlob = blob;
+					console.log('Moxel input blob', inputBlob);
 					// Make HTTP REST request.
 					return fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
 						{
@@ -265,46 +436,19 @@ var Moxel = function(config) {
 							headers: new Headers({
 	                        	'Content-Type': 'application/json'
 	                    	}),
-	                    	body: JSON.stringify(inputObject)
+	                    	body: JSON.stringify(inputBlob)
 	                    }
-					)	
+					);
 				}).then((response) => {
 					return response.json();
-				}).then((result) => {
+				}).then((outputBlob) => {
 					// Parse result.
-					console.log('Moxel result', result);
+					console.log('Moxel output blob', outputBlob);
 					var outputObject = {};
 
-					return new Promise((resolve, reject) => {
-						async.forEachOf(self.outputSpace,
-						(varSpace, varName, callback) => {
-							if(varSpace == space.Image) {
-								space.Image.fromBase64(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								});							
-							}else if(varSpace == space.JSON) {
-								space.JSON.fromObject(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								})
-							}else if(varSpace == space.String) {
-								space.String.fromText(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								})
-							}else{
-								console.error('Unknown variable output space', varSpace);
-							}
-						},
-						(err) => {
-							if(err) {
-								reject(err);
-							}else{
-								resolve(outputObject);
-							}
-						})
-					});
+					self._store(inputBlob, outputBlob);
+
+					return self.decode(outputBlob, self.outputSpace);
 				}).then((outputObject) => {
 					resolve(outputObject);	
 				});	
@@ -319,16 +463,14 @@ var Moxel = function(config) {
 			var name = parts.model;
 			var tag = parts.tag;
 
-			fetch(API_ENDPOINT + '/users/' + user + '/models/' + name + '/' + tag).then(function(response) {
-				return response.json();
-			}).then(function(result) {
+			masterAPI.getModel(user, name, tag).then((result) => {
 				var model = new Model(user, name, tag, result);
 				if(model.status == 'LIVE') {
 					resolve(model);
 				}else{
 					reject('The model must be in LIVE state');
 				}
-			})
+			});
 		});
 	}	
 
