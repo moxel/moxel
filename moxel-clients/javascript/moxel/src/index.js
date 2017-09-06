@@ -483,6 +483,11 @@ var Moxel = function(config) {
 								blob[varName] = text;
 								callback();
 							})
+						}else if(varSpace == space.JSON) {
+							data[varName].toObject().then((object) => {
+								blob[varName] = object;
+								callback();
+							})
 						}else{
 							console.error('Unknown variable input space', varSpace);
 						}
@@ -628,7 +633,7 @@ var Moxel = function(config) {
 
 		_listExamples(demo) {
 			var self = this;
-			
+
 			return new Promise((resolve, reject) => {
 				if(demo) {
 					masterAPI.listDemoExample(self.user, self.name, self.tag)

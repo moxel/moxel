@@ -302,6 +302,7 @@ class ModelView extends Component {
         return new Promise((resolve, reject) => {
             self.moxelModel.listDemoExamples()
             .then((examples) => {
+                if(!examples) examples = [];
                 self.setState({
                     examples: examples
                 }, () => {
@@ -1124,23 +1125,27 @@ class ModelView extends Component {
                 self.handlePopulateExample(example);
             }
 
-            return (
-                <div>
-                     <a className="waves-effect black-text btn-flat" 
-                        style={{padding: 0, width: "100px", textAlign: "center"}} 
-                        onClick={()=> handlePreviousExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
-                        <i className="material-icons" style={{fontSize: "15px"}}>arrow_back</i>
-                    </a>
-                    &nbsp;
-                    <span>Example {self.state.examplePtr + 1} / {self.state.examples.length}</span>
-                    &nbsp;
-                    <a className="waves-effect black-text btn-flat" 
-                        style={{padding: 0, width: "100px", textAlign: "center"}} 
-                        onClick={()=> handleNextExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
-                        <i className="material-icons" style={{fontSize: "15px"}}>arrow_forward</i>
-                    </a>
-                </div>
-            )
+            if(self.state.examples.length == 0) {
+                return <div></div>
+            }else{
+                return (
+                    <div>
+                         <a className="waves-effect black-text btn-flat" 
+                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                            onClick={()=> handlePreviousExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                            <i className="material-icons" style={{fontSize: "15px"}}>arrow_back</i>
+                        </a>
+                        &nbsp;
+                        <span>Example {self.state.examplePtr + 1} / {self.state.examples.length}</span>
+                        &nbsp;
+                        <a className="waves-effect black-text btn-flat" 
+                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                            onClick={()=> handleNextExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                            <i className="material-icons" style={{fontSize: "15px"}}>arrow_forward</i>
+                        </a>
+                    </div>
+                )
+            }
         }
 
         return (
