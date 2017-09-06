@@ -303,6 +303,7 @@ class ModelView extends Component {
             self.moxelModel.listDemoExamples()
             .then((examples) => {
                 if(!examples) examples = [];
+
                 self.setState({
                     examples: examples
                 }, () => {
@@ -972,7 +973,7 @@ class ModelView extends Component {
             );
         }
 
-        function ModelTitle(props) {
+        function renderModelTitle() {
             if(LayoutUtils.isMobile()) {
                 var titleStyle = {
                     width: "100%", 
@@ -997,7 +998,7 @@ class ModelView extends Component {
             }
         }
 
-        function ModelShare(props) {
+        function renderModelShare() {
             if(LayoutUtils.isMobile()) {
                 var shareStyle = {
                     float: "left", 
@@ -1191,9 +1192,9 @@ class ModelView extends Component {
                                 <div className="card-content white-text">
 
                                     <div className="card-title">
-                                        <ModelTitle/>
+                                        {renderModelTitle()}
 
-                                        <ModelShare/>
+                                        {renderModelShare()}
 
                                     </div>
 
