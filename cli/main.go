@@ -20,6 +20,11 @@ func ParseModelId(modelId string) (string, string, error) {
 	}
 
 	modelName := modelIdParts[0]
+
+	if strings.Contains(modelName, "/") {
+		return "", "", errors.New(fmt.Sprintf("Ill-formatted modelName %s: shouldn't contain /", modelName))
+	}
+
 	tag := modelIdParts[1]
 
 	return modelName, tag, nil
