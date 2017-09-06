@@ -26,8 +26,19 @@ func AddExample(db *gorm.DB, example Example) error {
 	return err
 }
 
+func AddDemoExample(db *gorm.DB, example DemoExample) error {
+	err := db.Create(&example).Error
+	return err
+}
+
 func ListExamples(db *gorm.DB, modelId string) ([]Example, error) {
 	var examples []Example
+	err := db.Find(&examples, "model_id = ?", modelId).Error
+	return examples, err
+}
+
+func ListDemoExamples(db *gorm.DB, modelId string) ([]DemoExample, error) {
+	var examples []DemoExample
 	err := db.Find(&examples, "model_id = ?", modelId).Error
 	return examples, err
 }

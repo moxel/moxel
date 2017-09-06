@@ -749,6 +749,22 @@ func putExample(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func putDemoExample(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	example := models.DemoExample{
+		Uid:     vars["exampleId"],
+		ModelId: vars["user"] + "/" + vars["model"] + ":" + vars["tag"],
+	}
+
+	err := models.AddDemoExample(db, example)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	w.WriteHeader(200)
+}
+
 func listExamples(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	modelId := vars["user"] + "/" + vars["model"] + ":" + vars["tag"]
@@ -766,6 +782,30 @@ func listExamples(w http.ResponseWriter, r *http.Request) {
 			"modelId":       example.ModelId,
 			"clientVersion": example.ClientVersion,
 			"clientLatency": example.ClientLatency,
+		})
+	}
+
+	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
+}
+
+func listDemoExamples(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	modelId := vars["user"] + "/" + vars["model"] + ":" + vars["tag"]
+
+	examples, err := models.ListDemoExamples(db, modelId)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var results []map[string]interface{}
+	for _, example := range examples {
+		results = append(results, map[string]interface{}{
+			"exampleId": example.Uid,
+			"modelId":   example.ModelId,
 		})
 	}
 
@@ -840,6 +880,8 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/log", logModel).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples/{exampleId}", putExample).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples", listExamples).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples/{exampleId}", putDemoExample).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples", listDemoExamples).Methods("GET")
 		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")
