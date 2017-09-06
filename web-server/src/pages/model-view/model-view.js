@@ -527,10 +527,11 @@ class ModelView extends Component {
         
         // Loading social sharing service.
         function updateAddThisUntilSuccessful() {
+            console.log('Add this element', document.querySelector('.at-share-btn-elements'));
             if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
                 window.addthis.layers.refresh();
                 // TODO: hack. Monitor until the share btns are created.
-                if(document.querySelector('.at-share-btn-elements')) {
+                if(document.querySelector('.at-share-btn-elements > .at-share-btn')) {
                     return;
                 }
             }
