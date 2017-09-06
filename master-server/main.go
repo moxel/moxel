@@ -743,7 +743,8 @@ func putExample(w http.ResponseWriter, r *http.Request) {
 
 	err = models.AddExample(db, example)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Erroe(w, err.Error(), 500)
+		return
 	}
 
 	w.WriteHeader(200)
@@ -760,6 +761,7 @@ func putDemoExample(w http.ResponseWriter, r *http.Request) {
 	err := models.AddDemoExample(db, example)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	w.WriteHeader(200)

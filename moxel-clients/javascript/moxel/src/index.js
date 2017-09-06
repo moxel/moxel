@@ -163,6 +163,63 @@ var Moxel = function(config) {
 				})
 			});
 		}
+
+		putDemoExample(user, name, tag, exampleId) {
+			var clientVersion = VERSION;
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/demo-examples/${exampleId}`, 
+				{
+					method: 'PUT',
+					headers: new Headers({
+						'Content-Type': 'application/json'
+					})
+				})
+				.then((response) => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		listExample(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/examples`, 
+				{
+					method: 'GET',
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		listDemoExample(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/demo-examples`, 
+				{
+					method: 'GET',
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+
 	}
 
 	var masterAPI = new MasterAPI();
@@ -337,7 +394,14 @@ var Moxel = function(config) {
 			this._store = this._store.bind(this);
 			this.encode = this.encode.bind(this);
 			this.decode = this.decode.bind(this);
-			this.loadExample = this.loadExample.bind(this);
+			this._loadExample = this._loadExample.bind(this);
+			this.loadRuntimeExample = this.loadRuntimeExample.bind(this);
+			this.loadDemoExample = this.loadDemoExample.bind(this);
+			this.saveRuntimeExample = this.saveRuntimeExample.bind(this);
+			this.saveDemoExample = this.saveDemoExample.bind(this);
+			this._listExamples = this._listExamples.bind(this);
+			this.listRuntimeExamples = this.listRuntimeExamples.bind(this);
+			this.listDemoExamples = this.listDemoExamples.bind(this);
 		}
 
 		// TODO: if user has access to this code, they can store anything on our cloud.
@@ -476,7 +540,7 @@ var Moxel = function(config) {
 			});
 		}
 
-		loadExample(exampleId) {
+		_loadExample(exampleId, demo) {
 			var self = this;
 
 			return new Promise((resolve, reject) => {
@@ -512,6 +576,87 @@ var Moxel = function(config) {
 					reject(err);
 				});	
 			});
+		}
+
+		loadRuntimeExample(exampleId) {
+			return this._loadExample(exampleId, false);
+		}
+
+		loadDemoExample(exampleId) {
+			return this._loadExample(exampleId, true);
+		}
+
+		_saveExample(inputObject, outputObject, clientLatency, demo) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				var inputBlob = {};
+				var outputBlob = {};
+				self.encode(inputObject, self.inputSpace)
+				.then((blob) => {
+					inputBlob = blob;
+					return self.encode(outputObject, self.outputSpace);
+				})
+				.then((blob) => {
+					outputBlob = blob;
+					return self._store(inputBlob, outputBlob);
+				})
+				.then((exampleId) => {
+					if(demo) {
+						return masterAPI.putDemoExample(self.user, self.name, self.tag, exampleId);	
+					}else{
+						return masterAPI.putExample(self.user, self.name, self.tag, clientLatency, exampleId);	
+					}
+					
+				})
+				.then(() => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		saveRuntimeExample(inputObject, outputObject, clientLatency) {
+			return this._saveExample(inputObject, outputObject, clientLatency, false);
+		}
+
+		saveDemoExample(inputObject, outputObject) {
+			return this._saveExample(inputObject, outputObject, null, true)
+		}
+
+		_listExamples(demo) {
+			var self = this;
+			
+			return new Promise((resolve, reject) => {
+				if(demo) {
+					masterAPI.listDemoExample(self.user, self.name, self.tag)
+					.then((result) => {
+						resolve(result);
+					})
+					.catch((err) => {
+						reject(err);
+					});
+				}else{
+					masterAPI.listExample(self.user, self.name, self.tag)
+					.then((result) => {
+						resolve(result);
+					})
+					.catch((err) => {
+						reject(err);
+					});
+				}
+				
+			});
+		}
+
+		listRuntimeExamples() {
+			return this._listExamples(false);
+		}
+
+		listDemoExamples() {
+			return this._listExamples(true);
 		}
 
 		// Main prediction function.

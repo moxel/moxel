@@ -35,17 +35,9 @@ Object.values = function(obj) {
     return Object.keys(obj).map(function(key) { return obj[key];});
 }
 
-var moxel = null;
-
-if(window.location.host == "localhost:3000") {
-    moxel = Moxel({
-        endpoint: 'http://dev.moxel.ai'
-    });   
-}else{
-    moxel = Moxel({
-        endpoint: 'http://' + window.location.host
-    });
-}
+var moxel = Moxel({
+    endpoint: 'http://' + window.location.host
+});
 
 // import '../../libs/moxel/browser/lib/moxel.js'
 
@@ -343,6 +335,7 @@ class ModelView extends Component {
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
+            self.outputs = outputs;
             return new Promise((resolve, reject) => {
                 var outputSpaces = self.moxelModel.outputSpace;
                 for(var outputName in outputs) {
@@ -401,8 +394,20 @@ class ModelView extends Component {
                     })
                 });
             });
-
         };
+
+        // Handle save demo.
+        self.handleSaveDemo = function() {
+            // Make sure the model and all inputs are loaded.
+            if(!self.moxelModel) {
+                return;
+            }
+
+            self.moxelModel.saveDemoExample(self.inputs, self.outputs)
+            .catch((err) => {
+                console.error(err);
+            })
+        }
 
         // Handle inputs.
         self.inputs = {};
@@ -795,6 +800,11 @@ class ModelView extends Component {
                                                     <br/><br/>
 
                                                     {Object.values(outputWidgets)}
+
+                                                    <br/>
+
+                                                    {renderSaveDemoButton()}
+                                                        
                                                 </div>
                                             </div>
                                         </span>
@@ -985,6 +995,18 @@ class ModelView extends Component {
                     }
                 </div>
             );
+        }
+
+        function renderSaveDemoButton() {
+            if(self.state.editMode) {
+                return (
+                    <a className="waves-effect black-text blue btn-flat" 
+                        style={{padding: 0, width: "100px", textAlign: "center"}} 
+                        onClick={()=>self.handleSaveDemo()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                        Save
+                    </a>
+                );
+            }
         }
 
         return (
