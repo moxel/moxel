@@ -552,6 +552,11 @@ class ModelView extends Component {
     handleUpvote() {
         var self = this;
 
+        if(!AuthStore.isAuthenticated()) {
+            AuthStore.login(window.location.pathname);
+            return;
+        }
+
         if(self.doingHandleUpvote) {
             window.setTimeout(self.handleUpvote, 100);
             return
