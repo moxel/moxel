@@ -225,10 +225,12 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
-            isRunning: false,
             rating: 0,
             editMode: false,
-            username: username
+            username: username,
+            isRunning: false,
+            examples: [],
+            examplePtr: 0
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
@@ -236,6 +238,7 @@ class ModelView extends Component {
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
         this.handleToggleEdit = this.handleToggleEdit.bind(this);
+        this.handlePopulateExample = this.handlePopulateExample.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -291,6 +294,26 @@ class ModelView extends Component {
         });
     }
 
+    syncExamples() {
+        var self = this;
+
+        if(!self.moxelModel) return;
+
+        return new Promise((resolve, reject) => {
+            self.moxelModel.listDemoExamples()
+            .then((examples) => {
+                self.setState({
+                    examples: examples
+                }, () => {
+                    resolve(examples);    
+                });
+            })
+            .catch((err) => {
+                reject(err);
+            });    
+        })
+    }
+
     componentDidMount() {
         console.log('mouting component');
         var self = this;
@@ -315,10 +338,14 @@ class ModelView extends Component {
             window.setTimeout(addNotification, 500);
         }
         
-        this.syncModel().then((model) => {
+        this.syncModel()
+        .then((model) => {
             // Update document title.
-            document.title = `${model.title} | Moxel`;
             // Meta tags are handled at server-side rendering.
+            document.title = `${model.title} | Moxel`;
+        })
+        .catch((err) => {
+            console.error(err);
         });
         this.syncRating();
 
@@ -328,10 +355,48 @@ class ModelView extends Component {
         // Import model from Moxel.
         var modelId = ModelStore.modelId(userId, modelName, tag);
         self.moxelModel = null;   // moxel model.
-        moxel.createModel(modelId).then((model) => {
+        moxel.createModel(modelId)
+        .then((model) => {
             self.moxelModel = model;
             console.log('Moxel model created', self.moxelModel);
+            return self.syncExamples();
+        })
+        .then((examples) => {
+            console.log('examples', examples);
+            if(examples.length > 0) {
+                var example = examples[self.state.examplePtr];
+                self.handlePopulateExample(example);    
+            }
+        })
+        .catch((err) => {
+            console.error(err);
         });
+
+        // Handle input visualization.
+        self.handleInputs = function(inputs) {
+            self.inputs = inputs;
+            return new Promise((resolve, reject) => {
+                var inputSpaces = self.moxelModel.inputSpace;
+
+                for(var inputName in inputs) {
+                    setTimeout(function(outputName) {
+                        var inputSpace = inputSpaces[inputName];
+                        var input = inputs[outputName];
+                        var demoWidget = document.querySelector(`#demo-input-${outputName}`);
+                        if(inputSpace == moxel.space.Image) {
+                            // TODO: Not implemented.
+                        }else if(inputSpace == moxel.space.JSON) {
+                            // TODO: Not implemented.
+                        }else if(inputSpace == moxel.space.String) {
+                            input.toText().then((text) => {
+                                demoWidget.value = text;
+                                resolve();
+                            });
+                        }
+                    }.bind(this, inputName), 0);
+                }
+            });
+        }
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
@@ -404,6 +469,15 @@ class ModelView extends Component {
             }
 
             self.moxelModel.saveDemoExample(self.inputs, self.outputs)
+            .then(() => {
+                return self.syncExamples();
+            })
+            .then((examples) => {
+                this.notificationSystem.addNotification({
+                  message: 'Successfully added an example!',
+                  level: 'success'
+                });
+            })
             .catch((err) => {
                 console.error(err);
             })
@@ -465,6 +539,9 @@ class ModelView extends Component {
         }
 
         setTimeout(updateAddThisUntilSuccessful, 500);
+
+
+        
     }
 
     
@@ -579,6 +656,16 @@ class ModelView extends Component {
 
     handleToggleEdit() {
         this.setState({editMode: !this.state.editMode});
+    }
+
+    handlePopulateExample(example) {
+        var self = this;
+        if(!self.moxelModel) return;
+
+        self.moxelModel.loadDemoExample(example.exampleId)
+        .then((result) => {
+            self.handleInputs(result.input);
+        })
     }
 
     componentDidUpdate() {
@@ -779,6 +866,10 @@ class ModelView extends Component {
                                                     <br/><br/>
 
                                                     {Object.values(inputWidgets)}
+
+                                                    <br/>
+
+                                                    {renderBrowserExample()}
 
                                                     <br/>
 
@@ -1002,11 +1093,53 @@ class ModelView extends Component {
                 return (
                     <a className="waves-effect black-text blue btn-flat" 
                         style={{padding: 0, width: "100px", textAlign: "center"}} 
-                        onClick={()=>self.handleSaveDemo()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                        onClick={()=>self.handleSaveDemo()}>
                         Save
                     </a>
                 );
             }
+        }
+
+        function renderBrowserExample() {
+            function handlePreviousExample() {
+                var examplePtr = self.state.examplePtr;
+                if(examplePtr > 0) examplePtr -= 1;
+                self.setState({
+                    examplePtr: examplePtr
+                });
+                
+                var example = self.state.examples[examplePtr];
+                self.handlePopulateExample(example);
+            }
+
+            function handleNextExample() {
+                var examplePtr = self.state.examplePtr;
+                if(examplePtr < self.state.examples.length - 1) examplePtr += 1;
+                self.setState({
+                    examplePtr: examplePtr
+                });   
+
+                var example = self.state.examples[examplePtr];
+                self.handlePopulateExample(example);
+            }
+
+            return (
+                <div>
+                     <a className="waves-effect black-text btn-flat" 
+                        style={{padding: 0, width: "100px", textAlign: "center"}} 
+                        onClick={()=> handlePreviousExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                        <i className="material-icons" style={{fontSize: "15px"}}>arrow_back</i>
+                    </a>
+                    &nbsp;
+                    <span>Example {self.state.examplePtr + 1} / {self.state.examples.length}</span>
+                    &nbsp;
+                    <a className="waves-effect black-text btn-flat" 
+                        style={{padding: 0, width: "100px", textAlign: "center"}} 
+                        onClick={()=> handleNextExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                        <i className="material-icons" style={{fontSize: "15px"}}>arrow_forward</i>
+                    </a>
+                </div>
+            )
         }
 
         return (

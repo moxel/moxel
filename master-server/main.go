@@ -743,7 +743,7 @@ func putExample(w http.ResponseWriter, r *http.Request) {
 
 	err = models.AddExample(db, example)
 	if err != nil {
-		http.Erroe(w, err.Error(), 500)
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
