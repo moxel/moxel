@@ -1,0 +1,3 @@
+#!/bin/bash
+ENV=${1:-prod}
+ENV=$ENV cd master-server && make migrate
