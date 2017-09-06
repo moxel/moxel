@@ -1,3 +1,4 @@
+// deprecated. using auth0.
 package models
 
 import (

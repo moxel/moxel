@@ -8,7 +8,7 @@ then
 elif [ $1 = "prod" ]
 then
     ./bin/use-moxel-prod
-    cd master-server && make devbox-build && make devbox-push && make deploy ENV=prod
+    cd master-server && make deploy ENV=prod
 else
     echo "Unknown deployment environment $1"
 fi

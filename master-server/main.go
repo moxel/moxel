@@ -708,6 +708,115 @@ func deleteRating(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func putExample(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	var params map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	var clientVersion string
+	if clientVersionInterface, ok := params["clientVersion"]; ok {
+		clientVersion = clientVersionInterface.(string)
+	} else {
+		http.Error(w, "putExample request must have key clientVersion", 400)
+		return
+	}
+
+	var clientLatency float32
+	if clientLatencyInterface, ok := params["clientLatency"]; ok {
+		clientLatency = float32(clientLatencyInterface.(float64))
+	} else {
+		http.Error(w, "putExample request must have key clientLatency", 400)
+		return
+	}
+
+	example := models.Example{
+		Uid:           vars["exampleId"],
+		ModelId:       vars["user"] + "/" + vars["model"] + ":" + vars["tag"],
+		ClientLatency: clientLatency,
+		ClientVersion: clientVersion,
+	}
+
+	err = models.AddExample(db, example)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+func putDemoExample(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	example := models.DemoExample{
+		Uid:     vars["exampleId"],
+		ModelId: vars["user"] + "/" + vars["model"] + ":" + vars["tag"],
+	}
+
+	err := models.AddDemoExample(db, example)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+}
+
+func listExamples(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	modelId := vars["user"] + "/" + vars["model"] + ":" + vars["tag"]
+
+	examples, err := models.ListExamples(db, modelId)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var results []map[string]interface{}
+	for _, example := range examples {
+		results = append(results, map[string]interface{}{
+			"exampleId":     example.Uid,
+			"modelId":       example.ModelId,
+			"clientVersion": example.ClientVersion,
+			"clientLatency": example.ClientLatency,
+		})
+	}
+
+	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
+}
+
+func listDemoExamples(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	modelId := vars["user"] + "/" + vars["model"] + ":" + vars["tag"]
+
+	examples, err := models.ListDemoExamples(db, modelId)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var results []map[string]interface{}
+	for _, example := range examples {
+		results = append(results, map[string]interface{}{
+			"exampleId": example.Uid,
+			"modelId":   example.ModelId,
+		})
+	}
+
+	response, _ := json.Marshal(results)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
+}
+
 func main() {
 	var err error
 
@@ -771,6 +880,10 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/log", logModel).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples/{exampleId}", putExample).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples", listExamples).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples/{exampleId}", putDemoExample).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples", listDemoExamples).Methods("GET")
 		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")

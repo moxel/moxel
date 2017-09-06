@@ -35,17 +35,9 @@ Object.values = function(obj) {
     return Object.keys(obj).map(function(key) { return obj[key];});
 }
 
-var moxel = null;
-
-if(window.location.host == "localhost:3000") {
-    moxel = Moxel({
-        endpoint: 'http://dev.moxel.ai'
-    });   
-}else{
-    moxel = Moxel({
-        endpoint: 'http://' + window.location.host
-    });
-}
+var moxel = Moxel({
+    endpoint: 'http://' + window.location.host
+});
 
 // import '../../libs/moxel/browser/lib/moxel.js'
 
@@ -177,9 +169,13 @@ const StyledModelLayout = styled(Flex)`
 
     .editable-input {
         padding-left: 5px;
-        border-bottom: dashed;
         border-color: #fff;
         border-width: 1px;
+        border-top-style: none;
+        border-right-style: none;
+        border-bottom-style: dashed;
+        border-left-style: none;
+        overflow: hidden;
     }
 
     .editable-input:hover {
@@ -214,7 +210,7 @@ const StyledModelLayout = styled(Flex)`
 
     .notification.notification-success.notification-visible {
         position: absolute;
-        top: 30px;   
+        top: 50px;   
     }
 `;
 
@@ -229,10 +225,12 @@ class ModelView extends Component {
 
         this.state = {
             model: null,
-            isRunning: false,
             rating: 0,
             editMode: false,
-            username: username
+            username: username,
+            isRunning: false,
+            examples: [],
+            examplePtr: 0
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
@@ -240,6 +238,7 @@ class ModelView extends Component {
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
         this.handleToggleEdit = this.handleToggleEdit.bind(this);
+        this.handlePopulateExample = this.handlePopulateExample.bind(this);
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -295,18 +294,59 @@ class ModelView extends Component {
         });
     }
 
+    syncExamples() {
+        var self = this;
+
+        if(!self.moxelModel) return;
+
+        return new Promise((resolve, reject) => {
+            self.moxelModel.listDemoExamples()
+            .then((examples) => {
+                if(!examples) examples = [];
+                self.setState({
+                    examples: examples
+                }, () => {
+                    resolve(examples);    
+                });
+            })
+            .catch((err) => {
+                reject(err);
+            });    
+        })
+    }
+
     componentDidMount() {
+        console.log('mouting component');
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
+        var editMode = (userId == this.state.username);
         this.setState({
-            editMode: (userId == this.state.username)
+            editMode: editMode
         })
+
+        if(editMode) {
+            function addNotification() {
+                if(!self.notificationSystem) {
+                    window.setTimeout(addNotification, 500);
+                    return;
+                }
+                self.notificationSystem.addNotification({
+                  message: 'As the author, you can edit this page.',
+                  level: 'success'
+                });
+            }
+            window.setTimeout(addNotification, 500);
+        }
         
-        this.syncModel().then((model) => {
+        this.syncModel()
+        .then((model) => {
             // Update document title.
-            document.title = `${model.title} | Moxel`;
             // Meta tags are handled at server-side rendering.
+            document.title = `${model.title} | Moxel`;
+        })
+        .catch((err) => {
+            console.error(err);
         });
         this.syncRating();
 
@@ -316,13 +356,52 @@ class ModelView extends Component {
         // Import model from Moxel.
         var modelId = ModelStore.modelId(userId, modelName, tag);
         self.moxelModel = null;   // moxel model.
-        moxel.createModel(modelId).then((model) => {
+        moxel.createModel(modelId)
+        .then((model) => {
             self.moxelModel = model;
             console.log('Moxel model created', self.moxelModel);
+            return self.syncExamples();
+        })
+        .then((examples) => {
+            console.log('examples', examples);
+            if(examples.length > 0) {
+                var example = examples[self.state.examplePtr];
+                self.handlePopulateExample(example);    
+            }
+        })
+        .catch((err) => {
+            console.error(err);
         });
+
+        // Handle input visualization.
+        self.handleInputs = function(inputs) {
+            self.inputs = inputs;
+            return new Promise((resolve, reject) => {
+                var inputSpaces = self.moxelModel.inputSpace;
+
+                for(var inputName in inputs) {
+                    setTimeout(function(outputName) {
+                        var inputSpace = inputSpaces[inputName];
+                        var input = inputs[outputName];
+                        var demoWidget = document.querySelector(`#demo-input-${outputName}`);
+                        if(inputSpace == moxel.space.Image) {
+                            // TODO: Not implemented.
+                        }else if(inputSpace == moxel.space.JSON) {
+                            // TODO: Not implemented.
+                        }else if(inputSpace == moxel.space.String) {
+                            input.toText().then((text) => {
+                                demoWidget.value = text;
+                                resolve();
+                            });
+                        }
+                    }.bind(this, inputName), 0);
+                }
+            });
+        }
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
+            self.outputs = outputs;
             return new Promise((resolve, reject) => {
                 var outputSpaces = self.moxelModel.outputSpace;
                 for(var outputName in outputs) {
@@ -381,8 +460,29 @@ class ModelView extends Component {
                     })
                 });
             });
-
         };
+
+        // Handle save demo.
+        self.handleSaveDemo = function() {
+            // Make sure the model and all inputs are loaded.
+            if(!self.moxelModel) {
+                return;
+            }
+
+            self.moxelModel.saveDemoExample(self.inputs, self.outputs)
+            .then(() => {
+                return self.syncExamples();
+            })
+            .then((examples) => {
+                this.notificationSystem.addNotification({
+                  message: 'Successfully added an example!',
+                  level: 'success'
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+        }
 
         // Handle inputs.
         self.inputs = {};
@@ -425,6 +525,24 @@ class ModelView extends Component {
                 })
             }
         }
+        
+        // Loading social sharing service.
+        function updateAddThisUntilSuccessful() {
+            console.log('Add this element', document.querySelector('.at-share-btn-elements'));
+            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
+                window.addthis.layers.refresh();
+                // TODO: hack. Monitor until the share btns are created.
+                if(document.querySelector('.at-share-btn-elements > .at-share-btn')) {
+                    return;
+                }
+            }
+            console.log('Updating add this until success.')
+            setTimeout(updateAddThisUntilSuccessful, 500);
+        }
+
+        setTimeout(updateAddThisUntilSuccessful, 500);
+
+
         
     }
 
@@ -542,16 +660,18 @@ class ModelView extends Component {
         this.setState({editMode: !this.state.editMode});
     }
 
-    componentDidUpdate() {
-        function updateAddThisUntilSuccessful() {
-            if(window.addthis && window.addthis.layers && window.addthis.layers.refresh) {
-                window.addthis.layers.refresh();
-            }else{
-                setTimeout(updateAddThisUntilSuccessful, 500);
-            }
-        }
+    handlePopulateExample(example) {
+        var self = this;
+        if(!self.moxelModel) return;
 
-        setTimeout(updateAddThisUntilSuccessful, 0);
+        self.moxelModel.loadDemoExample(example.exampleId)
+        .then((result) => {
+            self.handleInputs(result.input);
+        })
+    }
+
+    componentDidUpdate() {
+        
     }
 
     render() {
@@ -677,10 +797,11 @@ class ModelView extends Component {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
-                        <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#333", width: "100%",
-                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                        <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} 
+                            style={{height: "150px", width: "100%", 
+                                    padding: "10px", color: "#333", width: "100%",
+                                    borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
@@ -750,6 +871,10 @@ class ModelView extends Component {
 
                                                     <br/>
 
+                                                    {renderBrowserExample()}
+
+                                                    <br/>
+
                                                     {
                                                         self.state.isRunning 
                                                         ?
@@ -768,6 +893,11 @@ class ModelView extends Component {
                                                     <br/><br/>
 
                                                     {Object.values(outputWidgets)}
+
+                                                    <br/>
+
+                                                    {renderSaveDemoButton()}
+                                                        
                                                 </div>
                                             </div>
                                         </span>
@@ -958,6 +1088,64 @@ class ModelView extends Component {
                     }
                 </div>
             );
+        }
+
+        function renderSaveDemoButton() {
+            if(self.state.editMode) {
+                return (
+                    <a className="waves-effect black-text blue btn-flat" 
+                        style={{padding: 0, width: "100px", textAlign: "center"}} 
+                        onClick={()=>self.handleSaveDemo()}>
+                        Save
+                    </a>
+                );
+            }
+        }
+
+        function renderBrowserExample() {
+            function handlePreviousExample() {
+                var examplePtr = self.state.examplePtr;
+                if(examplePtr > 0) examplePtr -= 1;
+                self.setState({
+                    examplePtr: examplePtr
+                });
+                
+                var example = self.state.examples[examplePtr];
+                self.handlePopulateExample(example);
+            }
+
+            function handleNextExample() {
+                var examplePtr = self.state.examplePtr;
+                if(examplePtr < self.state.examples.length - 1) examplePtr += 1;
+                self.setState({
+                    examplePtr: examplePtr
+                });   
+
+                var example = self.state.examples[examplePtr];
+                self.handlePopulateExample(example);
+            }
+
+            if(self.state.examples.length == 0) {
+                return <div></div>
+            }else{
+                return (
+                    <div>
+                         <a className="waves-effect black-text btn-flat" 
+                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                            onClick={()=> handlePreviousExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                            <i className="material-icons" style={{fontSize: "15px"}}>arrow_back</i>
+                        </a>
+                        &nbsp;
+                        <span>Example {self.state.examplePtr + 1} / {self.state.examples.length}</span>
+                        &nbsp;
+                        <a className="waves-effect black-text btn-flat" 
+                            style={{padding: 0, width: "100px", textAlign: "center"}} 
+                            onClick={()=> handleNextExample()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                            <i className="material-icons" style={{fontSize: "15px"}}>arrow_forward</i>
+                        </a>
+                    </div>
+                )
+            }
         }
 
         return (
