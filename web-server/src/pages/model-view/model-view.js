@@ -1271,7 +1271,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
                                         </div>
                                     </div>
                                 </div>
