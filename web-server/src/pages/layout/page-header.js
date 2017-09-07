@@ -89,7 +89,7 @@ class PageHeader extends Component {
                         </div>
                         <div>
                             <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                            <Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} ><Link to="/models">Discover Model</Link></Button>
+                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Model</Button></Link>
                         </div> 
                         
                         <br/>
