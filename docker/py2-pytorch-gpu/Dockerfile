@@ -1,4 +1,4 @@
-FROM moxel/conda3-gpu
+FROM moxel/conda2-gpu
 
 MAINTAINER Jim Fan <jimfan@cs.stanford.edu>
 
