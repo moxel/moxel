@@ -11,7 +11,7 @@
 	path = master-server/tests/tf-bare
 	url = https://github.com/dummy-ai/tf-bare
 [submodule "kube/kube-gcloud"]
-	path = kube/gcloud
+	path = supernova
 	url = https://github.com/dummy-ai/kube-gcloud
 [submodule "examples/iris_flower_classifier_demo"]
 	path = examples/iris_flower_classifier_demo
