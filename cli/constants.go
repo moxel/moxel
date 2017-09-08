@@ -35,7 +35,12 @@ var YAMLWhitelist = map[string]bool{
 	"resources":    false,
 	"input_space":  true,
 	"output_space": true,
-	"cmd":          false,
+	"cmd":          true,
+}
+
+var DefaultResources = map[string]interface{}{
+	"cpu":    "1",
+	"memory": "512Mi",
 }
 
 // A whitelist for model input/output types.

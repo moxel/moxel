@@ -181,6 +181,22 @@ func VerifyModelConfig(config map[string]interface{}) error {
 	return nil
 }
 
+func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
+	if config["assets"] == nil {
+		config["assets"] = []interface{}{}
+	}
+
+	if _, ok := config["assets"]; !ok {
+		config["assets"] = []interface{}{}
+	}
+
+	if config["resources"] == nil {
+		fmt.Println("Using default resource setting", DefaultResources)
+		config["resources"] = interface{}(DefaultResources)
+	}
+	return config
+}
+
 func main() {
 	// Start application.
 	app := cli.NewApp()
@@ -354,10 +370,11 @@ func main() {
 					return err
 				}
 
-				// Verify if the config has the right format.
 				if err := VerifyModelConfig(config); err != nil {
 					return err
 				}
+
+				config = CleanupModelConfig(config)
 
 				// Default map values for compatibility.
 				// Compute workpath.
@@ -373,24 +390,10 @@ func main() {
 					return err
 				}
 
-				if modelData["status"] != "UNKNOWN" {
-					fmt.Printf("  Model already exists. Overwrite? [y/n]\t")
-					isYes := AskForConfirmation()
-					if isYes {
-						// If the model is LIVE, tear it down first.
-						if modelData["status"] == "LIVE" {
-							if err := TeardownModel(modelName, tag); err != nil {
-								return err
-							}
-						}
-						// Delete model.
-						// Following Github-style: https://github.com/moxel/moxel/pull/44
-						// Models are created (and deleted) from Web UI.
-						// if err := DeleteModel(modelName, tag); err != nil {
-						//      return err
-						// }
-					} else {
-						return nil
+				if modelData["status"] == "LIVE" {
+					fmt.Printf("Model is LIVE!. Teardown it down? [y/n]\t")
+					if err := TeardownModel(modelName, tag); err != nil {
+						return err
 					}
 				}
 
