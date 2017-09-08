@@ -1,4 +1,4 @@
-URL='dummyai/redis'
+URL='moxel/redis'
 
 CMD ?= "hello" 
 

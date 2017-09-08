@@ -1,4 +1,4 @@
-URL='dummyai/py3-tf-gpu'
+URL='moxel/py3-tf-gpu'
 
 CMD ?= "hello" 
 
