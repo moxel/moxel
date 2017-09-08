@@ -1,4 +1,4 @@
-URL='dummyai/web-server'
+URL='moxel/web-server'
 
 .PHONY: build
 
