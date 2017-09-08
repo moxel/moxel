@@ -1,4 +1,4 @@
-URL='linxifan/conda3-gpu'
+URL='moxel/conda3-gpu'
 
 test:
 	nvidia-docker run -ti --privileged -v `pwd`/../../:/code -v `pwd`/../secrets/:/secrets $(URL) --asset_root `pwd` --cmd 'python /code/docker/conda3-gpu/test.py'

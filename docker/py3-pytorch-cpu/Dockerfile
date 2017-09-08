@@ -1,4 +1,4 @@
-FROM linxifan/conda3
+FROM moxel/conda3
 
 MAINTAINER Jim Fan <jimfan@cs.stanford.edu>
 

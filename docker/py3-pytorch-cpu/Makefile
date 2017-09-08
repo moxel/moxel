@@ -1,4 +1,4 @@
-URL='linxifan/py3-pytorch-cpu'
+URL='moxel/py3-pytorch-cpu'
 
 test:
 	docker run -ti --privileged -v `pwd`/../../:/code -v `pwd`/../secrets/:/secrets $(URL) --asset_root `pwd` --cmd 'python /code/docker/py3-pytorch-cpu/test.py'
