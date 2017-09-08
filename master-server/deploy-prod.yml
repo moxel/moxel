@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: dummyai/master-server
+        image: moxel/master-server
         command: 
         - /app/master-server
         - start
@@ -26,6 +26,8 @@ spec:
       - name: nfs
         persistentVolumeClaim:
           claimName: nfs-claim
+      imagePullSecrets:
+      - name: regsecret
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

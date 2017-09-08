@@ -29,6 +29,8 @@ spec:
       - name: nfs
         persistentVolumeClaim:
           claimName: nfs-claim
+      imagePullSecrets:
+      - name: regsecret
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

@@ -1,4 +1,4 @@
-URL='dummyai/master-server'
+URL='moxel/master-server'
 ENV?='prod'
 
 ifeq ($(ENV), local)
