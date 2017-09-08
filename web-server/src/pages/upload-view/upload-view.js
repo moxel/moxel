@@ -303,7 +303,7 @@ class UploadView extends Component {
                 )
                 break; 
             case 2: // Deploy Your Model.
-                let yaml = ("image: dummyai/python3\n" +
+                let yaml = ("image: moxel/python3\n" +
                             "resources:\n" +
                             "  memory: 256Mi\n" +
                             "  cpu: 1\n" +
@@ -375,7 +375,7 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                    Read our <a href="http://docs.dummy.ai/deploy/" target="_blank">documentation</a> to learn more about deployment.
+                                    Read our <a href="http://docs.moxel.ai/deploy/" target="_blank">documentation</a> to learn more about deployment.
                                     </div>
                                 </div>
                             {/*</div>*/}
