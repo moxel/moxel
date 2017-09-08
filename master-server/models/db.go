@@ -4,9 +4,13 @@ Package "models" defines the basic database schema. It includes the following fi
 package models
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"os"
+	"strings"
 )
 
 func CreateDB(dbAddress string) *gorm.DB {
@@ -20,6 +24,28 @@ func CreateDB(dbAddress string) *gorm.DB {
 	return db
 }
 
+func CreateTestDB(dbFilePath string) (*gorm.DB, error) {
+	if !strings.HasPrefix(dbFilePath, "/tmp/") {
+		return nil, errors.New("Test DB must starts with path /tmp/")
+	}
+
+	if err := os.Remove(dbFilePath); err != nil {
+		return nil, err
+	}
+
+	db, err := gorm.Open("sqlite3", dbFilePath)
+	if err != nil {
+		return nil, err
+	}
+	MigrateDB(db)
+
+	return db, nil
+}
+
+func CreateDefaultTestDB() (*gorm.DB, error) {
+	return CreateTestDB("/tmp/moxel-test.db")
+}
+
 func MigrateDB(db *gorm.DB) {
 	fmt.Println("Migrating DB schemas")
 	db.Debug().AutoMigrate(&Model{})
@@ -27,4 +53,6 @@ func MigrateDB(db *gorm.DB) {
 	db.Debug().AutoMigrate(&Landing{})
 	db.Debug().AutoMigrate(&Job{})
 	db.Debug().AutoMigrate(&Rating{})
+	db.Debug().AutoMigrate(&Example{})
+	db.Debug().AutoMigrate(&DemoExample{})
 }

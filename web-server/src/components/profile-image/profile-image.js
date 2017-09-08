@@ -3,49 +3,29 @@ import React, {Component} from 'react';
 import "isomorphic-fetch";
 
 type Props = {
-    /** GitHub username */
+    /* GitHub username */
     username?: string,
-    /** size of image in pixels */
+    /* size of image in pixels */
     size: number,
-    /** style object to pass on. */
+    /* url of the profile image */
+    url: string,
+    /* style object to pass on. */
     style?: Object,
     [key: string]: any,
 };
-type State = {
-    id: string
-}
+
 export default class ProfileImage extends Component<void, Props, State> {
-    state = {id: '0'};
-
-    componentWillReceiveProps(prevProps: Props) {
-        if (this.props.username && prevProps.username !== this.props.username)
-            this.getId(this.props.username);
-    }
-
-    componentDidMount() {
-        if (this.props.username) this.getId(this.props.username);
-    }
-
-    getId(username:string) {
-        fetch(`https://api.github.com/users/${username}?access_token=416d0c68498745652c3a00ca53edf4f0ff593ea6`)
-            .then((res) => res.json())
-            .then(data => {
-                if (data && data.id) this.setState({id: data.id})
-            });
-    }
-
     render() {
-        const {style, username, size, ..._props} = this.props;
-        const url = `https://avatars3.githubusercontent.com/u/${this.state.id}?v=3&s=${size}`;
+        const {style, username, size, url, ..._props} = this.props;
         return (
             <img alt={username}
                  src={url}
                  style={{
                      ...style,
-                     height: size,
-                     wusernameth: size,
-                     borderRadius: "5px",
-                     fontSize: "0.8em"
+                     height: size + "px",
+                     wusernameth: size + "px",
+                     borderRadius: (size / 2) + "px",
+                     fontSize: "1em"
                  }} {..._props}/>
         )
     }

@@ -65,10 +65,12 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 	if assets, ok := config["assets"]; ok {
 		// Normalize the asset paths.
 		var assetPaths []string
-		for _, asset := range assets.([]interface{}) {
-			assetPath, _ := filepath.Abs(asset.(string))
-			assetPath, _ = filepath.Rel(repo.Path, assetPath)
-			assetPaths = append(assetPaths, assetPath)
+		if assets != nil {
+			for _, asset := range assets.([]interface{}) {
+				assetPath, _ := filepath.Abs(asset.(string))
+				assetPath, _ = filepath.Rel(repo.Path, assetPath)
+				assetPaths = append(assetPaths, assetPath)
+			}
 		}
 		// Push data to cloud.
 		if err := repo.PushData(assetPaths, GlobalUser.Username(), modelName, commit); err != nil {
@@ -279,10 +281,15 @@ func main() {
 				}
 
 				// Print the list of models.
-				fmt.Printf(format, "Name", "Tag", "Status")
-				fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
-				for _, result := range results {
-					fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+				fmt.Println()
+				if len(results) > 0 {
+					fmt.Printf(format, "Name", "Tag", "Status")
+					fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
+					for _, result := range results {
+						fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+					}
+				} else {
+					fmt.Println("You haven't uploaded any models yet :)")
 				}
 				return nil
 			},

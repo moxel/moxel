@@ -18,7 +18,6 @@ const StyledSearchLayout = styled(Flex)`
     }
 
     .catalogue-body-container {
-      margin-top: 50px;
     }
 
     .catalogue-body-container .model-snippet {

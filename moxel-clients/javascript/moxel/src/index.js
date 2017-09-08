@@ -7,8 +7,15 @@ if(typeof(window) != 'undefined' && !window.Buffer) {
 	require('es6-promise').polyfill();
 	require('isomorphic-fetch');
 }
+
 const Jimp = require('jimp');
 const async = require('async');
+var md5 = require('md5');
+
+var pjson = require('../package.json');
+
+const VERSION = 'js-' + pjson.version;
+console.log('Moxel client version', VERSION);
 
 
 var Moxel = function(config) {
@@ -19,9 +26,203 @@ var Moxel = function(config) {
 		var MOXEL_ENDPOINT = config.endpoint
 	}
 
-	// var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
-	var API_ENDPOINT = '/api'; // TODO: CORS for APIs.
+	var API_ENDPOINT = MOXEL_ENDPOINT + '/api';
+	// // Use devbox endpoint for debugging only.
+	// var API_ENDPOINT = "http://master-dev.dummy.ai:8080"
 	var MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model';	
+
+	class Utils {
+		static parseModelId(modelId) {
+			var parts = modelId.split(':');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+			var tag = parts[1];
+
+			parts = parts[0].split('/');
+			if(parts.length != 2) {
+				throw 'Ill-formated modelId: ' + modelId;
+			}
+
+			var user = parts[0];
+			var model = parts[1];
+
+			return {
+				user: user,
+				model: model,
+				tag: tag
+			}
+		}
+
+		static parseSpaceObject(spaceObject) {
+			var result = {};
+
+			for(var k in spaceObject) {
+				var v = spaceObject[k];
+				if(!space[v]) {
+					throw 'Type ' + v + ' is unknown.'
+				}
+				result[k] = space[v];
+			}
+
+			return result;
+		}
+
+		static encodeQueryParams(params) {
+			var esc = encodeURIComponent;
+			return Object.keys(params)
+			    .map(k => esc(k) + '=' + esc(params[k]))
+			    .join('&');
+		}
+
+		static uuidv4() {
+		  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		    return v.toString(16);
+		  });
+		}
+	}
+
+	class MasterAPI {
+		constructor() {
+
+		}
+
+		// Get model metadata from Master Server.
+		getModel(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + '/users/' + user + '/models/' + name + '/' + tag)
+				.then(function(response) {
+					return response.json();
+				})
+				.then(function(result) {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				});
+			})
+		}
+
+		// Get data URL for cloud storage.
+		getAssetURL(user, name, tag, path, verb) {
+			if(!path.startsWith('/'))  {
+				throw 'path must start with /';
+			}
+			if(!verb) verb = 'GET';
+			return new Promise((resolve, reject) => {
+				var params = {
+					user: user,
+					name: name,
+					cloud: 'gcloud',
+					path: `${tag}${path}`,
+					verb: verb
+				}
+				fetch(
+					API_ENDPOINT + `/url/data?${Utils.encodeQueryParams(params)}`, 
+					{
+						method: 'GET',
+					}) 
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					if(result.url) {
+						resolve(result.url);
+					}else{
+						reject('Cannot get asset URL');
+					}
+				})
+				.catch((err) => {
+					reject(err);
+				});
+			});
+		}
+
+		putExample(user, name, tag, exampleId, clientLatency) {
+			var clientVersion = VERSION;
+			return new Promise((resolve, reject) => {
+				var params = {
+					clientLatency: clientLatency,
+					clientVersion: clientVersion
+				};
+
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/examples/${exampleId}`, 
+				{
+					method: 'PUT',
+					headers: new Headers({
+						'Content-Type': 'application/json'
+					}),
+					body: JSON.stringify(params),
+				})
+				.then((response) => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		putDemoExample(user, name, tag, exampleId) {
+			var clientVersion = VERSION;
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/demo-examples/${exampleId}`, 
+				{
+					method: 'PUT',
+					headers: new Headers({
+						'Content-Type': 'application/json'
+					})
+				})
+				.then((response) => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		listExample(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/examples`, 
+				{
+					method: 'GET',
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		listDemoExample(user, name, tag) {
+			return new Promise((resolve, reject) => {
+				fetch(API_ENDPOINT + `/users/${user}/models/${name}/${tag}/demo-examples`, 
+				{
+					method: 'GET',
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					resolve(result);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+
+	}
+
+	var masterAPI = new MasterAPI();
 
 	class Image {
 		// img is Jimp image.
@@ -32,6 +233,7 @@ var Moxel = function(config) {
 			this.toBytes = this.toBytes.bind(this);
 			this.toBase64 = this.toBase64.bind(this);
 			this.toDataURL = this.toDataURL.bind(this);
+			this.toJimp = this.toJimp.bind(this);
 		}
 
 		// get shape of the image.
@@ -113,6 +315,18 @@ var Moxel = function(config) {
 				})
 			})
 		}
+
+		// Return Jimp representation.
+		toJimp() {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				if(!self.img) {
+					reject('No image available.')
+				}
+				resolve(self.img);
+			})
+		}
 	}
 
 	class MoxelString {
@@ -166,44 +380,6 @@ var Moxel = function(config) {
 		JSON: MoxelJSON
 	};
 
-	class Utils {
-		static parseModelId(modelId) {
-			var parts = modelId.split(':');
-			if(parts.length != 2) {
-				throw 'Ill-formated modelId: ' + modelId;
-			}
-			var tag = parts[1];
-
-			parts = parts[0].split('/');
-			if(parts.length != 2) {
-				throw 'Ill-formated modelId: ' + modelId;
-			}
-
-			var user = parts[0];
-			var model = parts[1];
-
-			return {
-				user: user,
-				model: model,
-				tag: tag
-			}
-		}
-
-		static parseSpaceObject(spaceObject) {
-			var result = {};
-
-			for(var k in spaceObject) {
-				var v = spaceObject[k];
-				if(!space[v]) {
-					throw 'Type ' + v + ' is unknown.'
-				}
-				result[k] = space[v];
-			}
-
-			return result;
-		}
-	}
-
 	class Model {
 		constructor(user, name, tag, result) {
 			this.user = user;
@@ -215,49 +391,295 @@ var Moxel = function(config) {
 			this.outputSpace = Utils.parseSpaceObject(this.metadata['output_space']);
 
 			this.predict = this.predict.bind(this);			
+			this._store = this._store.bind(this);
+			this.encode = this.encode.bind(this);
+			this.decode = this.decode.bind(this);
+			this._loadExample = this._loadExample.bind(this);
+			this.loadRuntimeExample = this.loadRuntimeExample.bind(this);
+			this.loadDemoExample = this.loadDemoExample.bind(this);
+			this.saveRuntimeExample = this.saveRuntimeExample.bind(this);
+			this.saveDemoExample = this.saveDemoExample.bind(this);
+			this._listExamples = this._listExamples.bind(this);
+			this.listRuntimeExamples = this.listRuntimeExamples.bind(this);
+			this.listDemoExamples = this.listDemoExamples.bind(this);
 		}
 
+		// TODO: if user has access to this code, they can store anything on our cloud.
+		// Save examples to cloud, as 
+		// {'input': inputBlob, 'output': outputBlob}
+		// return exmapleId.
+		_store(inputBlob, outputBlob) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				// Example id.
+				var timeStart = new Date().getTime();
+				var exampleBody = JSON.stringify({
+					'input': inputBlob,
+					'output': outputBlob
+				});
+
+				var exampleId = md5(`${self.user}/${self.name}:${self.tag}--` + exampleBody);
+
+				// fetch data URL from API.
+				console.log("About to store input and output");
+
+				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`, 'PUT')
+				.then((url) => {
+					console.log("Generated asset url " + url);
+					return fetch(url, {
+						method: 'PUT',
+						body: exampleBody,
+						headers: {
+							'Content-Type': 'application/octet-stream'
+						}
+					})
+				})
+				.then((response) => {
+					return response.text();
+				})
+				.then((text) => {
+					var clientLatency = new Date().getTime() - timeStart;
+					return masterAPI.putExample(self.user, self.name, self.tag, exampleId, clientLatency);
+				})
+				.then(() => {
+					resolve(exampleId);
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		// Encode input into blobs.
+		// Arguments:
+		// - data: is a object mapping of varName to objects of Moxel Type.
+		// - space: is the corresponding mapping of varName to varSpace.
+		encode(data, dataSpace) {
+			if(!data) {
+				throw 'Must have data to encode';
+			}
+			if(!dataSpace) {
+				throw 'Must have data space to decode';
+			}
+			return new Promise((resolve, reject) => {
+				var blob = {};
+				async.forEachOf(dataSpace,
+					(varSpace, varName, callback) => {
+						// Assume base64 encoding.
+						// Only works for Image now.
+						if(!data[varName]) {
+							throw 'Input must have argument ' + varName;
+						}
+						// console.log(data[varName]);
+						if(varSpace == space.Image) {
+							// Image.
+							data[varName].toBase64('image/png').then((item) => {
+								blob[varName] = item;
+								callback();	
+							});
+						}else if(varSpace == space.String) {
+							data[varName].toText().then((text) => {
+								blob[varName] = text;
+								callback();
+							})
+						}else if(varSpace == space.JSON) {
+							data[varName].toObject().then((object) => {
+								blob[varName] = object;
+								callback();
+							})
+						}else{
+							console.error('Unknown variable input space', varSpace);
+						}
+					},
+
+					(err) => {
+						if(err) {
+							reject(err);
+						}else{
+							resolve(blob);
+						}
+					}
+				)
+			});
+		}
+
+		// Decode output from blobs.
+		decode(blob, dataSpace) {
+			if(!blob) {
+				throw 'Must have blob to decode';
+			}
+			if(!dataSpace) {
+				throw 'Must have data space to decode';
+			}
+			return new Promise((resolve, reject) => {
+				var outputObject = {};
+				async.forEachOf(dataSpace,
+				(varSpace, varName, callback) => {
+					if(varSpace == space.Image) {
+						space.Image.fromBase64(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						});							
+					}else if(varSpace == space.JSON) {
+						space.JSON.fromObject(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						})
+					}else if(varSpace == space.String) {
+						space.String.fromText(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						})
+					}else{
+						console.error('Unknown variable output space', varSpace);
+					}
+				},
+				(err) => {
+					if(err) {
+						reject(err);
+					}else{
+						resolve(outputObject);
+					}
+				})
+			});
+		}
+
+		_loadExample(exampleId, demo) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}`, 'GET')
+				.then((url) => {
+					return fetch(url, {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/octet-stream'
+						}
+					})
+				})
+				.then((response) => {
+					return response.json();
+				})
+				.then((result) => {
+					var inputObject = {};
+					var outputObject = {};
+					self.decode(result.input, self.inputSpace)
+					.then((object) => {
+						inputObject = object;
+						return self.decode(result.output, self.outputSpace);
+					})
+					.then((object) => {
+						outputObject = object;
+						resolve({
+							'input': inputObject,
+							'output': outputObject
+						});
+					});
+				})
+				.catch((err) => {
+					reject(err);
+				});	
+			});
+		}
+
+		loadRuntimeExample(exampleId) {
+			return this._loadExample(exampleId, false);
+		}
+
+		loadDemoExample(exampleId) {
+			return this._loadExample(exampleId, true);
+		}
+
+		_saveExample(inputObject, outputObject, clientLatency, demo) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				var inputBlob = {};
+				var outputBlob = {};
+				self.encode(inputObject, self.inputSpace)
+				.then((blob) => {
+					inputBlob = blob;
+					return self.encode(outputObject, self.outputSpace);
+				})
+				.then((blob) => {
+					outputBlob = blob;
+					return self._store(inputBlob, outputBlob);
+				})
+				.then((exampleId) => {
+					if(demo) {
+						return masterAPI.putDemoExample(self.user, self.name, self.tag, exampleId);	
+					}else{
+						return masterAPI.putExample(self.user, self.name, self.tag, clientLatency, exampleId);	
+					}
+					
+				})
+				.then(() => {
+					resolve();
+				})
+				.catch((err) => {
+					reject(err);
+				})
+			});
+		}
+
+		saveRuntimeExample(inputObject, outputObject, clientLatency) {
+			return this._saveExample(inputObject, outputObject, clientLatency, false);
+		}
+
+		saveDemoExample(inputObject, outputObject) {
+			return this._saveExample(inputObject, outputObject, null, true)
+		}
+
+		_listExamples(demo) {
+			var self = this;
+
+			return new Promise((resolve, reject) => {
+				if(demo) {
+					masterAPI.listDemoExample(self.user, self.name, self.tag)
+					.then((result) => {
+						resolve(result);
+					})
+					.catch((err) => {
+						reject(err);
+					});
+				}else{
+					masterAPI.listExample(self.user, self.name, self.tag)
+					.then((result) => {
+						resolve(result);
+					})
+					.catch((err) => {
+						reject(err);
+					});
+				}
+				
+			});
+		}
+
+		listRuntimeExamples() {
+			return this._listExamples(false);
+		}
+
+		listDemoExamples() {
+			return this._listExamples(true);
+		}
+
+		// Main prediction function.
 		predict(kwargs) {
 			var self = this;
+			
+			// First encodes inputObject (kwargs) into inputBlob.
+			// Sends the inputBlob to API endpoint.
+			// Get back an outputBlob.
+			// Decode the outputBlob into outputObject.
 			return new Promise(function(resolve, reject) {
-				// Wrap input.
-				var inputObject = {};
+				// Input encoding.
+				var inputBlob = {};
 
-				new Promise((resolve, reject) => {
-					async.forEachOf(self.inputSpace,
-						(varSpace, varName, callback) => {
-							// Assume base64 encoding.
-							// Only works for Image now.
-							if(!kwargs[varName]) {
-								throw 'Input must have argument ' + varName;
-							}
-							// console.log(kwargs[varName]);
-							if(varSpace == space.Image) {
-								// Image.
-								kwargs[varName].toBase64('image/png').then((inputItem) => {
-									inputObject[varName] = inputItem;
-									callback();	
-								});
-							}else if(varSpace == space.String) {
-								kwargs[varName].toText().then((text) => {
-									inputObject[varName] = text;
-									callback();
-								})
-							}else{
-								console.error('Unknown variable input space', varSpace);
-							}
-						},
-
-						(err) => {
-							if(err) {
-								reject(err);
-							}else{
-								resolve();
-							}
-						}
-					)	
-				}).then(() => {
-					console.log('Moxel input', inputObject);
+				self.encode(kwargs, self.inputSpace)
+				.then((blob) => {
+					inputBlob = blob;
+					console.log('Moxel input blob', inputBlob);
 					// Make HTTP REST request.
 					return fetch(MODEL_ENDPOINT + '/' + self.user + '/' + self.name + '/' + self.tag,
 						{
@@ -265,46 +687,19 @@ var Moxel = function(config) {
 							headers: new Headers({
 	                        	'Content-Type': 'application/json'
 	                    	}),
-	                    	body: JSON.stringify(inputObject)
+	                    	body: JSON.stringify(inputBlob)
 	                    }
-					)	
+					);
 				}).then((response) => {
 					return response.json();
-				}).then((result) => {
+				}).then((outputBlob) => {
 					// Parse result.
-					console.log('Moxel result', result);
+					console.log('Moxel output blob', outputBlob);
 					var outputObject = {};
 
-					return new Promise((resolve, reject) => {
-						async.forEachOf(self.outputSpace,
-						(varSpace, varName, callback) => {
-							if(varSpace == space.Image) {
-								space.Image.fromBase64(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								});							
-							}else if(varSpace == space.JSON) {
-								space.JSON.fromObject(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								})
-							}else if(varSpace == space.String) {
-								space.String.fromText(result[varName]).then((outputItem) => {
-									outputObject[varName] = outputItem;
-									callback();
-								})
-							}else{
-								console.error('Unknown variable output space', varSpace);
-							}
-						},
-						(err) => {
-							if(err) {
-								reject(err);
-							}else{
-								resolve(outputObject);
-							}
-						})
-					});
+					self._store(inputBlob, outputBlob).then((exampleId) => {console.log('exampleId', exampleId);});
+
+					return self.decode(outputBlob, self.outputSpace);
 				}).then((outputObject) => {
 					resolve(outputObject);	
 				});	
@@ -319,16 +714,14 @@ var Moxel = function(config) {
 			var name = parts.model;
 			var tag = parts.tag;
 
-			fetch(API_ENDPOINT + '/users/' + user + '/models/' + name + '/' + tag).then(function(response) {
-				return response.json();
-			}).then(function(result) {
+			masterAPI.getModel(user, name, tag).then((result) => {
 				var model = new Model(user, name, tag, result);
 				if(model.status == 'LIVE') {
 					resolve(model);
 				}else{
 					reject('The model must be in LIVE state');
 				}
-			})
+			});
 		});
 	}	
 

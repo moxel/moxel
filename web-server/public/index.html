@@ -9,6 +9,7 @@
       homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <link rel="icon" href="/images/x.png">
     <!-- <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico"> -->
     <link rel="stylesheet" href="https://sindresorhus.com/github-markdown-css/github-markdown.css">
     <!--
@@ -35,6 +36,31 @@
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <title>__META:TITLE__</title>
+
+    <meta charset="UTF-8">
+    <!-- Open Graph meta tags -->
+    <meta property="og:title" content="__META:OG:TITLE__">
+    <meta property="og:url" content="__META:OG:URL__">
+    <meta property="og:type" content="__META:OG:TYPE__">
+    <meta property="og:description" content="__META:OG:DESCRIPTION__">
+    <!-- Regular meta tags -->
+    <meta name="description" content="__META:DESCRIPTION__">
+    <meta name="keywords" content="__META:KEYWORDS__">
+    <meta name="author" content="__META:AUTHOR__">
+    
+    <!-- SSR:CSS -->
+  </head>
+  <body>
+    <div id="root">
+      <!-- SSR:HTML -->
+    </div>
+    
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github-gist.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
     <!-- JS for material -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/materialize/0.98.0/js/materialize.min.js"></script>
@@ -44,24 +70,13 @@
     <!--Import Materialize-Stepper JavaScript (after the jquery.validate.js and materialize.js) -->
     <script src="/js/materialize-stepper.min.js"></script>
 
-    <!-- Syntax highlighting -->
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github-gist.min.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-598845f9cbaea48c"></script>
 
-    <title>Moxel</title>
-
-    <meta charset="UTF-8">
-    <meta name="description" content="World's Best Models, Built by Community">
-    <meta name="keywords" content="Machine Learning,Model,Community,Artificial Intelligence, Deep Learning">
-    <meta name="author" content="Tim Shi">
-    
-    <!-- SSR:CSS -->
-  </head>
-  <body>
-    <div id="root">
-      <!-- SSR:HTML -->
-    </div>
-    
+    <script>
+      window.intercomSettings = {
+        app_id: "rfc9md1d"
+      };
+    </script>
+    <script>(function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',intercomSettings);}else{var d=document;var i=function(){i.c(arguments)};i.q=[];i.c=function(args){i.q.push(args)};w.Intercom=i;function l(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/rfc9md1d';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})()</script>
   </body>
 </html>

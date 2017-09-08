@@ -1,8 +1,20 @@
 [
     {
       "origin": ["http://localhost:3000"],
-      "responseHeader": ["Content-Type"],
-      "method": ["GET", "HEAD", "DELETE", "PUT"],
+      "responseHeader": ["Content-Type", "Origin"],
+      "method": ["GET", "HEAD", "DELETE", "PUT", "OPTIONS"],
+      "maxAgeSeconds": 3600
+    },
+    {
+      "origin": ["http://dev.moxel.ai"],
+      "responseHeader": ["Content-Type", "Origin"],
+      "method": ["GET", "HEAD", "DELETE", "PUT", "OPTIONS"],
+      "maxAgeSeconds": 3600
+    },
+    {
+      "origin": ["http://beta.moxel.ai"],
+      "responseHeader": ["Content-Type", "Origin"],
+      "method": ["GET", "HEAD", "DELETE", "PUT", "OPTIONS"],
       "maxAgeSeconds": 3600
     }
 ]
