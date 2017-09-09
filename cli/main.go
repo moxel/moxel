@@ -197,6 +197,300 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 	return config
 }
 
+func CommandVersion() cli.Command {
+	return cli.Command{
+		Name:  "version",
+		Usage: "Print version of CLI",
+		Action: func(c *cli.Context) error {
+			fmt.Println(CLI_VERSION)
+			return nil
+		},
+	}
+}
+
+func CommandLogin() cli.Command {
+	return cli.Command{
+		Name:  "login",
+		Usage: "Login to dummy.ai",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "debug",
+				Usage: "Show debugging information",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			GlobalContext = c
+			StartLoginFlow()
+			return nil
+		},
+	}
+}
+
+func CommandTeardown() cli.Command {
+	return cli.Command{
+		Name:  "teardown",
+		Usage: "moxel teardown [model]:[tag]",
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			modelId := c.Args().Get(0)
+			modelName, tag, err := ParseModelId(modelId)
+			if err != nil {
+				return err
+			}
+
+			if err := TeardownModel(modelName, tag); err != nil {
+				return err
+			}
+
+			fmt.Println("  Successfully torn down", modelId)
+			return nil
+
+		},
+	}
+}
+
+func CommandDeploy() cli.Command {
+	return cli.Command{
+		Name:  "deploy",
+		Usage: "moxel deploy [model-name]:[tag]",
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			modelId := c.Args().Get(0)
+			modelName, tag, err := ParseModelId(modelId)
+			if err != nil {
+				return err
+			}
+
+			return DeployModel(modelName, tag)
+		},
+	}
+}
+
+func CommandLS() cli.Command {
+	return cli.Command{
+		Name:      "ls",
+		Usage:     "List your models on Moxel",
+		ArgsUsage: " ",
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			userId := GlobalUser.Username()
+			modelName := c.Args().Get(0)
+
+			fmt.Println("Logged in as", "\""+userId+"\"")
+
+			format := "%40s | %20s | %10s\n"
+
+			var results []map[string]interface{}
+			var err error
+
+			if modelName == "" {
+				// List all models under user name.
+				results, err = GlobalAPI.ListModels(userId)
+				if err != nil {
+					return err
+				}
+			} else {
+				// List versions of the given model.
+				results, err = GlobalAPI.ListModelTags(userId, modelName)
+				if err != nil {
+					return err
+				}
+			}
+
+			// Print the list of models.
+			fmt.Println()
+			if len(results) > 0 {
+				fmt.Printf(format, "Name", "Tag", "Status")
+				fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
+				for _, result := range results {
+					fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
+				}
+			} else {
+				fmt.Println("You haven't uploaded any models yet :)")
+			}
+			return nil
+		},
+	}
+}
+
+func CommandPush() cli.Command {
+	return cli.Command{
+		Name:  "push",
+		Usage: "push -f [file] [model:tag]",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "file, f",
+				Value: "dummy.yml",
+				Usage: "The YAML filename",
+			},
+			cli.StringFlag{
+				Name:  "modelId, m",
+				Value: "",
+				Usage: "ID of the model to be pushed.",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			file := c.String("file")
+			modelId := c.Args().Get(0)
+
+			modelName, tag, err := ParseModelId(modelId)
+			if err != nil {
+				return err
+			}
+
+			// Check if model repo is available.
+			// If model is created from Moxel site,
+			// then <modelName>:latest is created by default.
+			models, err := GlobalAPI.ListModelTags(GlobalUser.Username(), modelName)
+			if err != nil {
+				return err
+			}
+			if len(models) == 0 {
+				return errors.New(fmt.Sprintf(
+					"Model %s does not exist. Please create it first on Moxel website.", modelName) + "\n" +
+					CreateModelURL)
+			}
+
+			// Load configuration.
+			repo, err := GetWorkingRepo()
+			if err != nil {
+				return err
+			}
+
+			cwd, _ := os.Getwd()
+			cwd, _ = filepath.Abs(cwd)
+
+			config, err := LoadYAML(file)
+			if err != nil {
+				return err
+			}
+
+			if err := VerifyModelConfig(config); err != nil {
+				return err
+			}
+
+			config = CleanupModelConfig(config)
+
+			// Default map values for compatibility.
+			// Compute workpath.
+			moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
+			workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
+			config["work_path"] = workPath
+
+			fmt.Printf("> Model %s:%s\n", modelName, tag)
+
+			// Check to see if model already exists.
+			modelData, err := GetModel(modelName, tag)
+			if err != nil {
+				return err
+			}
+
+			if modelData["status"] == "LIVE" {
+				fmt.Printf("Model is LIVE!. Teardown it down? [y/n]\t")
+				if err := TeardownModel(modelName, tag); err != nil {
+					return err
+				}
+			}
+
+			// Push code to git registry.
+			commit, err := PushCode(repo, modelName)
+			if err != nil {
+				return err
+			}
+			fmt.Println("> Commit ", commit)
+
+			// Push assets to cloud storage.
+			if err := PushAssets(repo, modelName, commit, config); err != nil {
+				return err
+			}
+
+			// Create model in the database.
+			if err := PutModel(modelName, tag, commit, config); err != nil {
+				return err
+			}
+
+			// Deploy model.
+			if err := DeployModel(modelName, tag); err != nil {
+				return err
+			}
+
+			fmt.Println("> Done. Showing logs from model:")
+			fmt.Println("-------------------------------------------")
+
+			// Stream logs from model.
+			bytesRead := 0
+			for {
+				resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
+				if err != nil {
+					break
+				}
+				bytes := resp.Bytes()
+				if bytes == nil {
+					break
+				}
+				// fmt.Println("bytesRead", bytesRead)
+				// fmt.Println("bytesBuffer", len(bytes))
+				fmt.Print(string(bytes[bytesRead:len(bytes)]))
+				bytesRead = len(bytes)
+			}
+
+			return nil
+		},
+	}
+}
+
+func CommandLogs() cli.Command {
+	return cli.Command{
+		Name:  "logs",
+		Usage: "log [model:tag]",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "modelId, m",
+				Value: "",
+				Usage: "ID of the model to be pushed.",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			modelId := c.Args().Get(0)
+
+			modelName, tag, err := ParseModelId(modelId)
+			if err != nil {
+				return err
+			}
+
+			resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
+			buffer := make([]byte, 128)
+			for {
+				bytesRead, err := resp.Read(buffer)
+				if bytesRead == 0 || err != nil {
+					break
+				}
+				fmt.Printf(string(buffer))
+			}
+
+			fmt.Println()
+			return nil
+		},
+	}
+}
+
 func main() {
 	// Update help template.
 	cli.AppHelpTemplate = fmt.Sprintf("%s\nWEBSITE: %s\nSUPPORT: support@moxel.ai\n", WebsiteAddress, cli.AppHelpTemplate)
@@ -217,279 +511,13 @@ func main() {
 	}
 
 	app.Commands = []cli.Command{
-		{
-			Name:  "version",
-			Usage: "Print version of CLI",
-			Action: func(c *cli.Context) error {
-				fmt.Println(CLI_VERSION)
-				return nil
-			},
-		},
-		{
-			Name:  "login",
-			Usage: "Login to dummy.ai",
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "debug",
-					Usage: "Show debugging information",
-				},
-			},
-			Action: func(c *cli.Context) error {
-				GlobalContext = c
-				StartLoginFlow()
-				return nil
-			},
-		},
-		{
-			Name:  "teardown",
-			Usage: "moxel teardown [model]:[tag]",
-			Action: func(c *cli.Context) error {
-				if err := InitGlobal(c); err != nil {
-					return err
-				}
-
-				modelId := c.Args().Get(0)
-				modelName, tag, err := ParseModelId(modelId)
-				if err != nil {
-					return err
-				}
-
-				if err := TeardownModel(modelName, tag); err != nil {
-					return err
-				}
-
-				fmt.Println("  Successfully torn down", modelId)
-				return nil
-
-			},
-		},
-		{
-			Name:  "deploy",
-			Usage: "moxel deploy [model-name]:[tag]",
-			Action: func(c *cli.Context) error {
-				if err := InitGlobal(c); err != nil {
-					return err
-				}
-
-				modelId := c.Args().Get(0)
-				modelName, tag, err := ParseModelId(modelId)
-				if err != nil {
-					return err
-				}
-
-				return DeployModel(modelName, tag)
-			},
-		},
-		{
-			Name:      "ls",
-			Usage:     "List your models on Moxel",
-			ArgsUsage: " ",
-			Action: func(c *cli.Context) error {
-				if err := InitGlobal(c); err != nil {
-					return err
-				}
-
-				userId := GlobalUser.Username()
-				modelName := c.Args().Get(0)
-
-				fmt.Println("Logged in as", "\""+userId+"\"")
-
-				format := "%40s | %20s | %10s\n"
-
-				var results []map[string]interface{}
-				var err error
-
-				if modelName == "" {
-					// List all models under user name.
-					results, err = GlobalAPI.ListModels(userId)
-					if err != nil {
-						return err
-					}
-				} else {
-					// List versions of the given model.
-					results, err = GlobalAPI.ListModelTags(userId, modelName)
-					if err != nil {
-						return err
-					}
-				}
-
-				// Print the list of models.
-				fmt.Println()
-				if len(results) > 0 {
-					fmt.Printf(format, "Name", "Tag", "Status")
-					fmt.Printf(format, strings.Repeat("-", 40), strings.Repeat("-", 20), strings.Repeat("-", 10))
-					for _, result := range results {
-						fmt.Printf(format, result["name"].(string), result["tag"].(string), result["status"].(string))
-					}
-				} else {
-					fmt.Println("You haven't uploaded any models yet :)")
-				}
-				return nil
-			},
-		},
-		{
-			Name:  "push",
-			Usage: "push -f [file] [model:tag]",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "file, f",
-					Value: "dummy.yml",
-					Usage: "The YAML filename",
-				},
-				cli.StringFlag{
-					Name:  "modelId, m",
-					Value: "",
-					Usage: "ID of the model to be pushed.",
-				},
-			},
-			Action: func(c *cli.Context) error {
-				if err := InitGlobal(c); err != nil {
-					return err
-				}
-
-				file := c.String("file")
-				modelId := c.Args().Get(0)
-
-				modelName, tag, err := ParseModelId(modelId)
-				if err != nil {
-					return err
-				}
-
-				// Check if model repo is available.
-				// If model is created from Moxel site,
-				// then <modelName>:latest is created by default.
-				models, err := GlobalAPI.ListModelTags(GlobalUser.Username(), modelName)
-				if err != nil {
-					return err
-				}
-				if len(models) == 0 {
-					return errors.New(fmt.Sprintf(
-						"Model %s does not exist. Please create it first on Moxel website.", modelName) + "\n" +
-						CreateModelURL)
-				}
-
-				// Load configuration.
-				repo, err := GetWorkingRepo()
-				if err != nil {
-					return err
-				}
-
-				cwd, _ := os.Getwd()
-				cwd, _ = filepath.Abs(cwd)
-
-				config, err := LoadYAML(file)
-				if err != nil {
-					return err
-				}
-
-				if err := VerifyModelConfig(config); err != nil {
-					return err
-				}
-
-				config = CleanupModelConfig(config)
-
-				// Default map values for compatibility.
-				// Compute workpath.
-				moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
-				workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
-				config["work_path"] = workPath
-
-				fmt.Printf("> Model %s:%s\n", modelName, tag)
-
-				// Check to see if model already exists.
-				modelData, err := GetModel(modelName, tag)
-				if err != nil {
-					return err
-				}
-
-				if modelData["status"] == "LIVE" {
-					fmt.Printf("Model is LIVE!. Teardown it down? [y/n]\t")
-					if err := TeardownModel(modelName, tag); err != nil {
-						return err
-					}
-				}
-
-				// Push code to git registry.
-				commit, err := PushCode(repo, modelName)
-				if err != nil {
-					return err
-				}
-				fmt.Println("> Commit ", commit)
-
-				// Push assets to cloud storage.
-				if err := PushAssets(repo, modelName, commit, config); err != nil {
-					return err
-				}
-
-				// Create model in the database.
-				if err := PutModel(modelName, tag, commit, config); err != nil {
-					return err
-				}
-
-				// Deploy model.
-				if err := DeployModel(modelName, tag); err != nil {
-					return err
-				}
-
-				fmt.Println("> Done. Showing logs from model:")
-				fmt.Println("-------------------------------------------")
-
-				// Stream logs from model.
-				bytesRead := 0
-				for {
-					resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
-					if err != nil {
-						break
-					}
-					bytes := resp.Bytes()
-					if bytes == nil {
-						break
-					}
-					// fmt.Println("bytesRead", bytesRead)
-					// fmt.Println("bytesBuffer", len(bytes))
-					fmt.Print(string(bytes[bytesRead:len(bytes)]))
-					bytesRead = len(bytes)
-				}
-
-				return nil
-			},
-		},
-		{
-			Name:  "logs",
-			Usage: "log [model:tag]",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "modelId, m",
-					Value: "",
-					Usage: "ID of the model to be pushed.",
-				},
-			},
-			Action: func(c *cli.Context) error {
-				if err := InitGlobal(c); err != nil {
-					return err
-				}
-
-				modelId := c.Args().Get(0)
-
-				modelName, tag, err := ParseModelId(modelId)
-				if err != nil {
-					return err
-				}
-
-				resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
-				buffer := make([]byte, 128)
-				for {
-					bytesRead, err := resp.Read(buffer)
-					if bytesRead == 0 || err != nil {
-						break
-					}
-					fmt.Printf(string(buffer))
-				}
-
-				fmt.Println()
-				return nil
-			},
-		},
+		CommandVersion(),
+		CommandLogin(),
+		CommandTeardown(),
+		CommandDeploy(),
+		CommandLS(),
+		CommandPush(),
+		CommandLogs(),
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
