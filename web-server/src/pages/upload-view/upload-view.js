@@ -68,7 +68,7 @@ class UploadView extends Component {
             }
         }
 
-        this.steps = [{title: 'Install Warpdrive'}, {title: 'Wrap Your Model'}, {title: 'Deploy Your Model'}, {title: 'Finish'}] 
+        this.steps = [{title: 'Install Moxel'}, {title: 'Wrap Your Model'}, {title: 'Deploy Your Model'}, {title: 'Finish'}] 
         
     }
 
@@ -159,6 +159,8 @@ class UploadView extends Component {
     }
 
     render() {
+        var self = this;
+
         let content = null;
 
         this.nextStepEnabled = true;
@@ -247,12 +249,20 @@ class UploadView extends Component {
                                     <Markdown tagName="instruction" className="markdown-body">
                                     <br/>
                                     {`   
+                                        Moxel works with git repositories. Make sure your project is tracked by git.
+
                                         The first step is to wrap your model in a python Flask server. Let's use \`server.py\`.
 
-                                        The server has two endpoints: 
+                                        Here is an example to show a "random number generator" model. The server has two endpoints: \`healthcheck\` and \`predict\`. 
+
+                                        The healthcheck endpoint is just for detecting if the model is available. The predict endpoint takes a JSON input and produces JSON output.
+
+
 
                                         \`\`\`python
-                                        from flask import Flask, jsonify
+                                        from flask import Flask, jsonify, request
+                                        import random
+
                                         app = Flask(__name__)
 
                                         @app.route('/', methods=['GET'])
@@ -262,15 +272,21 @@ class UploadView extends Component {
                                         @app.route('/', methods=['POST'])
                                         def predict():
                                             data = request.json
-                                            ...
-                                            return jsonify(result)
+                                            seed = data['seed']
+                                            random.seed(int(seed))
+                                            return jsonify({
+                                                'number': string(random.random())
+                                            })
 
                                         app.run(port=5900, host='0.0.0.0')
                                         \`\`\`
 
-                                        The \`GET\` endpoint is a probe for the health status of the model. 
+                                        Save this script to some file, say \`serve-model.py\`. Then 
 
-                                        The \`POST\` endpoint is where model prediction happens. You need to wrap input and ouput as JSON.
+                                        \`\`\`
+                                        git add serve-model.py
+                                        \`\`\`
+
 
                                     `}
                                     </Markdown>                            
@@ -287,20 +303,17 @@ class UploadView extends Component {
                 )
                 break; 
             case 2: // Deploy Your Model.
-                let yaml = ("image: dummyai/py3-tf-gpu\n" +
-                            "assets:\n" +
-                            "- (path to weight file)\n" +
+                let yaml = ("image: moxel/python3\n" +
                             "resources:\n" +
-                            "  memory: 1Gi\n" +
+                            "  memory: 256Mi\n" +
                             "  cpu: 1\n" +
                             "input_space:\n" +
-                            "  (key):(value):\n" +
+                            "  seed: String\n" +
                             "output_space:\n" +
-                            "  (key):(value):\n" +
+                            "  number: String\n" +
                             "cmd:\n" +
-                            "- (command 1)\n" +
-                            "- (command 2)\n" +
-                            "- ...\n"
+                            "- echo 'Hello, world'\n" +
+                            "- python serve-model.py\n"
                             )
 
                 content = (
@@ -351,7 +364,7 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                        <input id="warp-create" value="moxel push -f moxel.yml <model>:<tag>" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                        <input id="warp-create" value={`moxel push -f moxel.yml ${self.modelId}:${self.tag}`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                     </div>
                                     <div className="col s12 m2">
                                         <ClipboardButton className="btn-flat" data-clipboard-target="#warp-create">
@@ -362,7 +375,7 @@ class UploadView extends Component {
 
                                 <div className="row">
                                     <div className="col s12 offset-m1 m8">
-                                    Read our <a href="http://docs.dummy.ai/deploy/" target="_blank">documentation</a> to learn more about deployment.
+                                    Read our <a href="http://docs.moxel.ai/deploy/" target="_blank">documentation</a> to learn more about deployment.
                                     </div>
                                 </div>
                             {/*</div>*/}

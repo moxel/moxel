@@ -144,7 +144,6 @@ func (api *MasterAPI) ListModelTags(userId string, modelName string) ([]map[stri
 		if data == nil {
 			return []map[string]interface{}{}, nil
 		}
-
 		interfaces := data.([]interface{})
 		for _, item := range interfaces {
 			results = append(results, item.(map[string]interface{}))

@@ -1070,30 +1070,30 @@ class ModelView extends Component {
             );
         }
 
-        function renderModelDescription() {
-            if(LayoutUtils.isMobile()) {
-                var descriptionStyle = {
-                    marginTop: "20px"
-                };
-            }else{
-                var descriptionStyle = {};
+        function renderModelDescriptionEditor() {
+            var defaultValue = model.description;
+            if(!defaultValue) {
+                defaultValue = "(Add some descriptions for the model here)";
             }
             return (
-                <div style={descriptionStyle}>
-                    {
-                        self.state.editMode
-                        ?
-                        (
-                            <textarea id="model-description" defaultValue={model.description} className="editable-input" 
-                                style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
-                        )
-                        :
-                        (
-                            <p>{model.description}</p>
-                        )
-                    }
-                </div>
+                <textarea id="model-description" defaultValue={defaultValue} className="editable-input" 
+                        style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
             );
+        }
+
+        function renderModelDescriptionDisplay() {
+            return <p>{model.description}</p>
+        }
+
+        function renderModelDescription() {
+            var descriptionStyle = (
+                LayoutUtils.isMobile() ? { marginTop: "20px" } :  {}
+            );
+            if(self.state.editMode) {
+                return <div style={descriptionStyle}> {renderModelDescriptionEditor()} </div>
+            }else{
+                return <div style={descriptionStyle}> {renderModelDescriptionDisplay()} </div>
+            }
         }
 
         function renderSaveDemoButton() {
@@ -1271,7 +1271,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Deploy Model</a>
+                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
                                         </div>
                                     </div>
                                 </div>

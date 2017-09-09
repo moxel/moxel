@@ -1,4 +1,4 @@
-URL='dummyai/python3'
+URL='moxel/python3'
 
 CMD ?= "hello" 
 

@@ -12,10 +12,12 @@ spec:
     spec:
       containers:
       - name: main
-        image: dummyai/web-server
+        image: moxel/web-server
         ports:
         - containerPort: 3000
         tty: true
+      imagePullSecrets:
+      - name: regsecret
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
