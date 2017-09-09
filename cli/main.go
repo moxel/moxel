@@ -433,22 +433,10 @@ func CommandPush() cli.Command {
 			fmt.Println("-------------------------------------------")
 
 			// Stream logs from model.
-			bytesRead := 0
-			for {
-				resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
-				if err != nil {
-					break
-				}
-				bytes := resp.Bytes()
-				if bytes == nil {
-					break
-				}
-				// fmt.Println("bytesRead", bytesRead)
-				// fmt.Println("bytesBuffer", len(bytes))
-				fmt.Print(string(bytes[bytesRead:len(bytes)]))
-				bytesRead = len(bytes)
+			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout)
+			if err != nil {
+				return err
 			}
-
 			return nil
 		},
 	}
@@ -471,14 +459,9 @@ func CommandLogs() cli.Command {
 				return err
 			}
 
-			resp, err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag)
-			buffer := make([]byte, 128)
-			for {
-				bytesRead, err := resp.Read(buffer)
-				if bytesRead == 0 || err != nil {
-					break
-				}
-				fmt.Printf(string(buffer))
+			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout)
+			if err != nil {
+				return err
 			}
 
 			fmt.Println()
@@ -495,6 +478,9 @@ func main() {
 	app.Version = CLI_VERSION
 	app.Name = "Moxel"
 	app.Usage = "World's Best Models, Built by the Community."
+	app.CommandNotFound = func(c *cli.Context, command string) {
+		fmt.Fprintf(c.App.Writer, "Command %q is not found.\n", command)
+	}
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{

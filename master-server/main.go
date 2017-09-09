@@ -638,7 +638,9 @@ func logModel(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
 		userId, modelId, tag))
 
-	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, false, w); err != nil {
+	w.WriteHeader(200)
+	tw := FlushedWriter{HttpWriter: w}
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, true, &tw); err != nil {
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
 	}
 }
@@ -901,8 +903,8 @@ func main() {
 		server := &http.Server{
 			Handler:      router,
 			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterPort),
-			WriteTimeout: 15 * time.Second,
-			ReadTimeout:  15 * time.Second,
+			WriteTimeout: 3600 * time.Second,
+			ReadTimeout:  3600 * time.Second,
 		}
 		err = server.ListenAndServe()
 		if err != nil {
