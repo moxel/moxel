@@ -96,8 +96,8 @@ func (api *MasterAPI) GetModel(user string, name string, tag string) (*grequests
 	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{})
 }
 
-func (api *MasterAPI) LogModel(user string, name string, tag string, out io.Writer) error {
-	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log", user, name, tag)),
+func (api *MasterAPI) LogModel(user string, name string, tag string, out io.Writer, follow bool) error {
+	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log?follow=%v", user, name, tag, follow)),
 		&grequests.RequestOptions{
 			RequestTimeout: 3600 * time.Second,
 			DialKeepAlive:  3600 * time.Second,

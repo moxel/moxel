@@ -433,7 +433,7 @@ func CommandPush() cli.Command {
 			fmt.Println("-------------------------------------------")
 
 			// Stream logs from model.
-			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout)
+			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout, true)
 			if err != nil {
 				return err
 			}
@@ -447,11 +447,18 @@ func CommandLogs() cli.Command {
 		Name:      "logs",
 		Usage:     "Show the logs of a model",
 		ArgsUsage: "[model]:[tag]",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "follow, f",
+				Usage: "Follow log output",
+			},
+		},
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
 				return err
 			}
 
+			follow := c.Bool("follow")
 			modelId := c.Args().Get(0)
 
 			modelName, tag, err := ParseModelId(modelId)
@@ -459,7 +466,7 @@ func CommandLogs() cli.Command {
 				return err
 			}
 
-			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout)
+			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout, follow)
 			if err != nil {
 				return err
 			}

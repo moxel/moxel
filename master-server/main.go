@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -635,13 +636,18 @@ func logModel(w http.ResponseWriter, r *http.Request) {
 	modelId := vars["model"]
 	tag := vars["tag"]
 
+	follow, err := strconv.ParseBool(r.URL.Query().Get("follow"))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
 	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
 		userId, modelId, tag))
 
 	w.WriteHeader(200)
-	tw := FlushedWriter{HttpWriter: w}
-	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, true, &tw); err != nil {
-		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+	flushedWriter := FlushedWriter{HttpWriter: w}
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, follow, &flushedWriter); err != nil {
+		http.Error(w, err.Error(), 500)
 	}
 }
 
