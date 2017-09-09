@@ -16,13 +16,13 @@ func ParseModelId(modelId string) (string, string, error) {
 	modelIdParts := strings.Split(modelId, ":")
 
 	if len(modelIdParts) != 2 {
-		return "", "", errors.New("Ill-formatted modelId \"" + modelId + "\"")
+		return "", "", errors.New("Ill-formatted model id \"" + modelId + "\". Should be [model]:[tag].")
 	}
 
 	modelName := modelIdParts[0]
 
 	if strings.Contains(modelName, "/") {
-		return "", "", errors.New(fmt.Sprintf("Ill-formatted modelName %s: shouldn't contain /", modelName))
+		return "", "", errors.New(fmt.Sprintf("Ill-formatted model name %s: shouldn't contain /", modelName))
 	}
 
 	tag := modelIdParts[1]
@@ -211,7 +211,7 @@ func CommandVersion() cli.Command {
 func CommandLogin() cli.Command {
 	return cli.Command{
 		Name:  "login",
-		Usage: "Login to dummy.ai",
+		Usage: "Log in Moxel",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "debug",
@@ -228,8 +228,9 @@ func CommandLogin() cli.Command {
 
 func CommandTeardown() cli.Command {
 	return cli.Command{
-		Name:  "teardown",
-		Usage: "moxel teardown [model]:[tag]",
+		Name:      "teardown",
+		Usage:     "Teardown a model",
+		ArgsUsage: "[model]:[tag]",
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
 				return err
@@ -255,7 +256,7 @@ func CommandTeardown() cli.Command {
 func CommandDeploy() cli.Command {
 	return cli.Command{
 		Name:  "deploy",
-		Usage: "moxel deploy [model-name]:[tag]",
+		Usage: "Deploy an existing model",
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
 				return err
@@ -324,13 +325,14 @@ func CommandLS() cli.Command {
 
 func CommandPush() cli.Command {
 	return cli.Command{
-		Name:  "push",
-		Usage: "push -f [file] [model:tag]",
+		Name:      "push",
+		Usage:     "Push model to Moxel",
+		ArgsUsage: "-f [yaml] [model]:[tag]",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "file, f",
-				Value: "dummy.yml",
-				Usage: "The YAML filename",
+				Value: "moxel.yml",
+				Usage: "Config file to specify the model",
 			},
 			cli.StringFlag{
 				Name:  "modelId, m",
@@ -454,15 +456,9 @@ func CommandPush() cli.Command {
 
 func CommandLogs() cli.Command {
 	return cli.Command{
-		Name:  "logs",
-		Usage: "log [model:tag]",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "modelId, m",
-				Value: "",
-				Usage: "ID of the model to be pushed.",
-			},
-		},
+		Name:      "logs",
+		Usage:     "Show the logs of a model",
+		ArgsUsage: "[model]:[tag]",
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
 				return err
@@ -493,10 +489,12 @@ func CommandLogs() cli.Command {
 
 func main() {
 	// Update help template.
-	cli.AppHelpTemplate = fmt.Sprintf("%s\nWEBSITE: %s\nSUPPORT: support@moxel.ai\n", WebsiteAddress, cli.AppHelpTemplate)
+	cli.AppHelpTemplate = fmt.Sprintf("%s\nVisit Moxel website at %s\nIf you have any questions, contact us at support@moxel.ai\n", cli.AppHelpTemplate, WebsiteAddress)
 	// Start application.
 	app := cli.NewApp()
 	app.Version = CLI_VERSION
+	app.Name = "Moxel"
+	app.Usage = "World's Best Models, Built by the Community."
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
