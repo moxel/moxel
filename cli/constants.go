@@ -10,6 +10,9 @@ import (
 	"os/user"
 )
 
+// Subject to substitution at build time.
+const CLI_VERSION = "0.0.3"
+
 const AUTH0_DOMAIN = "dummyai.auth0.com"
 const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"
 const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiIxLjiuOEB8NF3J" // Suffer from reverse-compilation.
@@ -92,8 +95,10 @@ func InitGlobal(c *cli.Context) error {
 	// fmt.Println("Env:", env)
 	if env == "local" {
 		MasterAddress = "http://0.0.0.0:8080"
+		WebsiteAddress = "http://localhost:3000"
 	} else if env == "dev" {
-		MasterAddress = "http://dev.dummy.ai/api"
+		MasterAddress = "http://dev.moxel.ai/api"
+		WebsiteAddress = "http://dev.moxel.ai"
 	} else if env == "devbox" {
 		// Run in dev mode.
 		MasterAddress = "http://35.196.226.10:8080"

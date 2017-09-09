@@ -25,6 +25,8 @@ link:
 	ln -s `pwd`/bin/moxel /usr/local/bin/moxel
 
 build:
+	# Update version constant
+	sed -i .bk "s/CLI_VERSION = .*/CLI_VERSION = \"`cat VERSION`\"/" constants.go
 	./manage.py build
 	
 clean:

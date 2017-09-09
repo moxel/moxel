@@ -198,8 +198,11 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 }
 
 func main() {
+	// Update help template.
+	cli.AppHelpTemplate = fmt.Sprintf("%s\nWEBSITE: %s\nSUPPORT: support@moxel.ai\n", WebsiteAddress, cli.AppHelpTemplate)
 	// Start application.
 	app := cli.NewApp()
+	app.Version = CLI_VERSION
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -214,6 +217,14 @@ func main() {
 	}
 
 	app.Commands = []cli.Command{
+		{
+			Name:  "version",
+			Usage: "Print version of CLI",
+			Action: func(c *cli.Context) error {
+				fmt.Println(CLI_VERSION)
+				return nil
+			},
+		},
 		{
 			Name:  "login",
 			Usage: "Login to dummy.ai",
@@ -270,8 +281,9 @@ func main() {
 			},
 		},
 		{
-			Name:  "list",
-			Usage: "moxel list",
+			Name:      "ls",
+			Usage:     "List your models on Moxel",
+			ArgsUsage: " ",
 			Action: func(c *cli.Context) error {
 				if err := InitGlobal(c); err != nil {
 					return err
@@ -443,7 +455,7 @@ func main() {
 			},
 		},
 		{
-			Name:  "log",
+			Name:  "logs",
 			Usage: "log [model:tag]",
 			Flags: []cli.Flag{
 				cli.StringFlag{
