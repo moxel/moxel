@@ -40,7 +40,7 @@ release:
 		gsutil cp bin/release/$$i/moxel gs://dummy-release/cli/`cat VERSION`/$$i/ ; \
 		echo "Distribute the following link:"; \
 		echo; \
-		echo "curl -o moxel http://beta.dummy.ai/release/cli/`cat VERSION`/$$i/moxel"; \
+		echo "curl -o moxel http://beta.moxel.ai/release/cli/`cat VERSION`/$$i/moxel"; \
 	 done;
 
 
