@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: dummyai/master-server
+        image: moxel/master-server
         env:
         - name: ENV
           value: dev

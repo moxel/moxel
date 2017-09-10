@@ -71,9 +71,9 @@ func CheckLogin() error {
 		resp, err := GlobalAPI.ping()
 
 		// Internal server error
-		if err != nil {
-			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
-			return errors.New("User not logged in")
+		if err != nil || resp.StatusCode == 503 {
+			fmt.Println("Unable to connect to moxel.ai: ", err.Error())
+			return errors.New("Unable to connect to moxel.ai")
 		}
 
 		if resp.StatusCode != 200 {
