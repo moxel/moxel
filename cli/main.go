@@ -380,11 +380,6 @@ func CommandPush() cli.Command {
 				Value: "moxel.yml",
 				Usage: "Config file to specify the model",
 			},
-			cli.StringFlag{
-				Name:  "modelId, m",
-				Value: "",
-				Usage: "ID of the model to be pushed.",
-			},
 		},
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
