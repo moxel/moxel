@@ -28,6 +28,7 @@ func NewMasterAPI(user *User) *MasterAPI {
 }
 
 func (api *MasterAPI) ping() (*grequests.Response, error) {
+	fmt.Println(MasterEndpoint("/ping/" + api.user.Username()))
 	resp, err := grequests.Get(MasterEndpoint("/ping/"+api.user.Username()),
 		&grequests.RequestOptions{
 			Headers: map[string]string{

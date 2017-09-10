@@ -89,15 +89,7 @@ func CheckLogin() error {
 	}
 }
 
-// Initializes global context and constants.
-// First checks if the user has logged in.
-func InitGlobal(c *cli.Context) error {
-	if err := CheckLogin(); err != nil {
-		return err
-	}
-
-	GlobalContext = c
-
+func InitGlobalConstants() {
 	env := os.Getenv("ENV")
 	// fmt.Println("Env:", env)
 	if env == "local" {
@@ -115,6 +107,16 @@ func InitGlobal(c *cli.Context) error {
 	}
 
 	CreateModelURL = WebsiteAddress + "/new"
+}
+
+func InitGlobal(c *cli.Context) error {
+	GlobalContext = c
+
+	InitGlobalConstants()
+
+	if err := CheckLogin(); err != nil {
+		return err
+	}
 
 	return nil
 }

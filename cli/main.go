@@ -529,7 +529,6 @@ func CommandLogs() cli.Command {
 			}
 
 			follow := c.Bool("follow")
-			fmt.Println("follow", follow)
 			modelId := c.Args().Get(0)
 
 			modelName, tag, err := ParseModelId(modelId)
