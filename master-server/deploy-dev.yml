@@ -41,6 +41,8 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
     ingress.kubernetes.io/rewrite-target: /
     kubernetes.io/ingress.global-static-ip-name: "dummy-ingress"
+    nginx.org/proxy-buffering: "false"
+    nginx.org/proxy-read-timeout: "3600s"
 spec:
   rules:
   - http:
