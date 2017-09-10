@@ -43,7 +43,23 @@ func DeployModel(modelName string, tag string) error {
 		return nil
 	}
 
-	fmt.Println(fmt.Sprintf("  Successfully deployed %s:%s", modelName, tag))
+	if err := WaitForModelStatus(modelName, tag, "LIVE"); err != nil {
+		return err
+	}
+
+	fmt.Println(fmt.Sprintf("Successfully deployed %s:%s", modelName, tag))
+	return nil
+}
+
+func LogModel(modelName string, modelTag string) error {
+	fmt.Println("> Model is now LIVE! Showing logs...")
+	fmt.Println("-------------------------------------------")
+
+	// Stream logs from model.
+	err := GlobalAPI.LogModel(GlobalUser.Username(), modelName, modelTag, os.Stdout, true)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -85,11 +101,32 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 	return nil
 }
 
-// Teardown the model. From LIVE to INACTIVE.
-func TeardownModel(modelName string, tag string) error {
-	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s", modelName, tag))
-	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, tag)
+func WaitForModelStatus(modelName string, modelTag string, targetStatus string) error {
+	for {
+		modelData, err := GetModel(modelName, modelTag)
+		if err != nil {
+			return err
+		}
+		modelStatus := modelData["status"]
+
+		if modelStatus != targetStatus {
+			fmt.Println(fmt.Sprintf("Waiting model to be %s. Currently, it's %s", targetStatus, modelStatus))
+		} else {
+			break
+		}
+	}
+
+	return nil
+}
+
+func TeardownModel(modelName string, modelTag string) error {
+	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s", modelName, modelTag))
+	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, modelTag)
 	if err != nil {
+		return err
+	}
+
+	if err := WaitForModelStatus(modelName, modelTag, "INACTIVE"); err != nil {
 		return err
 	}
 
@@ -253,7 +290,7 @@ func CommandTeardown() cli.Command {
 				return err
 			}
 
-			fmt.Println("  Successfully torn down", modelId)
+			fmt.Println("Successfully torn down", modelId)
 			return nil
 
 		},
@@ -461,12 +498,21 @@ func CommandPush() cli.Command {
 				return err
 			}
 
-			fmt.Println("> Done. Showing logs from model:")
-			fmt.Println("-------------------------------------------")
+			// Waiting model to come live.
+			for {
+				modelData, err = GetModel(modelName, modelTag)
+				if err != nil {
+					return err
+				}
+				modelStatus := modelData["status"]
+				if modelStatus != "LIVE" {
+					fmt.Println("Waiting model to come live. Currently, it's " + modelStatus)
+				} else {
+					break
+				}
+			}
 
-			// Stream logs from model.
-			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, modelTag, os.Stdout, true)
-			if err != nil {
+			if err := LogModel(modelName, modelTag); err != nil {
 				return err
 			}
 			return nil

@@ -381,55 +381,50 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	printRequest(r, fmt.Sprintf("Deleting model %s/%s:%s", vars["user"], vars["model"], vars["tag"]))
 
 	// Get ModelId based on user, model name and tag.
-	modelId := models.ModelId(vars["user"], vars["model"], vars["tag"])
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
 
-	// Check if the model is active.
-	model, err := models.GetModelById(db, modelId)
-	isActive := model.Status == "ACTIVE"
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	modelId := models.ModelId(user, name, tag)
 
-	if isActive {
+	// Check if the model is live.
+	status := getModelStatus(user, name, tag)
+	if status == "LIVE" {
 		http.Error(w, "Unable to delete model, because the model is live. Unpublish it first", 500)
 		return
 	}
 
 	// Otherwise, delete the model from database.
-	err = models.DeleteModel(db, modelId)
+	err := models.DeleteModel(db, modelId)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 }
 
-func getModelStatus(userId string, modelName string, tag string, isActive bool) string {
-	if !isActive {
+func getModelStatus(userId string, modelName string, tag string) string {
+	deployName := GetDeployName(userId, modelName, tag)
+
+	pods, err := GetPodsByDeployName(kubeClient, deployName)
+
+	if err != nil {
+		return "ERROR"
+	}
+
+	if len(pods) == 0 {
 		return "INACTIVE"
+	}
+
+	phase := pods[0].Status.Phase
+
+	if phase == "Pending" {
+		return "PENDING"
+	} else if phase == "Running" {
+		return "LIVE"
+	} else if phase == "Terminating" {
+		return "TERMINATING"
 	} else {
-		deployName := GetDeployName(userId, modelName, tag)
-
-		pods, err := GetPodsByDeployName(kubeClient, deployName)
-
-		if err != nil {
-			return "ERROR"
-		}
-
-		if len(pods) == 0 {
-			return "INACTIVE"
-		}
-
-		phase := pods[0].Status.Phase
-		fmt.Println("Pod phase", phase)
-
-		if phase == "Pending" {
-			return "PENDING"
-		} else if phase == "Running" {
-			return "LIVE"
-		} else {
-			return "ERROR"
-		}
+		return "ERROR"
 	}
 }
 
@@ -445,13 +440,13 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	// Get ModelId based on user, model name and tag.
 	modelId := models.ModelId(user, name, tag)
-	fmt.Printf("modelId = %s\n", modelId)
+	// fmt.Printf("modelId = %s\n", modelId)
 
 	model, err := models.GetModelById(db, modelId)
 	var status string
 	var yamlString string
 	if err == nil {
-		status = getModelStatus(user, name, tag, model.Status == "ACTIVE")
+		status = getModelStatus(user, name, tag)
 		yamlString = model.Yaml
 	} else {
 		status = "NONE"
@@ -471,8 +466,6 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 		"yaml":     yamlString,
 		"metadata": metadata,
 	})
-
-	fmt.Println("results", results)
 
 	response, err := json.Marshal(results)
 	if err != nil {
@@ -544,7 +537,6 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		model.Status = "ACTIVE"
 		models.UpdateModel(db, model)
 
 		w.WriteHeader(200)
@@ -569,8 +561,6 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err.Error())
 		}
 
-		model.Status = "INACTIVE"
-		models.UpdateModel(db, model)
 		return
 	} else {
 		w.WriteHeader(400)
