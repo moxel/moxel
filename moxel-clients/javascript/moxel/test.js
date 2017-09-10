@@ -26,6 +26,16 @@ function testImage() {
 	);
 }
 
+function testBytes() {
+	fs.readFile('examples/ansel_adams3.jpg', 
+		function (err, data) {
+		  if (err) throw err;
+		  (new moxel.space.Bytes(data)).toBase64().then((results) => {
+              console.log(results)
+          });
+		}
+	);
+}
 
 function testColorization() {
 	moxel.createModel('strin/colorization:latest').then((model) => {
@@ -95,5 +105,6 @@ function testSaveDemoExample() {
 // testColorization();
 // testImage();
 // testLoadDemoExample();
-testListDemoExamples();
+// testListDemoExamples();
 // testSaveDemoExample();
+testBytes();

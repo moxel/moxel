@@ -11,6 +11,7 @@ import { Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeser
 import { TimeSeries, TimeRange } from "pondjs";
 import {Tabs, Tab} from 'react-materialize'
 import ImageUploader from "../../widgets/image-uploader";
+import FileUploader from "../../widgets/file-uploader";
 import ModelStore from "../../stores/ModelStore";
 import DataStore from "../../stores/DataStore";
 import AuthStore from "../../stores/AuthStore";
@@ -792,7 +793,15 @@ class ModelView extends Component {
         for(var inputName in inputSpaces) {
             var inputSpace = inputSpaces[inputName];
             var inputWidget = null;
-            if(inputSpace == "Image") {
+            if(inputSpace == "Bytes") {
+                inputWidget = (
+                    <div style={{paddingBottom: "30px"}}>
+                        {displayVariable(inputName, inputSpace)}
+                        <FileUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></FileUploader>
+                    </div>
+                );
+            }
+            else if(inputSpace == "Image") {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
