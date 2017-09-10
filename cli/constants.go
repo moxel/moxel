@@ -10,6 +10,9 @@ import (
 	"os/user"
 )
 
+// Subject to substitution at build time.
+const CLI_VERSION = "0.0.3"
+
 const AUTH0_DOMAIN = "dummyai.auth0.com"
 const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"
 const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiIxLjiuOEB8NF3J" // Suffer from reverse-compilation.
@@ -30,12 +33,19 @@ var callbackPort string
 
 // A moxel.yml whitelist that maps <key> => <isRequired>
 var YAMLWhitelist = map[string]bool{
+	"name":         false,
+	"tag":          false,
 	"image":        true,
 	"assets":       false,
 	"resources":    false,
 	"input_space":  true,
 	"output_space": true,
 	"cmd":          true,
+}
+
+var ResourceWhitelist = map[string]bool{
+	"cpu":    true,
+	"memory": true,
 }
 
 var DefaultResources = map[string]interface{}{
@@ -61,9 +71,9 @@ func CheckLogin() error {
 		resp, err := GlobalAPI.ping()
 
 		// Internal server error
-		if err != nil {
-			fmt.Println("Unable to connect to dummy.ai: ", err.Error())
-			return errors.New("User not logged in")
+		if err != nil || resp.StatusCode == 503 {
+			fmt.Println("Unable to connect to moxel.ai: ", err.Error())
+			return errors.New("Unable to connect to moxel.ai")
 		}
 
 		if resp.StatusCode != 200 {
@@ -92,14 +102,19 @@ func InitGlobal(c *cli.Context) error {
 	// fmt.Println("Env:", env)
 	if env == "local" {
 		MasterAddress = "http://0.0.0.0:8080"
+		WebsiteAddress = "http://localhost:3000"
 	} else if env == "dev" {
-		MasterAddress = "http://dev.dummy.ai/api"
+		MasterAddress = "http://dev.moxel.ai/api"
+		WebsiteAddress = "http://dev.moxel.ai"
 	} else if env == "devbox" {
 		// Run in dev mode.
 		MasterAddress = "http://35.196.226.10:8080"
+		WebsiteAddress = "http://dev.moxel.ai"
 	} else {
 		// default: Production.
 	}
+
+	CreateModelURL = WebsiteAddress + "/new"
 
 	return nil
 }

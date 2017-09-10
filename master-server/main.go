@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -380,26 +381,51 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	printRequest(r, fmt.Sprintf("Deleting model %s/%s:%s", vars["user"], vars["model"], vars["tag"]))
 
 	// Get ModelId based on user, model name and tag.
-	modelId := models.ModelId(vars["user"], vars["model"], vars["tag"])
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
 
-	// Check if the model is active.
-	model, err := models.GetModelById(db, modelId)
-	isActive := model.Status == "LIVE"
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	modelId := models.ModelId(user, name, tag)
 
-	if isActive {
+	// Check if the model is live.
+	status := getModelStatus(user, name, tag)
+	if status == "LIVE" {
 		http.Error(w, "Unable to delete model, because the model is live. Unpublish it first", 500)
 		return
 	}
 
 	// Otherwise, delete the model from database.
-	err = models.DeleteModel(db, modelId)
+	err := models.DeleteModel(db, modelId)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
+	}
+}
+
+func getModelStatus(userId string, modelName string, tag string) string {
+	deployName := GetDeployName(userId, modelName, tag)
+
+	pods, err := GetPodsByDeployName(kubeClient, deployName)
+
+	if err != nil {
+		return "ERROR"
+	}
+
+	if len(pods) == 0 {
+		return "INACTIVE"
+	}
+
+	phase := pods[0].Status.Phase
+	fmt.Println("Pod phase", phase, deployName)
+
+	if phase == "Pending" {
+		return "PENDING"
+	} else if phase == "Running" {
+		return "LIVE"
+	} else if phase == "Terminating" {
+		return "TERMINATING"
+	} else {
+		return "ERROR"
 	}
 }
 
@@ -415,20 +441,20 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	// Get ModelId based on user, model name and tag.
 	modelId := models.ModelId(user, name, tag)
-	fmt.Printf("modelId = %s\n", modelId)
+	// fmt.Printf("modelId = %s\n", modelId)
 
 	model, err := models.GetModelById(db, modelId)
-
-	// Read status and YAML string.
-	status := "NONE"
-	yamlString := ""
-
+	var status string
+	var yamlString string
 	if err == nil {
-		fmt.Println(model)
-
-		status = model.Status
+		status = getModelStatus(user, name, tag)
 		yamlString = model.Yaml
+	} else {
+		status = "NONE"
+		yamlString = ""
 	}
+
+	// fmt.Println(model)
 
 	// Convert YAML into JSON.
 	var metadata map[interface{}]interface{}
@@ -441,8 +467,6 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 		"yaml":     yamlString,
 		"metadata": metadata,
 	})
-
-	fmt.Println("results", results)
 
 	response, err := json.Marshal(results)
 	if err != nil {
@@ -514,7 +538,6 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		model.Status = "LIVE"
 		models.UpdateModel(db, model)
 
 		w.WriteHeader(200)
@@ -539,8 +562,6 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err.Error())
 		}
 
-		model.Status = "INACTIVE"
-		models.UpdateModel(db, model)
 		return
 	} else {
 		w.WriteHeader(400)
@@ -635,11 +656,18 @@ func logModel(w http.ResponseWriter, r *http.Request) {
 	modelId := vars["model"]
 	tag := vars["tag"]
 
+	follow, err := strconv.ParseBool(r.URL.Query().Get("follow"))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
 	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
 		userId, modelId, tag))
 
-	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, false, w); err != nil {
-		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), 500)
+	w.WriteHeader(200)
+	flushedWriter := FlushedWriter{HttpWriter: w}
+	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, follow, &flushedWriter); err != nil {
+		http.Error(w, err.Error(), 500)
 	}
 }
 
@@ -901,8 +929,8 @@ func main() {
 		server := &http.Server{
 			Handler:      router,
 			Addr:         fmt.Sprintf("0.0.0.0:%d", MasterPort),
-			WriteTimeout: 15 * time.Second,
-			ReadTimeout:  15 * time.Second,
+			WriteTimeout: 3600 * time.Second,
+			ReadTimeout:  3600 * time.Second,
 		}
 		err = server.ListenAndServe()
 		if err != nil {

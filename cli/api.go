@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/levigross/grequests"
+	"io"
 	"io/ioutil"
 	"path"
+	"time"
 )
 
 // API for the MasterServer
@@ -94,8 +96,24 @@ func (api *MasterAPI) GetModel(user string, name string, tag string) (*grequests
 	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{})
 }
 
-func (api *MasterAPI) LogModel(user string, name string, tag string) (*grequests.Response, error) {
-	return grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log", user, name, tag)), &grequests.RequestOptions{})
+func (api *MasterAPI) LogModel(user string, name string, tag string, out io.Writer, follow bool) error {
+	resp, err := grequests.Get(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s/log?follow=%v", user, name, tag, follow)),
+		&grequests.RequestOptions{
+			RequestTimeout: 3600 * time.Second,
+			DialKeepAlive:  3600 * time.Second,
+		})
+	if err != nil {
+		return err
+	}
+
+	defer resp.Close()
+
+	_, err = io.Copy(out, resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, yaml string) (*grequests.Response, error) {

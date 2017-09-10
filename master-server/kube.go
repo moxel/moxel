@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	kube "k8s.io/client-go/kubernetes"
-	"os"
+	"net/http"
 	"strconv"
 	"strings"
 	"text/template"
@@ -26,6 +26,17 @@ import (
 
 const kubeNamespace string = v1.NamespaceDefault
 const ingressName string = "dummy"
+
+// Flushed writer for streaming logs.
+type FlushedWriter struct {
+	HttpWriter http.ResponseWriter
+}
+
+func (w *FlushedWriter) Write(p []byte) (n int, err error) {
+	n, err = w.HttpWriter.Write(p)
+	w.HttpWriter.(http.Flusher).Flush()
+	return n, err
+}
 
 // V1 deployment template
 // Assume the user has packaged the model in a docker container.
@@ -488,8 +499,8 @@ func StreamLogsFromPod(client *kube.Clientset, podID string, follow bool, out io
 	}
 
 	defer readCloser.Close()
-	_, err = io.Copy(out, readCloser)
-	_, err = io.Copy(os.Stdout, readCloser)
+	//	_, err = io.Copy(os.Stdout, readCloser)
+	_, err = io.CopyBuffer(out, readCloser, make([]byte, 1))
 	return err
 }
 
@@ -509,7 +520,6 @@ func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out 
 	return StreamLogsFromPod(client, podId, follow, out)
 }
 
-// Stream logs from a model.
 func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, follow bool, out io.Writer) error {
 	deployName := GetDeployName(userId, modelName, tag)
 
