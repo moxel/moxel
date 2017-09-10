@@ -16,6 +16,7 @@ const StyledModelSnippet = styled(FlexItem)`
     .snippet-id {
         font-size: 20px;
         font-weight: bold;
+        color: #2196E1;
     }
 
     .snippet-title {
