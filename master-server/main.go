@@ -167,7 +167,11 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 	var results []map[string]interface{}
 
 	for _, model := range ms {
-		results = append(results, model.ToMap())
+		metadata := model.ToMap()
+		name := metadata["name"].(string)
+		tag := metadata["tag"].(string)
+		metadata["status"] = getModelStatus(user, name, tag)
+		results = append(results, metadata)
 	}
 
 	response, _ := json.Marshal(results)
