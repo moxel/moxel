@@ -288,7 +288,7 @@ func CommandLS() cli.Command {
 
 			fmt.Println("Logged in as", "\""+userId+"\"")
 
-			format := "%40s | %20s | %10s\n"
+			format := "%-40s | %-20s | %-10s\n"
 
 			var results []map[string]interface{}
 			var err error
@@ -346,12 +346,43 @@ func CommandPush() cli.Command {
 			}
 
 			file := c.String("file")
-			modelId := c.Args().Get(0)
-
-			modelName, tag, err := ParseModelId(modelId)
+			config, err := LoadYAML(file)
 			if err != nil {
 				return err
 			}
+
+			if err := VerifyModelConfig(config); err != nil {
+				return err
+			}
+
+			config = CleanupModelConfig(config)
+
+			var modelName, modelTag string
+			if config["name"] != nil {
+				modelName = config["name"].(string)
+			}
+			if config["tag"] != nil {
+				modelTag = config["tag"].(string)
+			}
+			modelId := modelName + ":" + modelTag
+
+			if c.Args().Get(0) != "" {
+				modelId = c.Args().Get(0)
+				modelName, modelTag, err = ParseModelId(modelId)
+				if err != nil {
+					return err
+				}
+			}
+
+			if modelName == "" {
+				return errors.New("Model name cannot be empty")
+			}
+
+			if modelTag == "" {
+				return errors.New("Model tag cannot be empty")
+			}
+
+			fmt.Println("Pushing to " + modelId)
 
 			// Check if model repo is available.
 			// If model is created from Moxel site,
@@ -375,34 +406,23 @@ func CommandPush() cli.Command {
 			cwd, _ := os.Getwd()
 			cwd, _ = filepath.Abs(cwd)
 
-			config, err := LoadYAML(file)
-			if err != nil {
-				return err
-			}
-
-			if err := VerifyModelConfig(config); err != nil {
-				return err
-			}
-
-			config = CleanupModelConfig(config)
-
 			// Default map values for compatibility.
 			// Compute workpath.
 			moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
 			workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
 			config["work_path"] = workPath
 
-			fmt.Printf("> Model %s:%s\n", modelName, tag)
+			fmt.Printf("> Model %s:%s\n", modelName, modelTag)
 
 			// Check to see if model already exists.
-			modelData, err := GetModel(modelName, tag)
+			modelData, err := GetModel(modelName, modelTag)
 			if err != nil {
 				return err
 			}
 
 			if modelData["status"] == "LIVE" {
 				fmt.Printf("Model is LIVE!. Teardown it down? [y/n]\t")
-				if err := TeardownModel(modelName, tag); err != nil {
+				if err := TeardownModel(modelName, modelTag); err != nil {
 					return err
 				}
 			}
@@ -420,12 +440,12 @@ func CommandPush() cli.Command {
 			}
 
 			// Create model in the database.
-			if err := PutModel(modelName, tag, commit, config); err != nil {
+			if err := PutModel(modelName, modelTag, commit, config); err != nil {
 				return err
 			}
 
 			// Deploy model.
-			if err := DeployModel(modelName, tag); err != nil {
+			if err := DeployModel(modelName, modelTag); err != nil {
 				return err
 			}
 
@@ -433,7 +453,7 @@ func CommandPush() cli.Command {
 			fmt.Println("-------------------------------------------")
 
 			// Stream logs from model.
-			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, tag, os.Stdout, true)
+			err = GlobalAPI.LogModel(GlobalUser.Username(), modelName, modelTag, os.Stdout, true)
 			if err != nil {
 				return err
 			}
@@ -459,6 +479,7 @@ func CommandLogs() cli.Command {
 			}
 
 			follow := c.Bool("follow")
+			fmt.Println("follow", follow)
 			modelId := c.Args().Get(0)
 
 			modelName, tag, err := ParseModelId(modelId)

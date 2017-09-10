@@ -33,6 +33,8 @@ var callbackPort string
 
 // A moxel.yml whitelist that maps <key> => <isRequired>
 var YAMLWhitelist = map[string]bool{
+	"name":         false,
+	"tag":          false,
 	"image":        true,
 	"assets":       false,
 	"resources":    false,
