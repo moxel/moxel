@@ -109,9 +109,12 @@ func InitGlobal(c *cli.Context) error {
 	} else if env == "devbox" {
 		// Run in dev mode.
 		MasterAddress = "http://35.196.226.10:8080"
+		WebsiteAddress = "http://dev.moxel.ai"
 	} else {
 		// default: Production.
 	}
+
+	CreateModelURL = WebsiteAddress + "/new"
 
 	return nil
 }

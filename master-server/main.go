@@ -416,6 +416,7 @@ func getModelStatus(userId string, modelName string, tag string) string {
 	}
 
 	phase := pods[0].Status.Phase
+	fmt.Println("Pod phase", phase, deployName)
 
 	if phase == "Pending" {
 		return "PENDING"
