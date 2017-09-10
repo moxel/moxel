@@ -385,7 +385,7 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the model is active.
 	model, err := models.GetModelById(db, modelId)
-	isActive := model.Status == "LIVE"
+	isActive := model.Status == "ACTIVE"
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -404,6 +404,35 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getModelStatus(userId string, modelName string, tag string, isActive bool) string {
+	if !isActive {
+		return "INACTIVE"
+	} else {
+		deployName := GetDeployName(userId, modelName, tag)
+
+		pods, err := GetPodsByDeployName(kubeClient, deployName)
+
+		if err != nil {
+			return "ERROR"
+		}
+
+		if len(pods) == 0 {
+			return "INACTIVE"
+		}
+
+		phase := pods[0].Status.Phase
+		fmt.Println("Pod phase", phase)
+
+		if phase == "Pending" {
+			return "PENDING"
+		} else if phase == "Running" {
+			return "LIVE"
+		} else {
+			return "ERROR"
+		}
+	}
+}
+
 func getModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -419,17 +448,17 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("modelId = %s\n", modelId)
 
 	model, err := models.GetModelById(db, modelId)
-
-	// Read status and YAML string.
-	status := "NONE"
-	yamlString := ""
-
+	var status string
+	var yamlString string
 	if err == nil {
-		fmt.Println(model)
-
-		status = model.Status
+		status = getModelStatus(user, name, tag, model.Status == "ACTIVE")
 		yamlString = model.Yaml
+	} else {
+		status = "NONE"
+		yamlString = ""
 	}
+
+	// fmt.Println(model)
 
 	// Convert YAML into JSON.
 	var metadata map[interface{}]interface{}
@@ -515,7 +544,7 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		model.Status = "LIVE"
+		model.Status = "ACTIVE"
 		models.UpdateModel(db, model)
 
 		w.WriteHeader(200)

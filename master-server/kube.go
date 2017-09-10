@@ -520,7 +520,6 @@ func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out 
 	return StreamLogsFromPod(client, podId, follow, out)
 }
 
-// Stream logs from a model.
 func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, follow bool, out io.Writer) error {
 	deployName := GetDeployName(userId, modelName, tag)
 
