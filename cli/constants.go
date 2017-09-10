@@ -43,6 +43,11 @@ var YAMLWhitelist = map[string]bool{
 	"cmd":          true,
 }
 
+var ResourceWhitelist = map[string]bool{
+	"cpu":    true,
+	"memory": true,
+}
+
 var DefaultResources = map[string]interface{}{
 	"cpu":    "1",
 	"memory": "512Mi",

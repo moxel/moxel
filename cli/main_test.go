@@ -14,7 +14,6 @@ var tfObjectDetectionConfig = map[string]interface{}{
 	"resources": map[interface{}]interface{}{
 		"memory": "512Mi",
 		"cpu":    "1",
-		"gpu":    "1",
 	},
 	"input_space": map[interface{}]interface{}{
 		"image": "Image",
@@ -46,8 +45,19 @@ func TestInvalidModelConfig(t *testing.T) {
 }
 
 func TestInvalidModelInputType(t *testing.T) {
-	tfObjectDetectionConfig["input_space"] = map[string]string{
+	tfObjectDetectionConfig["input_space"] = map[interface{}]interface{}{
 		"image": "image",
+	}
+	err := VerifyModelConfig(tfObjectDetectionConfig)
+	fmt.Println(err)
+	assert.NotEqual(t, nil, err)
+}
+
+func TestInvalidResourceType(t *testing.T) {
+	tfObjectDetectionConfig["resources"] = map[interface{}]interface{}{
+		"gpu":    "1",
+		"cpu":    "1",
+		"memory": "512Mi",
 	}
 	err := VerifyModelConfig(tfObjectDetectionConfig)
 	fmt.Println(err)

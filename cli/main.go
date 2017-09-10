@@ -178,6 +178,13 @@ func VerifyModelConfig(config map[string]interface{}) error {
 		}
 	}
 
+	// Check resources.
+	for k, _ := range config["resources"].(map[interface{}]interface{}) {
+		if _, ok := ResourceWhitelist[k.(string)]; !ok {
+			return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
+		}
+	}
+
 	return nil
 }
 
@@ -421,9 +428,14 @@ func CommandPush() cli.Command {
 			}
 
 			if modelData["status"] == "LIVE" {
-				fmt.Printf("Model is LIVE!. Teardown it down? [y/n]\t")
-				if err := TeardownModel(modelName, modelTag); err != nil {
-					return err
+				fmt.Printf("Model is live! Teardown it down first? [y/n]\t")
+				isYes := AskForConfirmation()
+				if isYes {
+					if err := TeardownModel(modelName, modelTag); err != nil {
+						return err
+					}
+				} else {
+					return nil
 				}
 			}
 

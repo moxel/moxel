@@ -46,5 +46,5 @@ make build && make test
 To run testing on just one function, for example `Func`, use 
 
 ```
-make test ARGS=github.com/dummy-ai/mvp/warp -run [Func]
+make test ARGS="github.com/dummy-ai/mvp/moxel -run TestVerifyModelConfig"
 ```
