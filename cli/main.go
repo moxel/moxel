@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Parse a modelId of format <modelName>:<tag> into parts.
@@ -111,6 +112,7 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 
 		if modelStatus != targetStatus {
 			fmt.Println(fmt.Sprintf("Waiting model to be %s. Currently, it's %s", targetStatus, modelStatus))
+			time.Sleep(time.Second)
 		} else {
 			break
 		}
@@ -498,18 +500,8 @@ func CommandPush() cli.Command {
 				return err
 			}
 
-			// Waiting model to come live.
-			for {
-				modelData, err = GetModel(modelName, modelTag)
-				if err != nil {
-					return err
-				}
-				modelStatus := modelData["status"]
-				if modelStatus != "LIVE" {
-					fmt.Println("Waiting model to come live. Currently, it's " + modelStatus)
-				} else {
-					break
-				}
+			if err := WaitForModelStatus(modelName, modelTag, "LIVE"); err != nil {
+				return err
 			}
 
 			if err := LogModel(modelName, modelTag); err != nil {
