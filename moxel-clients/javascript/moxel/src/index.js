@@ -329,6 +329,26 @@ var Moxel = function(config) {
 		}
 	}
 
+	class MoxelBytes {
+		constructor(data) {
+			this.data = data;
+			this.toBase64 = this.toBase64.bind(this);
+		}
+
+		toBase64() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(Buffer(self.data).toString('base64'));
+			})
+		}
+
+		static fromBase64(data) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelBytes(Buffer.from(data, 'base64')));
+			})
+		}
+	}
+
 	class MoxelString {
 		// img is Jimp image.
 		constructor(text) {
@@ -377,6 +397,7 @@ var Moxel = function(config) {
 	var space = {
 		Image: Image,
 		String: MoxelString,
+		Bytes: MoxelBytes,
 		JSON: MoxelJSON
 	};
 
@@ -488,6 +509,11 @@ var Moxel = function(config) {
 								blob[varName] = object;
 								callback();
 							})
+						}else if(varSpace == space.Bytes) {
+							data[varName].toBase64().then((b64) => {
+								blob[varName] = b64;
+								callback();
+							});
 						}else{
 							console.error('Unknown variable input space', varSpace);
 						}

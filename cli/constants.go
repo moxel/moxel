@@ -59,6 +59,7 @@ var TypeWhitelist = map[string]bool{
 	"Image":  true,
 	"JSON":   true,
 	"String": true,
+	"Bytes":  true,
 }
 
 // Checks if the user has logged in.

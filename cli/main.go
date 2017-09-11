@@ -122,7 +122,7 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 }
 
 func TeardownModel(modelName string, modelTag string) error {
-	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s", modelName, modelTag))
+	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s. This might take a while.", modelName, modelTag))
 	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, modelTag)
 	if err != nil {
 		return err
@@ -218,6 +218,10 @@ func VerifyModelConfig(config map[string]interface{}) error {
 	}
 
 	// Check resources.
+	if config["resources"] == nil {
+		return errors.New("Please specify resource types: CPU, Memory.")
+	}
+
 	for k, _ := range config["resources"].(map[interface{}]interface{}) {
 		if _, ok := ResourceWhitelist[k.(string)]; !ok {
 			return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
