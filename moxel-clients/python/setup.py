@@ -29,7 +29,7 @@ for name in ['linux', 'osx', 'windows']:
     bin_paths.append(os.path.join('moxel', 'bin', name, 'moxel'))
 
 setup(name='moxel',
-      version='0.0.0-1',
+      version='0.0.0.post2',
       author='Moxel team',
       author_email='support@moxel.ai',
       url='http://moxel.ai',
@@ -51,7 +51,7 @@ setup(name='moxel',
       package_data={'moxel': bin_paths},
       # scripts=['bin/moxel'], # script has to be python file
       entry_points = {
-          'console_scripts': ['moxel=moxel.command_line:main'],
+          'console_scripts': ['moxel=moxel.bin.command_line:main'],
       },
       # data_files=[('.', ['bin/osx/moxel']), ('.', ['bin/linux/moxel']), ('.', ['bin/windows/moxel'])],
       zip_safe=False
