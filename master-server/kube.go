@@ -243,12 +243,7 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
-	// Load YAML configuration.
-	var err error
-	var config map[string]interface{}
-	decodeYAML(yamlString, &config)
-
+func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
 	// Get basic properties.
 	image := config["image"].(string)
 	resources := config["resources"].(map[string]interface{})
@@ -349,6 +344,30 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 		return "", err
 	}
 	return result.GetObjectMeta().GetName(), nil
+}
+
+// Return (deployName, error)
+func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
+	var err error
+	var config map[string]interface{}
+	decodeYAML(yamlString, &config)
+
+	if config["main"] == nil {
+		return "", errors.New("Model YAML must have \"main\"")
+	}
+	main := config["main"].(map[string]interface{})
+	if main["type"] == nil {
+		return "", errors.New("Model YAML main entrance must have \"type\"")
+	}
+	mainType := main["type"].(string)
+
+	if mainType == "http" {
+		return CreateDeployV2HTTP(client, user, name, tag, commit, config, replica)
+	} else if mainType == "python" {
+		return CreateDeployV2Python(client, user, name, tag, commit, config, replica)
+	} else {
+		return "", errors.New(fmt.Sprnitf("Unknown entrance type %s", mainType))
+	}
 }
 
 // TODO: Refractor needed. Code duplication with CreateDeployV2.
