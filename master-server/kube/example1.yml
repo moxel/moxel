@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: moxel/python3
+        image: moxel/py3-tf-cpu
         ports:
         - containerPort: 5900
         tty: true
@@ -22,8 +22,6 @@ spec:
           mountPath: "/mnt/nfs"
         - name: cloudfs
           mountPath: "/mnt/cloudfs"
-        - name: moxel-driver-python
-          mountPath: "/drivers/python"
         - name: fuse
           mountPath: "/dev/fuse"
         - name: nvidia
@@ -40,9 +38,6 @@ spec:
       - name: cloudfs
         hostPath:
           path: /mnt/cloudfs
-      - name: moxel-driver-python
-        configMap:
-          name: moxel-driver-python
       - name: fuse
         hostPath:
           path: /dev/fuse
