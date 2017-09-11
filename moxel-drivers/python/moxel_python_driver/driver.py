@@ -9,11 +9,11 @@ import json
 import random
 from base64 import b64encode
 import os
-from os.path import abspath, expanduser
+from os.path import abspath, expanduser, exists, relpath, join
 
 
 VERSION='0.0.1'
-
+GCS_MOUNT = '/mnt/cloudfs'
 
 def decode_single_input(data, input_type):
     if input_type == 'Image':
@@ -66,9 +66,17 @@ def load_predict_func(module, name):
     return predict_func
 
 
+def mount_asset(self, key, local_path):
+    local_dir = dirname(local_path)
+    if local_dir and not exists(local_dir): os.makedirs(local_dir)
+    subprocess.check_output('ln -fs {} {}'
+                            .format(join(GCS_MOUNT, key), local_path),
+                            shell=True)
+
 
 def main():
     print('Python driver version {}'.format(VERSION))
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--json', type=str)
@@ -76,14 +84,26 @@ def main():
 
     config = json.loads(args.json)
 
-    code_root = config.get('code_root', '/code')
+    code_root = config.get('code_root', './')
+    asset_root = config.get('asset_root', '')
     work_path = config.get('work_path', './')
 
     entrypoint = config['entrypoint']
     input_space = config['input_space']
     output_space = config['output_space']
+    assets = config.get('assets', [])
 
-    # switch_to_work_path(code_root, work_path)
+    switch_to_work_path(code_root, work_path)
+
+    if not exists('.git'):
+        raise Exception('This is not a valid git repository: {}'.format(root))
+
+    print('Mounting assets...')
+    for asset in assets:
+        asset_path = relpath(join(work_path, asset), '.')
+        print(asset_path)
+        mount_asset(asset_path, asset_path)
+
 
     [predict_file_name, predict_func_name] = entrypoint.split('::')
 
