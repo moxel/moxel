@@ -55,19 +55,19 @@ def switch_to_work_path(code_root, work_path):
     os.chdir(work_path)
 
 
-def load_predict_func(name):
+def load_predict_func(module, name):
     import sys
     sys.path.append('./')
 
     import importlib
-    module = importlib.import_module(predict_file_name)
-    predict_func = getattr(module, predict_func_name)
+    module = importlib.import_module(module)
+    predict_func = getattr(module, name)
 
     return predict_func
 
 
 
-if __name__ == '__main__':
+def main():
     print('Python driver version {}'.format(VERSION))
 
     parser = argparse.ArgumentParser()
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     if predict_file_name.endswith('.py'):
         predict_file_name = predict_file_name[:-3]
 
-    predict_func = load_predict_func(predict_func_name)
+    predict_func = load_predict_func(predict_file_name, predict_func_name)
 
     print('Loaded prediction function', predict_func)
 
@@ -108,3 +108,6 @@ if __name__ == '__main__':
         return jsonify(encode_outputs(output_moxel, output_space))
 
     app.run(port=5900, host='0.0.0.0')
+
+if __name__ == '__main__':
+    exit(main())
