@@ -1,7 +1,7 @@
 from .core import Space
 
 
-def String(max_char=100):
+def String(max_char=1000):
     class StringClass(Space):
         NAME='String'
 
