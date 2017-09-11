@@ -17,7 +17,6 @@ elif _p == 'win32':
 moxel_install_dir = os.path.dirname(os.path.abspath(moxel.__file__))
 bin_path = os.path.join(moxel_install_dir, 'bin', bin_path, 'moxel') 
 
-
 def main():
     # print('current', get_script_path())
     cmd = ('{} ' * (len(sys.argv))).format(bin_path, *[shlex.quote(arg) for arg in sys.argv[1:]])

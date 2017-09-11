@@ -14,8 +14,6 @@ def get_files(folder):
     return [f for f in glob.iglob(os.path.join(folder, '**'), recursive=True) 
             if not os.path.isdir(f)]
 
-# print(get_files('bin'))
-
 if 0:
     _p = sys.platform
     if _p.startswith('linux'):
@@ -24,11 +22,14 @@ if 0:
         bin_path = 'osx'
     elif _p == 'win32':
         bin_path = 'windows'
-    bin_path = os.path.join('bin', bin_path, 'moxel')
+    bin_path = os.path.join('moxel', 'bin', bin_path, 'moxel')
 
+bin_paths = []
+for name in ['linux', 'osx', 'windows']:
+    bin_paths.append(os.path.join('moxel', 'bin', name, 'moxel'))
 
 setup(name='moxel',
-      version='0.0.0-0',
+      version='0.0.0-1',
       author='Moxel team',
       author_email='support@moxel.ai',
       url='http://moxel.ai',
@@ -47,13 +48,11 @@ setup(name='moxel',
       install_requires=read('requirements.txt').splitlines(),
       include_package_data=True,
       # https://stackoverflow.com/questions/7522250/how-to-include-package-data-with-setuptools-distribute
-      # package_data={'moxel': [bin_path]},
+      package_data={'moxel': bin_paths},
       # scripts=['bin/moxel'], # script has to be python file
       entry_points = {
           'console_scripts': ['moxel=moxel.command_line:main'],
       },
-      data_files=[('bin/osx', ['bin/osx/moxel']), 
-                 ('bin/linux', ['bin/linux/moxel']),
-                 ('bin/windows', ['bin/windows/moxel'])],
+      # data_files=[('.', ['bin/osx/moxel']), ('.', ['bin/linux/moxel']), ('.', ['bin/windows/moxel'])],
       zip_safe=False
 )
