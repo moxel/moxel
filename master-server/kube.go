@@ -87,8 +87,8 @@ spec:
         volumeMounts:
         - name: nfs
           mountPath: "/mnt/nfs"
-        - name: secrets
-          mountPath: "/secrets"
+        - name: cloudfs
+          mountPath: "/mnt/cloudfs"
         - name: fuse
           mountPath: "/dev/fuse"
         - name: nvidia
@@ -102,9 +102,9 @@ spec:
       - name: nfs
         persistentVolumeClaim:
           claimName: nfs-claim
-      - name: secrets
-        configMap:
-          name: secrets
+      - name: cloudfs
+        hostPath:
+          path: /mnt/cloudfs/{{.AssetRoot}}
       - name: fuse
         hostPath:
           path: /dev/fuse
@@ -243,14 +243,14 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
+func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
 	// Get basic properties.
 	image := config["image"].(string)
 	resources := config["resources"].(map[string]interface{})
 	workPath := config["work_path"].(string)
 
 	// Create git worktree for the container.
-	err = CreateRepoMirror(user, name, commit)
+	err := CreateRepoMirror(user, name, commit)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	}
@@ -264,7 +264,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit 
 
 	// Add asset root. This is where data / model weights sit.
 	command = append(command, "--asset_root")
-	command = append(command, GetAssetPath(user, name, commit))
+	command = append(command, "/mnt/cloudfs")
 
 	// Add working path.
 	command = append(command, "--work_path")
@@ -282,7 +282,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit 
 	}
 
 	// Add command.
-	commandInterface := config["cmd"]
+	commandInterface := config["main"].(map[string]interface{})["cmd"]
 	command = append(command, "--cmd")
 
 	var cmd string
@@ -298,13 +298,15 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit 
 	deployName := GetDeployName(user, name, tag)
 
 	args := struct {
-		Name    string
-		Replica int
-		Image   string
+		Name      string
+		Replica   int
+		Image     string
+		AssetRoot string
 	}{
 		deployName,
 		replica,
 		image,
+		GetAssetPath(user, name, commit),
 	}
 
 	var deployment v1beta1.Deployment
@@ -315,6 +317,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit 
 
 	// https://godoc.org/k8s.io/api/core/v1#Container
 	container := deployment.Spec.Template.Spec.Containers[0]
+	container.Command = []string{"moxel-http-driver"}
 	container.Args = command
 	fmt.Println(deployment)
 
@@ -348,7 +351,6 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, tag string, commit 
 
 // Return (deployName, error)
 func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
-	var err error
 	var config map[string]interface{}
 	decodeYAML(yamlString, &config)
 
@@ -363,11 +365,12 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 
 	if mainType == "http" {
 		return CreateDeployV2HTTP(client, user, name, tag, commit, config, replica)
-	} else if mainType == "python" {
-		return CreateDeployV2Python(client, user, name, tag, commit, config, replica)
 	} else {
-		return "", errors.New(fmt.Sprnitf("Unknown entrance type %s", mainType))
+		return "", errors.New(fmt.Sprintf("Unknown entrance type %s", mainType))
 	}
+	// else if mainType == "python" {
+	//	return CreateDeployV2Python(client, user, name, tag, commit, config, replica)
+	//}
 }
 
 // TODO: Refractor needed. Code duplication with CreateDeployV2.

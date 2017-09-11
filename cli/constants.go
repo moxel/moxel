@@ -40,7 +40,7 @@ var YAMLWhitelist = map[string]bool{
 	"resources":    false,
 	"input_space":  true,
 	"output_space": true,
-	"cmd":          true,
+	"main":         true,
 }
 
 var ResourceWhitelist = map[string]bool{

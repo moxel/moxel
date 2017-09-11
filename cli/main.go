@@ -228,6 +228,13 @@ func VerifyModelConfig(config map[string]interface{}) error {
 		}
 	}
 
+	// Check main.
+	main := config["main"].(map[interface{}]interface{})
+
+	if main["type"] == nil {
+		return errors.New("Please specify main type")
+	}
+
 	return nil
 }
 
