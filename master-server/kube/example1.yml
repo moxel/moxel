@@ -1,0 +1,51 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deploy-test-example1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: deploy-test-example1
+      labels:
+        app: deploy-test-example1
+    spec:
+      containers:
+      - name: main
+        image: moxel/python3
+        ports:
+        - containerPort: 5900
+        tty: true
+        command: ["sleep", "86400"]
+        volumeMounts:
+        - name: nfs
+          mountPath: "/mnt/nfs"
+        - name: cloudfs
+          mountPath: "/mnt/cloudfs"
+        - name: moxel-driver-python
+          mountPath: "/drivers/python"
+        - name: fuse
+          mountPath: "/dev/fuse"
+        - name: nvidia
+          mountPath: "/usr/local/nvidia"
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - SYS_ADMIN
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs-claim
+      - name: cloudfs
+        hostPath:
+          path: /mnt/cloudfs
+      - name: moxel-driver-python
+        configMap:
+          name: moxel-driver-python
+      - name: fuse
+        hostPath:
+          path: /dev/fuse
+      - name: nvidia
+        hostPath:
+          path: /var/lib/nvidia-docker/volumes/nvidia_driver/375.26
