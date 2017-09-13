@@ -613,7 +613,6 @@ func (repo *Repo) PushData(assets []string, user string, name string, commit str
 	return nil
 }
 
-// Get current working repo.
 func GetWorkingRepo() (*Repo, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -626,4 +625,15 @@ func GetWorkingRepo() (*Repo, error) {
 	}
 
 	return repo, nil
+}
+
+func GetWorkingPath(path string, repo *Repo) string {
+	cwd, _ := os.Getwd()
+	cwd, _ = filepath.Abs(cwd)
+
+	// Default map values for compatibility.
+	// Compute workpath.
+	moxelFileDir, _ := filepath.Abs(path)
+	workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
+	return workPath
 }

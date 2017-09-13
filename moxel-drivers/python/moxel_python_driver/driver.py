@@ -7,9 +7,10 @@ from moxel.space import Image, String, JSON
 import argparse
 import json
 import random
+import subprocess
 from base64 import b64encode
 import os
-from os.path import abspath, expanduser, exists, relpath, join
+from os.path import abspath, expanduser, exists, relpath, join, dirname
 
 
 VERSION='0.0.1'
@@ -66,7 +67,8 @@ def load_predict_func(module, name):
     return predict_func
 
 
-def mount_asset(self, key, local_path):
+def mount_asset(key, local_path):
+    print('{} -> {}'.format(key, local_path))
     local_dir = dirname(local_path)
     if local_dir and not exists(local_dir): os.makedirs(local_dir)
     subprocess.check_output('ln -fs {} {}'
@@ -98,10 +100,10 @@ def main():
     if not exists('.git'):
         raise Exception('This is not a valid git repository: {}'.format(root))
 
-    print('Mounting assets...')
+    if len(assets) > 0:
+        print('Mounting assets...')
     for asset in assets:
         asset_path = relpath(join(work_path, asset), '.')
-        print(asset_path)
         mount_asset(asset_path, asset_path)
 
 

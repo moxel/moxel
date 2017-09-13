@@ -455,14 +455,7 @@ func CommandPush() cli.Command {
 				return err
 			}
 
-			cwd, _ := os.Getwd()
-			cwd, _ = filepath.Abs(cwd)
-
-			// Default map values for compatibility.
-			// Compute workpath.
-			moxelFileDir, _ := filepath.Abs(filepath.Dir(file))
-			workPath, _ := filepath.Rel(repo.Path, moxelFileDir)
-			config["work_path"] = workPath
+			config["work_path"] = GetWorkingPath(filepath.Dir(file), repo)
 
 			fmt.Printf("> Model %s:%s\n", modelName, modelTag)
 
@@ -553,6 +546,32 @@ func CommandLogs() cli.Command {
 	}
 }
 
+func CommandServe() cli.Command {
+	return cli.Command{
+		Name:      "serve",
+		Usage:     "Serve the model locally.",
+		ArgsUsage: "-f [yaml]",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "file, f",
+				Value: "moxel.yml",
+				Usage: "Config file to specify the model",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			file := c.String("file")
+
+			model, err := CreateLocalModel(file)
+			if err != nil {
+				return err
+			}
+
+			model.Serve()
+			return nil
+		},
+	}
+}
+
 func main() {
 	// Update help template.
 	cli.AppHelpTemplate = fmt.Sprintf("%s\nVisit Moxel website at %s\nIf you have any questions, contact us at support@moxel.ai\n", cli.AppHelpTemplate, WebsiteAddress)
@@ -585,6 +604,7 @@ func main() {
 		CommandLS(),
 		CommandPush(),
 		CommandLogs(),
+		CommandServe(),
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
