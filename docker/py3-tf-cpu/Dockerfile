@@ -1,4 +1,4 @@
-FROM dummyai/python3
+FROM moxel/python3
 
 MAINTAINER Tim Shi <tianlins@cs.stanford.edu>
 

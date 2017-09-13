@@ -29,6 +29,11 @@ RUN pip3 install pexpect pyyaml flask numpy
 RUN ln -fs /usr/bin/python3 /usr/bin/python \
     && ln -fs /usr/bin/pip3 /usr/bin/pip
 
-COPY core /core
+COPY .build/moxel-drivers /drivers
+COPY .build/moxel-clients /clients
 
-ENTRYPOINT ["/core/init"]
+RUN pip install flask setuptools \
+  && pip install -e /clients/python \
+  && pip install -e /drivers/python \
+  && pip install -e /drivers/http 
+
