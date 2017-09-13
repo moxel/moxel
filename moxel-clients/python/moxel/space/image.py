@@ -12,6 +12,10 @@ class Image(Space):
     def __init__(self, im):
         self.im = im
 
+    def resize(self, size, interp='bilinear', mode=None):
+        import scipy.misc
+        self.im = scipy.misc.imresize(self.im, size, interp, mode)
+
     @property
     def shape(self):
         return self.im.shape
@@ -69,6 +73,9 @@ class Image(Space):
         image_pil.save(buf, 'png')
         buf.seek(0)
         return base64.b64encode(buf.read()).decode('utf_8')
+
+    def __repr__(self):
+        return '<Moxel Image {}>'.format(self.shape)
 
 
 

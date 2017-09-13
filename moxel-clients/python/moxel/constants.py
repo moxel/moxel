@@ -11,5 +11,7 @@ elif MOXEL_ENV == 'local':
 else:
     raise Exception('Unknown MOXEL_ENV = {}'.format(MOXEL_ENV))
 
-API_ENDPOINT = MOXEL_ENDPOINT + '/api'
-MODEL_ENDPOINT = MOXEL_ENDPOINT + '/model'
+# Not an endpoint to real moxel server, but to local mock server.
+# Used for serving models locally.
+LOCALHOST_ENDPOINT = 'http://localhost:8081'
+

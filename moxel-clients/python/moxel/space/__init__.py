@@ -9,7 +9,7 @@ def get_space(name):
     if name == 'Image':
         return Image
     elif name == 'String':
-        return String(1000)
+        return String
     elif name == 'JSON':
         return JSON
 
