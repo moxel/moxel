@@ -1,6 +1,7 @@
 from .image import Image
 from .string import String
 from .json import JSON
+from .array import Array
 
 
 def get_space(name):
@@ -12,4 +13,6 @@ def get_space(name):
         return String
     elif name == 'JSON':
         return JSON
+    elif name == 'Array':
+        return Array
 

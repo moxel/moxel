@@ -60,6 +60,7 @@ var TypeWhitelist = map[string]bool{
 	"JSON":   true,
 	"String": true,
 	"Bytes":  true,
+	"Array":  true,
 }
 
 // Checks if the user has logged in.

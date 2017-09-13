@@ -1,5 +1,5 @@
 import requests
-import simplejson
+import json, simplejson
 
 from moxel.utils import parse_model_id, parse_space_dict
 from moxel.constants import MOXEL_ENDPOINT, LOCALHOST_ENDPOINT
@@ -59,14 +59,16 @@ class Model(object):
             assert type(kwargs[var_name]) == var_space, \
                 'Type does not match for {}'.format(var_name)
 
-            if var_space.NAME == 'Image':
+            if var_space == space.Image:
                 # Assume base64 encoding.
                 input_object = kwargs[var_name].to_base64()
                 input_dict[var_name] = input_object
-            elif var_space.NAME == 'String':
+            elif var_space == space.String:
                 input_dict[var_name] = kwargs[var_name].to_str()
-            elif var_space.NAME == 'JSON':
+            elif var_space == space.JSON:
                 input_dict[var_name] = kwargs[var_name].to_object(input_object)
+            elif var_space == space.Array:
+                input_dict[var_name] = json.dumps(kwargs[var_name].to_list())
             else:
                 raise Exception('Not implemented input space: ' + repr(var_space))
 
@@ -89,13 +91,15 @@ class Model(object):
         for var_name, var_space in self.output_space.items():
             assert var_name in result, 'Output must have argument {}'.format(var_name)
 
-            if var_space.NAME == 'Image':
+            if var_space == space.Image:
                 output_object = var_space.from_base64(result[var_name])
                 output_dict[var_name] = output_object
-            elif var_space.NAME == 'String':
+            elif var_space == space.String:
                 output_dict[var_name] = var_space.from_str(result[var_name])
-            elif var_space.NAME == 'JSON':
+            elif var_space == space.JSON:
                 output_dict[var_name] = var_space.from_object(result[var_name])
+            elif var_space == space.Array:
+                output_dict[var_name] = var_space.from_list(json.loads(result[var_name]))
             else:
                 raise Exception('Not implemented output space: ' + str(var_space))
 

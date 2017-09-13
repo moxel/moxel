@@ -20,9 +20,13 @@ def decode_single_input(data, input_type):
     if input_type == 'Image':
         return Image.from_base64(data)
     elif input_type == 'String':
-        return String().from_str(data)
+        return String.from_str(data)
     elif input_type == 'JSON':
         return JSON.from_object(data)
+    elif input_type == 'Array':
+        return Array.from_list(json.loads(data))
+    else:
+        raise Exception('Unknown input type: {}'.format(input_type))
 
 
 def decode_inputs(input_raw, input_space):
@@ -40,6 +44,10 @@ def encode_single_output(output_obj, output_type):
         return output_obj.to_str()
     elif output_type == 'JSON':
         return output_obj.to_object()
+    elif output_type == 'Array':
+        return json.dumps(output_obj.to_list())
+    else:
+        raise Exception('Unknown output type: {}'.format(output_type))
 
 
 def encode_outputs(output_moxel, output_space):
