@@ -28,7 +28,7 @@ class Array(Space):
             if isinstance(arr, np.ndarray):
                 return list(map(lambda x: make_list(x), arr))
             else:
-                return arr
+                return float(arr)
 
         return make_list(self.numpy_array)
 

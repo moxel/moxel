@@ -403,6 +403,7 @@ class ModelView extends Component {
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
+            console.log('Handling output', outputs);
             self.outputs = outputs;
             return new Promise((resolve, reject) => {
                 var outputSpaces = self.moxelModel.outputSpace;
@@ -429,6 +430,11 @@ class ModelView extends Component {
                                 demoWidget.value = text;
                                 resolve();
                             });
+                        }else if(outputSpace == moxel.space.Array) {
+                            output.toJSON().then((json) => {
+                                demoWidget.value = json;
+                                resolve();
+                            })
                         }
                     }.bind(this, outputName), 0);
                 }    
@@ -808,7 +814,7 @@ class ModelView extends Component {
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
                     </div>
                 );
-            }else if(inputSpace == "String") {
+            }else if(inputSpace == "String" || inputSpace == "Array") {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
@@ -851,7 +857,7 @@ class ModelView extends Component {
                         </div>
                         <br/>
                     </div>
-            }else if(outputSpace == "String") {
+            }else if(outputSpace == "String" || outputSpace == "Array") {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
