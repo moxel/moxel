@@ -1,4 +1,4 @@
-FROM dummyai/python3
+FROM moxel/python3
 
 MAINTAINER Tim Shi <tianlins@cs.stanford.edu>
 
@@ -17,6 +17,11 @@ RUN pip3 install librosa>=0.5 scipy numpy pyxdg python_speech_features sox panda
 RUN ln -fs /usr/bin/python3 /usr/bin/python \
     && ln -fs /usr/bin/pip3 /usr/bin/pip
 
-COPY core /core
+COPY .build/moxel-drivers /drivers
+COPY .build/moxel-clients /clients
 
-ENTRYPOINT ["/core/init"]
+RUN pip install flask setuptools \
+  && pip install -e /clients/python \
+  && pip install -e /drivers/python \
+  && pip install -e /drivers/http 
+

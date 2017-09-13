@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dummy-ai/mvp/master-server/models"
@@ -87,8 +88,8 @@ spec:
         volumeMounts:
         - name: nfs
           mountPath: "/mnt/nfs"
-        - name: secrets
-          mountPath: "/secrets"
+        - name: cloudfs
+          mountPath: "/mnt/cloudfs"
         - name: fuse
           mountPath: "/dev/fuse"
         - name: nvidia
@@ -102,9 +103,9 @@ spec:
       - name: nfs
         persistentVolumeClaim:
           claimName: nfs-claim
-      - name: secrets
-        configMap:
-          name: secrets
+      - name: cloudfs
+        hostPath:
+          path: /mnt/cloudfs/{{.AssetRoot}}
       - name: fuse
         hostPath:
           path: /dev/fuse
@@ -243,19 +244,14 @@ func CreateDeployV1(client *kube.Clientset, name string, image string, replica i
 	return result.GetObjectMeta().GetName(), nil
 }
 
-func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
-	// Load YAML configuration.
-	var err error
-	var config map[string]interface{}
-	decodeYAML(yamlString, &config)
-
+func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
 	// Get basic properties.
 	image := config["image"].(string)
 	resources := config["resources"].(map[string]interface{})
 	workPath := config["work_path"].(string)
 
 	// Create git worktree for the container.
-	err = CreateRepoMirror(user, name, commit)
+	err := CreateRepoMirror(user, name, commit)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
 	}
@@ -269,7 +265,7 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 
 	// Add asset root. This is where data / model weights sit.
 	command = append(command, "--asset_root")
-	command = append(command, GetAssetPath(user, name, commit))
+	command = append(command, "/mnt/cloudfs")
 
 	// Add working path.
 	command = append(command, "--work_path")
@@ -287,7 +283,7 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 	}
 
 	// Add command.
-	commandInterface := config["cmd"]
+	commandInterface := config["main"].(map[string]interface{})["cmd"]
 	command = append(command, "--cmd")
 
 	var cmd string
@@ -303,13 +299,15 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 	deployName := GetDeployName(user, name, tag)
 
 	args := struct {
-		Name    string
-		Replica int
-		Image   string
+		Name      string
+		Replica   int
+		Image     string
+		AssetRoot string
 	}{
 		deployName,
 		replica,
 		image,
+		GetAssetPath(user, name, commit),
 	}
 
 	var deployment v1beta1.Deployment
@@ -320,6 +318,7 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 
 	// https://godoc.org/k8s.io/api/core/v1#Container
 	container := deployment.Spec.Template.Spec.Containers[0]
+	container.Command = []string{"moxel-http-driver"}
 	container.Args = command
 	fmt.Println(deployment)
 
@@ -349,6 +348,112 @@ func CreateDeployV2(client *kube.Clientset, user string, name string, tag string
 		return "", err
 	}
 	return result.GetObjectMeta().GetName(), nil
+}
+
+func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
+	// Get basic properties.
+	image := config["image"].(string)
+	resources := config["resources"].(map[string]interface{})
+	workPath := config["work_path"].(string)
+
+	// Create git worktree for the container.
+	err := CreateRepoMirror(user, name, commit)
+	if err != nil {
+		return "", err
+	}
+
+	// Command to run in container.
+	params := make(map[string]interface{})
+
+	params["code_root"] = GetRepoMirrorPath(user, name, commit)
+	params["asset_root"] = "/mnt/cloudfs"
+	params["work_path"] = workPath
+	params["assets"] = config["assets"]
+	params["input_space"] = config["input_space"]
+	params["output_space"] = config["output_space"]
+	params["entrypoint"] = config["main"].(map[string]interface{})["entrypoint"].(string)
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		return "", err
+	}
+
+	// Basic derived properties for deployment.
+	// TODO: use a better separator.
+	deployName := GetDeployName(user, name, tag)
+
+	args := struct {
+		Name      string
+		Replica   int
+		Image     string
+		AssetRoot string
+	}{
+		deployName,
+		replica,
+		image,
+		GetAssetPath(user, name, commit),
+	}
+
+	var deployment v1beta1.Deployment
+	err = SpecFromTemplate(templateDeployV2, args, &deployment)
+	if err != nil {
+		return "", err
+	}
+
+	// https://godoc.org/k8s.io/api/core/v1#Container
+	container := deployment.Spec.Template.Spec.Containers[0]
+	container.Command = []string{"moxel-python-driver"}
+	container.Args = []string{"--json", string(paramsJSON)}
+	fmt.Println(deployment)
+
+	// Set up resource specs.
+	container.Resources.Requests = make(v1.ResourceList)
+	if cpu, ok := resources["cpu"]; ok {
+		container.Resources.Requests["cpu"] = resource.MustParse(fmt.Sprintf("%v", cpu))
+	}
+
+	if memory, ok := resources["memory"]; ok {
+		container.Resources.Requests["memory"] = resource.MustParse(fmt.Sprintf("%v", memory))
+	}
+
+	if gpu, ok := resources["gpu"]; ok {
+		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
+	}
+
+	deployment.Spec.Template.Spec.Containers[0] = container // Update container spec.
+
+	// Create deployment.
+	deploymentClient := client.AppsV1beta1().Deployments(kubeNamespace)
+
+	result, err := deploymentClient.Create(&deployment)
+
+	// Extract results.
+	if err != nil {
+		return "", err
+	}
+	return result.GetObjectMeta().GetName(), nil
+}
+
+// Return (deployName, error)
+func CreateDeployV2(client *kube.Clientset, user string, name string, tag string, commit string, yamlString string, replica int) (string, error) {
+	var config map[string]interface{}
+	decodeYAML(yamlString, &config)
+
+	if config["main"] == nil {
+		return "", errors.New("Model YAML must have \"main\"")
+	}
+	main := config["main"].(map[string]interface{})
+	if main["type"] == nil {
+		return "", errors.New("Model YAML main entrance must have \"type\"")
+	}
+	mainType := main["type"].(string)
+
+	if mainType == "http" {
+		return CreateDeployV2HTTP(client, user, name, tag, commit, config, replica)
+	} else if mainType == "python" {
+		return CreateDeployV2Python(client, user, name, tag, commit, config, replica)
+	} else {
+		return "", errors.New(fmt.Sprintf("Unknown entrance type %s", mainType))
+	}
 }
 
 // TODO: Refractor needed. Code duplication with CreateDeployV2.
