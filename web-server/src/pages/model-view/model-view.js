@@ -236,7 +236,9 @@ class ModelView extends Component {
             examplePtr: 0
         }
 
+        this.addNotification = this.addNotification.bind(this);
         this.handleUpvote = this.handleUpvote.bind(this);
+        this.handleLabelsChange = this.handleLabelsChange.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
@@ -556,7 +558,24 @@ class ModelView extends Component {
         
     }
 
-    
+    addNotification(message, level) {
+        this.notificationSystem.addNotification({
+          message: message,
+          level: level
+        });
+    }
+
+    handleLabelsChange(chips) {
+        var self = this;
+
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.updateModel(userId, modelName, tag, {'labels': chips}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('Successfully updated labels.', 'success');
+            });
+        });
+    }
 
     handleUpvote() {
         var self = this;
@@ -626,19 +645,20 @@ class ModelView extends Component {
         });
     }
 
+
+
     handleUpdateTitle() {
+        var self = this;
+
         const {userId, modelName, tag} = this.props.match.params;
 
         var modelTitle = document.querySelector('#model-title').value;
 
         ModelStore.updateModel(userId, modelName, tag, {'title': modelTitle}).then(function() {
-            this.syncModel().then(function() {
-                this.notificationSystem.addNotification({
-                  message: 'Successfully updated model title.',
-                  level: 'success'
-                });
-            }.bind(this));
-        }.bind(this));
+            self.syncModel().then(function() {
+                self.addNotification('Successfully updated model title.', 'success')
+            });
+        });
     }
 
     handleUpdateReadMe() {
@@ -1174,12 +1194,6 @@ class ModelView extends Component {
         function renderModelLabels() {
             if(self.state.editMode) {
                 const sourceTags=[
-                    "America",
-                    "Australia",
-                ];
-
-                const defTags=[
-                  {label:"America"}
                 ];
 
                 return (
@@ -1191,6 +1205,7 @@ class ModelView extends Component {
                       hintStyle={{color: "white"}}
                       style={{fontSize: "14px"}}
                       underlineStyle={{borderBottom: "1px dashed rgb(255, 255, 255)", background: "none"}}
+                      onChange={(chips) => self.handleLabelsChange(chips)}
                     />
                 );
             }else{
