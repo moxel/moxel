@@ -29,7 +29,9 @@ import {Button, Dropdown, NavItem} from 'react-materialize'
 import NotificationSystem from 'react-notification-system';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
+import ChipInput from 'material-ui-chip-input'
 import Moxel from 'moxel'
+
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -1169,6 +1171,39 @@ class ModelView extends Component {
             }
         }
 
+        function renderModelLabels() {
+            if(self.state.editMode) {
+                const sourceTags=[
+                    "America",
+                    "Australia",
+                ];
+
+                const defTags=[
+                  {label:"America"}
+                ];
+
+                return (
+                    <ChipInput
+                      defaultValue={model.labels}
+                      fullWidth="true"
+                      dataSource={sourceTags}
+                      hintText="(Add labels to model here)"
+                      hintStyle={{color: "white"}}
+                      style={{fontSize: "14px"}}
+                      underlineStyle={{borderBottom: "1px dashed rgb(255, 255, 255)", background: "none"}}
+                    />
+                );
+            }else{
+                return (
+                    <div>
+                        <p>{
+                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                        }</p>
+                    </div>
+                );
+            }
+        }
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -1208,27 +1243,25 @@ class ModelView extends Component {
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
-                              <div className="card blue darken-3">
-                                <div className="card-content white-text">
+                                <div className="card blue darken-3">
+                                    <div className="card-content white-text">
 
-                                    <div className="card-title">
-                                        {renderModelTitle()}
+                                        <div className="card-title">
+                                            {renderModelTitle()}
 
-                                        {renderModelShare()}
+                                            {renderModelShare()}
 
-                                    </div>
-
-                                    {renderModelStatus()}
-
-                                    {renderModelDescription()}
-
-                                      <br/>
-
-                                        <div>
-                                            <p>{
-                                                model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                            }</p>
                                         </div>
+
+                                        {renderModelStatus()}
+
+                                        {renderModelDescription()}
+
+                                        <br/>
+
+
+                                        {renderModelLabels()}
+
                                     </div>
                                     
                                     <div className="card-action blue darken-4">
@@ -1239,7 +1272,7 @@ class ModelView extends Component {
                                         model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
                                       }
                                     </div>
-                              </div>
+                                </div>
                             </div>
                         </div>
                     </FixedWidthRow>
