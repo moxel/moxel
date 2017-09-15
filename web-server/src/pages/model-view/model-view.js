@@ -226,6 +226,8 @@ class ModelView extends Component {
             username = AuthStore.username();
         }
 
+        this.isAuthor = false;
+
         this.state = {
             model: null,
             rating: 0,
@@ -326,12 +328,9 @@ class ModelView extends Component {
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
-        var editMode = (userId == this.state.username);
-        this.setState({
-            editMode: editMode
-        })
+        this.isAuthor = (userId == this.state.username);
 
-        if(editMode) {
+        if(this.isAuthor) {
             function addNotification() {
                 if(!self.notificationSystem) {
                     window.setTimeout(addNotification, 500);
@@ -900,6 +899,7 @@ class ModelView extends Component {
                         <div className="col s12 m12">
                             <div className="card">
                                 <div className="card-tabs white">
+
                                   <Tabs className='tab-demo white'>
                                     <Tab title="Demo" active >
                                         <span className="black-text">
@@ -1219,6 +1219,19 @@ class ModelView extends Component {
             }
         }
 
+        function renderUploadButton() {
+            return (
+                <div style={{textAlign: "center", width: "100%"}}>
+                    <a className="waves-effect btn-flat green white-text" 
+                        href={`/upload/${userId}/${modelName}/${tag}`} 
+                        style={{padding: 0, width: "80%", textAlign: "center"}}>
+                        {/*<i className="material-icons center">play_arrow</i>*/}
+                        Upload Model
+                    </a>
+                </div>
+            );
+        }
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -1238,7 +1251,7 @@ class ModelView extends Component {
                             <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
                         </span>
                         {
-                            userId == this.state.username
+                            this.isAuthor
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
                                 <div className="switch">
@@ -1334,7 +1347,7 @@ class ModelView extends Component {
                                         <div className="card-content" style={{textAlign: "center"}}>
                                             Currently, only metadata is available for this model. Next, deploy the model as API. 
                                             <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
+                                            {renderUploadButton()}
                                         </div>
                                     </div>
                                 </div>

@@ -51,7 +51,7 @@ class UploadView extends Component {
         super()
 
         this.state = {
-            step: 3,
+            step: 0,
             uploaded: false
         }
 
