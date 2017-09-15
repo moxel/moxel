@@ -168,9 +168,12 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 
 	for _, model := range ms {
 		metadata := model.ToMap()
-		name := metadata["name"].(string)
-		tag := metadata["tag"].(string)
-		metadata["status"] = getModelStatus(user, name, tag)
+		// name := metadata["name"].(string)
+		// tag := metadata["tag"].(string)
+
+		// Disable status probe to save response time.
+		// metadata["status"] = getModelStatus(user, name, tag)
+		metadata["status"] = "UNKNOWN"
 		results = append(results, metadata)
 	}
 
