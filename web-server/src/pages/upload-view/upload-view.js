@@ -193,7 +193,7 @@ class UploadView extends Component {
                             
                             <div className="row">
                                 <div className="col s12 offset-m1 m8">
-                                    <input id={`warp-install-${os}`} value={`curl -Lo /usr/local/bin/moxel http://beta.moxel.ai/release/cli/0.0.3/${os}/moxel && chmod 777 /usr/local/bin/moxel`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
+                                    <input id={`warp-install-${os}`} value={`pip install moxel`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
                                 </div>
                                 <div className="col s12 m2">
                                     <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-install-${os}`}>
