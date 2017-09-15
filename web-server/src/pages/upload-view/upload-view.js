@@ -136,8 +136,7 @@ class UploadView extends Component {
 
     // Finished flow. Redirect user to model page.
     finalizeStep() {
-        console.log('finalize')
-        window.location.href = "/models";
+        window.location.href = `/models/${this.userId}/${this.modelId}/${this.tag}`;
     }
 
     nextStep() {
