@@ -51,7 +51,7 @@ class UploadView extends Component {
         super()
 
         this.state = {
-            step: 0,
+            step: 3,
             uploaded: false
         }
 
@@ -110,12 +110,14 @@ class UploadView extends Component {
         //     componentConfig.postUrl = data.url;
         // });
         let params = this.props.match.params
-        this.userId = params.userId
-        this.modelId = params.modelId
-        this.tag = params.tag;
+        
+        var userId = params.userId
+        var modelId = params.modelId
+        var tag = params.tag;
+
         // Thread to check if the model is uploaded.
         var modelProbe = function() {
-            fetch(`/api/users/${this.userId}/models/${this.modelId}/${this.tag}`, {
+            fetch(`/api/users/${userId}/models/${modelId}/${tag}`, {
                 "method": "GET"
             }).then((response)=>{
                 return response.json();
@@ -136,7 +138,13 @@ class UploadView extends Component {
 
     // Finished flow. Redirect user to model page.
     finalizeStep() {
-        window.location.href = `/models/${this.userId}/${this.modelId}/${this.tag}`;
+        let params = this.props.match.params
+        
+        var userId = params.userId
+        var modelId = params.modelId
+        var tag = params.tag;
+
+        window.location.href = `/models/${userId}/${modelId}/${tag}`;
     }
 
     nextStep() {
@@ -160,11 +168,17 @@ class UploadView extends Component {
     render() {
         var self = this;
 
+        let params = this.props.match.params
+        
+        var userId = params.userId
+        var modelId = params.modelId
+        var tag = params.tag;
+
         let content = null;
 
         this.nextStepEnabled = true;
         this.backStepEnabled = true;
-        if(this.state.step == 0) {
+        if(this.state.step == 0 || this.state.step == 3) {
             this.backStepEnabled = false;
         }
         if(this.state.step == 2) {
@@ -409,7 +423,7 @@ class UploadView extends Component {
 
                         <div className="row" style={{display: "block"}}>
                             <div className="col s12 m12" style={{textAlign: "center"}}>
-                                <h4>Model <b>{`${this.userId}/${this.modelId}`}</b> is now live!</h4>
+                                <h4>Model <b>{`${userId}/${modelId}`}</b> is now live!</h4>
                             </div>
                         </div>
 
