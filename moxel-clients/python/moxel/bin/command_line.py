@@ -1,7 +1,10 @@
 import os
 import sys
-import shlex
 import moxel
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -19,7 +22,7 @@ bin_path = os.path.join(moxel_install_dir, 'bin', bin_path, 'moxel')
 
 def main():
     # print('current', get_script_path())
-    cmd = ('{} ' * (len(sys.argv))).format(bin_path, *[shlex.quote(arg) for arg in sys.argv[1:]])
+    cmd = ('{} ' * (len(sys.argv))).format(bin_path, *[cmd_quote(arg) for arg in sys.argv[1:]])
     os.system(cmd)
 
 

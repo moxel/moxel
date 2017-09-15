@@ -1,5 +1,5 @@
 #!/bin/bash
-URL='http://beta.moxel.ai/release/cli/0.0.3'
+URL='http://beta.moxel.ai/release/cli/latest'
 
 for platform in osx linux windows
 do
