@@ -329,6 +329,9 @@ class ModelView extends Component {
         const {userId, modelName, tag} = this.props.match.params;
 
         this.isAuthor = (userId == this.state.username);
+        this.setState({
+            editMode: this.isAuthor
+        })
 
         if(this.isAuthor) {
             function addNotification() {
@@ -385,12 +388,18 @@ class ModelView extends Component {
                 var inputSpaces = self.moxelModel.inputSpace;
 
                 for(var inputName in inputs) {
-                    setTimeout(function(outputName) {
+                    setTimeout(function(inputName) {
                         var inputSpace = inputSpaces[inputName];
-                        var input = inputs[outputName];
-                        var demoWidget = document.querySelector(`#demo-input-${outputName}`);
+                        var input = inputs[inputName];
+                        var demoWidget = document.querySelector(`#demo-input-${inputName}`);
                         if(inputSpace == moxel.space.Image) {
                             // TODO: Not implemented.
+                            var addThumbnail = self.addThumbnails[inputName];
+                            if(addThumbnail) {
+                                input.toDataURL('image/png').then((src) => {
+                                    addThumbnail(src);
+                                });
+                            }
                         }else if(inputSpace == moxel.space.JSON) {
                             // TODO: Not implemented.
                         }else if(inputSpace == moxel.space.String) {
@@ -523,6 +532,17 @@ class ModelView extends Component {
                 // error: function(e) {
                 //     console.error("error", e);
                 // }
+            }
+        }
+
+        // TODO: best practice is to decouple parent and child logic.
+        self.createAddThumbnailHandler = function(inputName) {
+            if(!self.addThumbnails) {
+                self.addThumbnails = {};
+            }
+
+            return function(addThumbnail) {
+                self.addThumbnails[inputName] = addThumbnail;
             }
         }
 
@@ -698,6 +718,12 @@ class ModelView extends Component {
         var self = this;
         if(!self.moxelModel) return;
 
+        // TODO: factor this out.
+        if(self.addThumbnails) {
+            for(var k in self.addThumbnails) {
+                self.addThumbnails[k]('/images/spinner.gif')
+            }
+        }
         self.moxelModel.loadDemoExample(example.exampleId)
         .then((result) => {
             self.handleInputs(result.input);
@@ -832,7 +858,7 @@ class ModelView extends Component {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
-                        <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
+                        <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
                 );
             }else if(inputSpace == "String" || inputSpace == "Array") {

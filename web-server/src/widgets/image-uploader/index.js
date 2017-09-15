@@ -11,6 +11,6 @@ var componentConfig = {
     postUrl: 'no-url'
 };
 
-export default function ImageUploader({uploadEventHandlers}: props) {
-    return <FileUploader uploadEventHandlers={uploadEventHandlers} componentConfig={componentConfig}></FileUploader>
+export default function ImageUploader({uploadEventHandlers, addThumbnailHandler}: props) {
+    return <FileUploader uploadEventHandlers={uploadEventHandlers} addThumbnailHandler={addThumbnailHandler} componentConfig={componentConfig}></FileUploader>
 }
