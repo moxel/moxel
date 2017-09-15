@@ -10,6 +10,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"gopkg.in/yaml.v2"
 	"io"
+	"strconv"
 	"time"
 )
 
@@ -27,6 +28,36 @@ type Model struct {
 	Commit string
 	Yaml   string
 	Status string
+}
+
+type ModelList []map[string]interface{}
+
+func (modelList ModelList) Len() int {
+	return len(modelList)
+}
+
+func (modelList ModelList) Swap(i, j int) {
+	modelList[i], modelList[j] = modelList[j], modelList[i]
+}
+
+// TODO: refactor this...
+func (modelList ModelList) Less(i, j int) bool {
+	start := time.Now()
+	starsI := modelList[i]["metadata"].(map[string]interface{})["stars"]
+	if starsI == nil {
+		starsI = interface{}("0")
+	}
+	starsJ := modelList[j]["metadata"].(map[string]interface{})["stars"]
+	if starsJ == nil {
+		starsJ = interface{}("0")
+	}
+
+	numStarsI, _ := strconv.Atoi(starsI.(string))
+	numStarsJ, _ := strconv.Atoi(starsJ.(string))
+	end := time.Now()
+
+	fmt.Println("elapsed", end.Sub(start))
+	return numStarsI > numStarsJ
 }
 
 // Convert model struct to map representation.

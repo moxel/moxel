@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -164,8 +165,8 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert model objects to maps.
 	var results []map[string]interface{}
-
 	for _, model := range ms {
 		metadata := model.ToMap()
 		// name := metadata["name"].(string)
@@ -176,6 +177,8 @@ func listModels(w http.ResponseWriter, r *http.Request) {
 		metadata["status"] = "UNKNOWN"
 		results = append(results, metadata)
 	}
+
+	sort.Sort(models.ModelList(results))
 
 	response, _ := json.Marshal(results)
 	w.Header().Set("Content-Type", "application/json")
