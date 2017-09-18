@@ -15,11 +15,19 @@ extra:
   feature:
     tabs: true
 site_favicon: 'images/x.png'
+site_url: 'http://beta.moxel.ai'
+
+
+# Copyright
+copyright: 'Copyright &copy; 2017 Moxel'
 
 pages:
 - index.md
-- Moxel:
-  - 'moxel/install.md'
+- Install:
+  - install/cli.md
 - Tutorial:
-  - 'tutorials/caffe-colorization.md'
+  - Deploy in Python:
+    - 'tutorials/question-answering.md'
+  - Deploy with HTTP server:
+    - 'tutorials/caffe-colorization.md'
 
