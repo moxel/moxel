@@ -20,8 +20,8 @@ const CLOUD_VENDOR = "gcloud"
 
 const USER_CONFIG = ".dummy"
 
-var MasterAddress = "http://beta.dummy.ai/api"
-var WebsiteAddress = "http://beta.dummy.ai"
+var MasterAddress = "http://beta.moxel.ai/api"
+var WebsiteAddress = "http://beta.moxel.ai"
 
 // The URL to create a new model on Moxel website.
 var CreateModelURL = WebsiteAddress + "/new"
