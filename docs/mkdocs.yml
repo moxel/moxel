@@ -2,11 +2,24 @@ site_name: Moxel
 theme: 'material'
 extra:
   palette:
-    primary: 'indigo'
+    primary: 'blue'
     accent: 'light blue'
+  logo: 'images/x.png'
+  social:
+    - type: 'github'
+      link: 'https://github.com/moxel'
+    - type: 'twitter'
+      link: 'https://twitter.com/moxel_ai'
+    # - type: 'linkedin'
+    #   link: 'https://linkedin.com/in/moxel'
+  feature:
+    tabs: true
+site_favicon: 'images/x.png'
+
 pages:
 - index.md
 - Moxel:
   - 'moxel/install.md'
 - Tutorial:
   - 'tutorials/caffe-colorization.md'
+
