@@ -3,7 +3,7 @@
 
     
     <url>
-     <loc>/</loc>
+     <loc>http://beta.moxel.ai/</loc>
      <lastmod>2017-09-18</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -12,7 +12,7 @@
     
         
     <url>
-     <loc>/moxel/install/</loc>
+     <loc>http://beta.moxel.ai/install/cli/</loc>
      <lastmod>2017-09-18</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -22,8 +22,14 @@
     
         
     <url>
-     <loc>/tutorials/caffe-colorization/</loc>
-     <lastmod>2017-09-18</lastmod>
+     <loc>http://beta.moxel.ai</loc>
+     <lastmod></lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>http://beta.moxel.ai</loc>
+     <lastmod></lastmod>
      <changefreq>daily</changefreq>
     </url>
         

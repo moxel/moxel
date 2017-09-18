@@ -11,19 +11,59 @@
             "title": "Welcome to Moxel Documentation."
         },
         {
-            "location": "/moxel/install/",
-            "text": "Installation Guide\n\n\nMac OS X\n\n\nFirst, install Warpdrive:\n\n\nsudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/osx/warp && sudo chmod 777 /usr/local/bin/warp\n\n\nAfter installation, please login\n\n\nwarp login\n\n\n\n\nIf you are using dev environment, simply use \nENV=dev\n before each \nwarp\n command. For example,\n\n\nENV=dev warp login",
-            "title": "Install"
+            "location": "/install/cli/",
+            "text": "Installation Guide\n\n\nThis guide explains how to install Moxel.\n\n\nWith Python PIP\n\n\nThe easiest way to install Moxel regardless of the operating system is through \npip\n. \n\n\npip install moxel\n\n\n\n\n\n\n\n\n\n\nThis step will install two things:\n\n\n\n\nMoxel CLI\n: a command-line tool to deploy machine learning models.\n\n\nMoxel Python Client\n: this is a Python client to use Moxel models, through \nimport moxel\n.\n\n\n\n\nAfter pip install, to test if the CLI is working, run\n\n\nmoxel login\n\n\n\n\n\n\n\n\n\n\nIf you are using a local computer, this step will open a web browser; if you currently ssh into a remote cluster, \nmoxel\n will ask for username and passwords in headless mode.\n\n\nYou can also checkout the moxel version by \n\n\nmoxel version\n\n\n\n\nManually Install CLI\n\n\nMoxel CLI is released as standalone binaries. You can download them through\n\n\ncurl -o moxel http://beta.moxel.ai/release/cli/latest/<system>/moxel\n\n\n\n\nHere \n<system>\n is the operating system you are running with: \nosx\n, \nlinux\n or \nwindows\n.",
+            "title": "Cli"
         },
         {
-            "location": "/moxel/install/#installation-guide",
-            "text": "",
+            "location": "/install/cli/#installation-guide",
+            "text": "This guide explains how to install Moxel.",
             "title": "Installation Guide"
         },
         {
-            "location": "/moxel/install/#mac-os-x",
-            "text": "First, install Warpdrive:  sudo curl -Lo /usr/local/bin/warp http://beta.dummy.ai/release/cli/0.0.0-alpha/osx/warp && sudo chmod 777 /usr/local/bin/warp  After installation, please login  warp login  If you are using dev environment, simply use  ENV=dev  before each  warp  command. For example,  ENV=dev warp login",
-            "title": "Mac OS X"
+            "location": "/install/cli/#with-python-pip",
+            "text": "The easiest way to install Moxel regardless of the operating system is through  pip .   pip install moxel     This step will install two things:   Moxel CLI : a command-line tool to deploy machine learning models.  Moxel Python Client : this is a Python client to use Moxel models, through  import moxel .   After pip install, to test if the CLI is working, run  moxel login     If you are using a local computer, this step will open a web browser; if you currently ssh into a remote cluster,  moxel  will ask for username and passwords in headless mode.  You can also checkout the moxel version by   moxel version",
+            "title": "With Python PIP"
+        },
+        {
+            "location": "/install/cli/#manually-install-cli",
+            "text": "Moxel CLI is released as standalone binaries. You can download them through  curl -o moxel http://beta.moxel.ai/release/cli/latest/<system>/moxel  Here  <system>  is the operating system you are running with:  osx ,  linux  or  windows .",
+            "title": "Manually Install CLI"
+        },
+        {
+            "location": "/tutorials/question-answering/",
+            "text": "Question-Answering\n\n\nIn this tutorial, you'll learn how to deploy a question-answering model trained on Stanford QA Dataset (SQuAD). Here's a sneak peak of the model demo:\n\n\n\n\nWhat is SQuAD?\n\n\nStanford Question Answering Dataset (SQuAD) is a new reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage. With 100,000+ question-answer pairs on 500+ articles, SQuAD is significantly larger than previous reading comprehension datasets.\nExplore SQuAD and model predictions\n\n\nCheckout the GitHub repo at \n\n\n\n\nhttps://rajpurkar.github.io/SQuAD-explorer/\n\n\n\n\nStep 1: Write Prediction\n\n\nFor this example, we'll use the code in \ngithub.com/moxel/tf-bi-att-flow\n, which already has the model inference part written out. \n\n\nCreate a new script called \nserve.py\n, and import from existing modules.\n\n\nfrom squad.demo_prepro import prepro\nfrom basic.demo_cli import Demo\n\n\n\n\nTo serve the model with Moxel, all you need to write is an inference function. Let's call it \nget_answer\n: \n\n\ndemo = Demo()\n\ndef get_answer(paragraph, question):\n    pq_prepro = prepro(paragraph, question)\n    return {\n        'answer': demo.run(pq_prepro)\n    }\n\n\n\n\nStep 2: Write the YAML config.\n\n\nCreate a new file called \nmoxel.yml\n. This Moxel config describes basic metadata about the model. \n\n\nname: question-answering\ntag: latest\nimage: dummyai/py3-tf-cpu\nresources:\n  memory: 1Gi\n  cpu: \"1\"\ninput_space:\n  paragraph: String\n  question: String\noutput_space:\n  answer: String\nmain:\n  type: python\n  entrypoint: serve.py::get_answer\n\n\n\n\nIt provides a few specs about the model:\n\n\n\n\nname\n: the repo name under \n/\n.\n\n\ntag\n: versioning of the model.\n\n\nimage\n: the docker image to serve the model in.\n\n\nresources\n: basic resource requirements for the model. If not specified, it will request 1 CPU and 1 GB of memory.\n\n\ninput_space\n: the variables and their types for model input.\n\n\noutput_space\n: the variables and their types for model output.\n\n\nmain\n: the entrypoint to the model. For python deployment, specify the name of a function.\n\n\n\n\nStep 3 (Optional): Test it locally.\n\n\nBefore actually deploying the model, it's helpful to test and debug locally. Moxel provides \n\n\nmoxel serve -f moxel.yml\n\n\n\n\nThis will wrap the python function in a flask server, and start listening at port \n5900\n.\n\n\nTo use the model, create a test script called \ntest_server.py\n:\n\n\nimport moxel\n\nmodel = moxel.Model('<username>/question-answering:latest', where='localhost')\n\noutput = model.predict({\n    'paragraph': 'Daniel is 10 years old.',\n    'question': 'How old is Daniel?'\n})\n\nprint(output['answer'])\n\n\n\n\nStep 4: Deploy!\n\n\nTo deploy the model, it's simple. Just run\n\n\nmoxel push -f moxel.yml\n\n\n\n\nYou'll see logs streamed live from the model. Shortly, the model will be available under \nbeta.moxel.ai/\n/question-answer\n. \n\n\nOnce you go to the model, spend time to make the page look nice, by adding model description, readme, labels, ... Share it on Facebook / Twitter, and have your friends try it out!",
+            "title": "Question answering"
+        },
+        {
+            "location": "/tutorials/question-answering/#question-answering",
+            "text": "In this tutorial, you'll learn how to deploy a question-answering model trained on Stanford QA Dataset (SQuAD). Here's a sneak peak of the model demo:",
+            "title": "Question-Answering"
+        },
+        {
+            "location": "/tutorials/question-answering/#what-is-squad",
+            "text": "Stanford Question Answering Dataset (SQuAD) is a new reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage. With 100,000+ question-answer pairs on 500+ articles, SQuAD is significantly larger than previous reading comprehension datasets.\nExplore SQuAD and model predictions  Checkout the GitHub repo at    https://rajpurkar.github.io/SQuAD-explorer/",
+            "title": "What is SQuAD?"
+        },
+        {
+            "location": "/tutorials/question-answering/#step-1-write-prediction",
+            "text": "For this example, we'll use the code in  github.com/moxel/tf-bi-att-flow , which already has the model inference part written out.   Create a new script called  serve.py , and import from existing modules.  from squad.demo_prepro import prepro\nfrom basic.demo_cli import Demo  To serve the model with Moxel, all you need to write is an inference function. Let's call it  get_answer :   demo = Demo()\n\ndef get_answer(paragraph, question):\n    pq_prepro = prepro(paragraph, question)\n    return {\n        'answer': demo.run(pq_prepro)\n    }",
+            "title": "Step 1: Write Prediction"
+        },
+        {
+            "location": "/tutorials/question-answering/#step-2-write-the-yaml-config",
+            "text": "Create a new file called  moxel.yml . This Moxel config describes basic metadata about the model.   name: question-answering\ntag: latest\nimage: dummyai/py3-tf-cpu\nresources:\n  memory: 1Gi\n  cpu: \"1\"\ninput_space:\n  paragraph: String\n  question: String\noutput_space:\n  answer: String\nmain:\n  type: python\n  entrypoint: serve.py::get_answer  It provides a few specs about the model:   name : the repo name under  / .  tag : versioning of the model.  image : the docker image to serve the model in.  resources : basic resource requirements for the model. If not specified, it will request 1 CPU and 1 GB of memory.  input_space : the variables and their types for model input.  output_space : the variables and their types for model output.  main : the entrypoint to the model. For python deployment, specify the name of a function.",
+            "title": "Step 2: Write the YAML config."
+        },
+        {
+            "location": "/tutorials/question-answering/#step-3-optional-test-it-locally",
+            "text": "Before actually deploying the model, it's helpful to test and debug locally. Moxel provides   moxel serve -f moxel.yml  This will wrap the python function in a flask server, and start listening at port  5900 .  To use the model, create a test script called  test_server.py :  import moxel\n\nmodel = moxel.Model('<username>/question-answering:latest', where='localhost')\n\noutput = model.predict({\n    'paragraph': 'Daniel is 10 years old.',\n    'question': 'How old is Daniel?'\n})\n\nprint(output['answer'])",
+            "title": "Step 3 (Optional): Test it locally."
+        },
+        {
+            "location": "/tutorials/question-answering/#step-4-deploy",
+            "text": "To deploy the model, it's simple. Just run  moxel push -f moxel.yml  You'll see logs streamed live from the model. Shortly, the model will be available under  beta.moxel.ai/ /question-answer .   Once you go to the model, spend time to make the page look nice, by adding model description, readme, labels, ... Share it on Facebook / Twitter, and have your friends try it out!",
+            "title": "Step 4: Deploy!"
         },
         {
             "location": "/tutorials/caffe-colorization/",
