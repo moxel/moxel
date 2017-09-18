@@ -56,8 +56,8 @@ class Model(object):
         for var_name, var_space in self.input_space.items():
             assert var_name in kwargs, 'Input must have argument {}'.format(var_name)
             # Type check.
-            assert (type(kwargs[var_name]) == var_space,
-                'Type does not match for {}'.format(var_name))
+            assert type(kwargs[var_name]) == var_space, \
+                'Type does not match for {}'.format(var_name)
 
             if var_space.NAME == 'Image':
                 # Assume base64 encoding.
