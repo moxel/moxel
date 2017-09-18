@@ -7,14 +7,14 @@ jobs:
     docker:
       - image: frolvlad/alpine-python2
     steps:
-      - pip install moxel
-      - moxel version
+      - run: pip install moxel
+      - run: moxel version
   pip-install-moxel-python3:
     docker:
       - image: frolvlad/alpine-python3
     steps:
-      - pip install moxel
-      - moxel version
+      - run: pip install moxel
+      - run: moxel version
 
 workflows:
   version: 2
