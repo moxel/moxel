@@ -186,8 +186,24 @@ class UploadView extends Component {
         }
 
         switch(this.state.step) {
-            case 0: // Install Warpdrive.
-                var instructionByOS = function(os) {
+            case 0: 
+                function renderCommandWithCopy(id, command) {
+                    return (
+                        <div className="row" style={{marginTop: "15px"}}>
+                            <div className="col s12 m10" style={{paddingLeft: "0"}}>
+                                    <input id={id} value={command} readOnly 
+                                        style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}
+                                    />
+                            </div>
+                            <div className="col s12 m2">
+                                <ClipboardButton className="btn-flat" data-clipboard-target={'#' + id} style={{height: "45px"}}>
+                                    <i className="material-icons">content_copy</i>
+                                </ClipboardButton>    
+                            </div>
+                        </div>
+                    );
+                }
+                function setupInstructions() {
                     return (
                         <div>
                             <div className="row">
@@ -196,62 +212,32 @@ class UploadView extends Component {
                                     
                             <div className="row">
                                 <div className="col s12 offset-m1 m10">
-                                     Moxel has a Command Line Tool (CLI) to help you upload models. 
+                                     Moxel provides a Command Line Tool (CLI) to easily upload models. 
                                      <br/>
                                      To install, run this in your terminal:
-                                </div>
-                            </div>
-                           
-                           <br/>
-                            
-                            <div className="row">
-                                <div className="col s12 offset-m1 m8">
-                                    <input id={`warp-install-${os}`} value={`pip install moxel`} readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
-                                </div>
-                                <div className="col s12 m2">
-                                    <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-install-${os}`}>
-                                        <i className="material-icons">content_copy</i>
-                                    </ClipboardButton>    
-                                </div>
-                                
-                            </div>
+                                     {renderCommandWithCopy('moxel-install', 'pip install moxel')}
 
-                            <div className="row">
-                                <div className="col s12 offset-m1 m8">
                                     After installation, try login 
+
+                                    {renderCommandWithCopy('moxel-login', 'moxel login')}
+
+                                    This will open your browser and guide you through the login portal.
+
+                                    <br/>
+
+                                    After login, you should be able to run the following to list your model repositories.
+
+                                    {renderCommandWithCopy('moxel-ls', 'moxel ls')}
+
                                 </div>
                             </div>
 
-                            <div className="row">
-
-                                <div className="col s12 offset-m1 m8">
-                                        <input id={`warp-login-${os}`} value="moxel login" readOnly style={{backgroundColor: "#1F2A41", color: "white", paddingLeft: "10px", border: "none"}}/>
-                                </div>
-                                <div className="col s12 m2">
-                                    <ClipboardButton className="btn-flat" data-clipboard-target={`#warp-login-${os}`}>
-                                        <i className="material-icons">content_copy</i>
-                                    </ClipboardButton>    
-                                </div>
-                                
-                            </div>
+                           
                         </div>
                     )
                 }
-                content = (
-                    <div>
-                        <Tabs className='tab-demo' >
-                            <Tab title="OS X" active>
-                                {instructionByOS("osx")}
-                            </Tab>
-                            <Tab title="Linux">
-                                {instructionByOS("linux")}
-                            </Tab>
-                            <Tab title="Windows">
-                                {instructionByOS("windows")}
-                            </Tab>
-                        </Tabs>
-                    </div>
-                )
+
+                content = setupInstructions();
                 break; 
             case 1: // Wrap Your Model.
                 content = (
