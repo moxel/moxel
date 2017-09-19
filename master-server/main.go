@@ -379,7 +379,27 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteModel(w http.ResponseWriter, r *http.Request) {
+func teardownModel(user string, name string, tag string) error {
+	deployName := GetDeployName(user, name, tag)
+	path := GetModelPath(user, name, tag)
+
+	err := TeardownDeploy(kubeClient, deployName)
+	if err != nil {
+		return err
+	}
+	err = TeardownService(kubeClient, deployName)
+	if err != nil {
+		return err
+	}
+	err = RemoveServiceFromIngress(kubeClient, path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteModelWithTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	printRequest(r, fmt.Sprintf("Deleting model %s/%s:%s", vars["user"], vars["model"], vars["tag"]))
@@ -394,8 +414,11 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 	// Check if the model is live.
 	status := getModelStatus(user, name, tag)
 	if status == "LIVE" {
-		http.Error(w, "Unable to delete model, because the model is live. Unpublish it first", 500)
-		return
+		err := teardownModel(user, name, tag)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 	}
 
 	// Otherwise, delete the model from database.
@@ -404,6 +427,46 @@ func deleteModel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+}
+
+func deleteModels(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	printRequest(r, fmt.Sprintf("Deleting model %s/%s:%s", vars["user"], vars["model"], vars["tag"]))
+
+	// Get ModelId based on user, model name and tag.
+	userId := vars["user"]
+	modelName := vars["model"]
+
+	ms, err := models.ListModelByUserAndName(db, userId, modelName)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	fmt.Println("models to delete", ms)
+
+	for _, model := range ms {
+		tag := model.Tag
+		modelId := models.ModelId(userId, modelName, tag)
+		// Check if the model is live.
+		status := getModelStatus(userId, modelName, tag)
+		if status == "LIVE" {
+			err := teardownModel(userId, modelName, tag)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+		}
+
+		// Delete the model from database.
+		err := models.DeleteModel(db, modelId)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+	}
+
+	w.WriteHeader(200)
 }
 
 func getModelStatus(userId string, modelName string, tag string) string {
@@ -550,22 +613,10 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		return
 	} else if data["action"] == "teardown" {
-		deployName := GetDeployName(user, name, tag)
-		path := GetModelPath(user, name, tag)
-
-		err = TeardownDeploy(kubeClient, deployName)
+		err = teardownModel(user, name, tag)
 		if err != nil {
-			fmt.Println(err.Error())
+			http.Error(w, err.Error(), 500)
 		}
-		err = TeardownService(kubeClient, deployName)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		err := RemoveServiceFromIngress(kubeClient, path)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
 		return
 	} else {
 		w.WriteHeader(400)
@@ -910,7 +961,8 @@ func main() {
 		// PUT is used to create / update metadata. POST is used to control model deployments.
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", putModel).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}", postModel).Methods("POST")
-		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModel).Methods("DELETE")
+		router.HandleFunc("/users/{user}/models/{model}", deleteModels).Methods("DELETE")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}", deleteModelWithTag).Methods("DELETE")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/log", logModel).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples/{exampleId}", putExample).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples", listExamples).Methods("GET")
