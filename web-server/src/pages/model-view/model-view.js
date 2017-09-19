@@ -180,6 +180,10 @@ const StyledModelLayout = styled(Flex)`
         border-bottom-color: #000;
     }
 
+    .tabs .tab.disabled {
+        display: none;
+    }
+
     .tabs .tab a {
         color: rgb(0, 0, 0);
     }
@@ -1467,7 +1471,7 @@ class ModelView extends Component {
                         </span>
                         
                         {
-                            this.isAuthor
+                            self.isAuthor
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
                                 <div className="switch">
@@ -1509,9 +1513,12 @@ class ModelView extends Component {
                             <Tab title={renderTabTitle('comment', 'Comments')}>
                                 {renderModelComments()}
                             </Tab>
-                            <Tab title={renderTabTitle('settings', 'Settings')} >
+
+                            <Tab title={renderTabTitle('settings', 'Settings')} disabled={self.isAuthor ? false : true}>
                                 {renderModelDangerZone()}
                             </Tab>
+                            
+                            
                         </Tabs>
 
                     </FixedWidthRow>
