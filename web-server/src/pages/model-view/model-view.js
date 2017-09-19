@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
-import NotificationBanner from "../../components/notification-banner/notification-banner";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
@@ -26,7 +25,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from '../../components/disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
-import NotificationSystem from 'react-notification-system';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
 import Moxel from 'moxel'
@@ -205,14 +204,7 @@ const StyledModelLayout = styled(Flex)`
         outline: none;
     }
 
-    .notifications-wrapper {
-        z-index: 99999999;
-    }
-
-    .notification.notification-success.notification-visible {
-        position: absolute;
-        top: 50px;   
-    }
+    
 `;
 
 class ModelView extends Component {
@@ -1321,7 +1313,7 @@ class ModelView extends Component {
                     </FixedWidthRow>*/}
                 </Flex>
 
-                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
+                <NotificationBanner ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
             </StyledModelLayout>
         )
     }
