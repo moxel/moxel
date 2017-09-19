@@ -246,6 +246,7 @@ class ModelView extends Component {
         }
 
         this.handleUpvote = this.handleUpvote.bind(this);
+        this.handleDeleteRepository = this.handleDeleteRepository.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
@@ -559,7 +560,9 @@ class ModelView extends Component {
         
     }
 
-    
+    handleDeleteRepository() {
+        var self = this;
+    }    
 
     handleUpvote() {
         var self = this;
@@ -1300,6 +1303,38 @@ class ModelView extends Component {
             }
         }
 
+        function renderModelDangerZone() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                          <div className="card red">
+                            <div className="card-content white-text">
+
+                                <div className="card-title">
+                                Danger Zone
+                                </div>
+
+
+                                <a className={"waves-effect btn-flat black-text model-action-btn red lighten-3 red-text"} 
+                                    onClick={self.handleDeleteRepository()}>
+                                    <i className="material-icons vertical-align-middle">
+                                    delete
+                                    </i>
+                                    <div className="vertical-align-middle">Delete this repository</div>
+                                </a>
+
+                                <br/>
+
+                                Once you click this button to delete, there is no going back. Please be 100% certain.
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
         function renderTabTitle(icon, title) {
             return (
                 <div style={{color: "#333"}}>
@@ -1308,6 +1343,8 @@ class ModelView extends Component {
                 </div>
             );
         }
+
+
 
         return (
             <StyledModelLayout column className="catalogue-layout-container">
@@ -1370,7 +1407,7 @@ class ModelView extends Component {
                                 {renderModelComments()}
                             </Tab>
                             <Tab title={renderTabTitle('settings', 'Settings')} >
-                                
+                                {renderModelDangerZone()}
                             </Tab>
                         </Tabs>
                     </FixedWidthRow>
