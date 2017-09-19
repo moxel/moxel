@@ -29,6 +29,10 @@ class CreateView extends Component {
                   message: `Model ${modelId} already exists.`,
                   level: 'error'
                 });
+
+                window.setTimeout(function() {
+                    window.location.href = "/models/" + userId + "/" + modelId  + "/" + models[0].tag;
+                }, 3000);
             }else{
                 ModelStore.updateModel(userId, modelId, tag, {
                     'title': modelTitle,
