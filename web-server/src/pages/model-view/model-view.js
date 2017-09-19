@@ -562,6 +562,11 @@ class ModelView extends Component {
 
     handleDeleteRepository() {
         var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.deleteModels(userId, modelName).then(() => {
+            window.location.href = '/models';
+        })
     }    
 
     handleUpvote() {
@@ -1317,7 +1322,7 @@ class ModelView extends Component {
 
 
                                 <a className={"waves-effect btn-flat black-text model-action-btn red lighten-3 red-text"} 
-                                    onClick={self.handleDeleteRepository()}>
+                                    onClick={self.handleDeleteRepository}>
                                     <i className="material-icons vertical-align-middle">
                                     delete
                                     </i>
