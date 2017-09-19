@@ -51,6 +51,18 @@ class ModelStoreClass {
 		}.bind(this));
 	}
 
+	deleteModels(userId, modelId) { 
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelId}`,
+				{method: 'DELETE'}
+			).then((response)=>{
+	            resolve();
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
 	fetchModelAll() { 
 		return new Promise(function(resolve) {
 			fetch(`/api/users/_/models`).then((response)=>{

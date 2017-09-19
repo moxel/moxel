@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
-import NotificationBanner from "../../components/notification-banner/notification-banner";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
@@ -26,7 +25,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from '../../components/disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
-import NotificationSystem from 'react-notification-system';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
 import ChipInput from 'material-ui-chip-input'
@@ -46,6 +45,11 @@ var moxel = Moxel({
 
 
 const StyledModelLayout = styled(Flex)`
+    .vertical-align-middle { 
+        display: inline-block;
+        vertical-align: middle; 
+    }
+
     .blur {
         filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');
         -webkit-filter: url(#blur-filter);
@@ -162,12 +166,26 @@ const StyledModelLayout = styled(Flex)`
         margin-right: 20px;
     }
 
+    .tabs {
+        background: none;
+    }
+
+    .tabs .tab a:hover {
+        border-bottom: solid;
+        border-bottom-color: #ccc;
+    }
+
+    .tabs .tab a.active {
+        border-bottom: solid;
+        border-bottom-color: #000;
+    }
+
     .tabs .tab a {
         color: rgb(0, 0, 0);
     }
 
     .tabs .indicator {
-        background-color: black;
+        background: none;
     }
 
     .editable-input {
@@ -207,14 +225,7 @@ const StyledModelLayout = styled(Flex)`
         outline: none;
     }
 
-    .notifications-wrapper {
-        z-index: 99999999;
-    }
-
-    .notification.notification-success.notification-visible {
-        position: absolute;
-        top: 50px;   
-    }
+    
 `;
 
 class ModelView extends Component {
@@ -241,6 +252,7 @@ class ModelView extends Component {
         this.addNotification = this.addNotification.bind(this);
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleLabelsChange = this.handleLabelsChange.bind(this);
+        this.handleDeleteRepository = this.handleDeleteRepository.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
@@ -596,6 +608,15 @@ class ModelView extends Component {
         });
     }
 
+    handleDeleteRepository() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.deleteModels(userId, modelName).then(() => {
+            window.location.href = '/models';
+        })
+    }    
+
     handleUpvote() {
         var self = this;
 
@@ -926,51 +947,49 @@ class ModelView extends Component {
                             <div className="card">
                                 <div className="card-tabs white">
 
-                                  <Tabs className='tab-demo white'>
-                                    <Tab title="Demo" active >
-                                        <span className="black-text">
-                                            <div className="row">
+                                    <span className="black-text">
+                                        <div className="row">
+                                            <br/>
+                                            <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
+                                                Model Input
+                                                
+                                                <br/><br/>
+
+
+                                                {Object.values(inputWidgets)}
+
                                                 <br/>
-                                                <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
-                                                    Model Input
-                                                    
-                                                    <br/><br/>
 
-                                                    {Object.values(inputWidgets)}
+                                                {renderBrowserExample()}
 
-                                                    <br/>
+                                                <br/>
 
-                                                    {renderBrowserExample()}
-
-                                                    <br/>
-
-                                                    {
-                                                        self.state.isRunning 
-                                                        ?
-                                                        <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
-                                                        :    
-                                                        <a className="waves-effect btn-flat green white-text" 
-                                                            style={{padding: 0, width: "100px", textAlign: "center"}} 
-                                                            onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
-                                                            Run 
-                                                        </a>
-                                                    }
-                                                </div>
-                                                <div className="col m6" style={{textAlign: "center"}} >
-                                                    Model Output
-
-                                                    <br/><br/>
-
-                                                    {Object.values(outputWidgets)}
-
-                                                    <br/>
-
-                                                    {renderSaveDemoButton()}
-                                                        
-                                                </div>
+                                                {
+                                                    self.state.isRunning 
+                                                    ?
+                                                    <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
+                                                    :    
+                                                    <a className="waves-effect btn-flat green white-text" 
+                                                        style={{padding: 0, width: "100px", textAlign: "center"}} 
+                                                        onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                                                        Run 
+                                                    </a>
+                                                }
                                             </div>
-                                        </span>
-                                    </Tab>
+                                            <div className="col m6" style={{textAlign: "center"}} >
+                                                Model Output
+
+                                                <br/><br/>
+
+                                                {Object.values(outputWidgets)}
+
+                                                <br/>
+
+                                                {renderSaveDemoButton()}
+                                                    
+                                            </div>
+                                        </div>
+                                    </span>
                                     {/*<Tab title="API">
                                         <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
                                         {`   
@@ -1006,33 +1025,12 @@ class ModelView extends Component {
                                         </Markdown>   
 
                                     </Tab>*/}
-                                </Tabs>
-
-                                
                                 <hr/>
 
                                   
                                 </div>
 
-                                <div className="card-content">
-                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                                        <div className="col s12 m12">
-                                            {
-                                                self.state.editMode
-                                                ?
-                                                <div>
-                                                    <h5>Edit ReadMe</h5>
-                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
-                                                    </textarea>
-                                                </div>
-                                                :
-                                                <Markdown tagName="article" className="markdown-body">
-                                                    {model.readme}
-                                                </Markdown>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
+                                
 
                             </div>
                         </div>
@@ -1080,10 +1078,12 @@ class ModelView extends Component {
                     fontSize: "18px"
                 }
             }
+
             return (
                 <span style={shareStyle}>
                     <a className={"waves-effect btn-flat black-text model-action-btn " + (self.state.rating > 0 ? "orange lighten-1" : "white")} 
-                        onClick={self.handleUpvote}><i className="material-icons left">
+                        onClick={self.handleUpvote}>
+                        <i className="material-icons left">
                         arrow_drop_up
                         </i>{model.stars}
                     </a>
@@ -1217,6 +1217,7 @@ class ModelView extends Component {
             }
         }
 
+
         function renderModelLabels() {
             if(self.state.editMode) {
                 const sourceTags=[
@@ -1255,8 +1256,198 @@ class ModelView extends Component {
                         Upload Model
                     </a>
                 </div>
+            )
+        }
+
+        function renderModelHeader() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                          <div className="card blue darken-3">
+                            <div className="card-content white-text">
+
+                                <div className="card-title">
+                                    {renderModelTitle()}
+
+                                    {renderModelShare()}
+                                </div>
+
+                                {renderModelStatus()}
+
+                                {renderModelDescription()}
+
+                                  <br/>
+
+                                    <div>
+                                        <p>{
+                                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                                        }</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="card-action blue darken-4">
+                                  {
+                                    model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
+                                  }
+                                  {
+                                    model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
+                                  }
+                                </div>
+                          </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
             );
         }
+
+        function renderModelComments() {
+            return (
+                <FixedWidthRow>             
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content">
+                                    {/* force to sign in to discuss.
+                                    <div>
+                                    <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
+                                    </div>
+                                    <div className="blur">
+                                        
+                                    </div>*/}
+                                    <ReactDisqusThread
+                                        id={`$[userId}/${modelName}:${tag}`}
+                                        title="Example Thread"
+                                        url={`http://dummy.ai${window.location.pathname}`}>
+                                    </ReactDisqusThread>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderModelREADME() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content">
+                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                        <div className="col s12 m12">
+                                            {
+                                                self.state.editMode
+                                                ?
+                                                <div>
+                                                    <h5>Edit ReadMe</h5>
+                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
+                                                    </textarea>
+                                                </div>
+                                                :
+                                                <Markdown tagName="article" className="markdown-body">
+                                                    {model.readme}
+                                                </Markdown>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderModelDemo() {
+            if(model.status == 'LIVE') {
+                return renderDemoComponent();
+            }else{
+                return (
+                    <FixedWidthRow>
+                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                            <div className="col s12 m12">
+                                <div className="card">
+                                    <div className="card-content" style={{textAlign: "center"}}>
+                                        Currently, only metadata is available for this model. Next, deploy the model as API. 
+                                        <div className="row"></div>
+                                        <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </FixedWidthRow>
+                );
+            }
+        }
+
+        function renderModelGallery() {
+            if(model.gallery.length > 0) {
+                 return (
+                    <FixedWidthRow>
+                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                            <div className="col s12 m12">
+                                <div className="card white">
+                                    <div className="card-content card-gallery white-text">
+                                        <div>
+                                            <Slider {...gallerySettings}>
+                                                {galleryImages}
+                                            </Slider>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </FixedWidthRow>
+                );
+            }else{
+                return null;
+            }
+        }
+
+        function renderModelDangerZone() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                          <div className="card red">
+                            <div className="card-content white-text">
+
+                                <div className="card-title">
+                                Danger Zone
+                                </div>
+
+
+                                <a className={"waves-effect btn-flat black-text model-action-btn red lighten-3 red-text"} 
+                                    onClick={self.handleDeleteRepository}>
+                                    <i className="material-icons vertical-align-middle">
+                                    delete
+                                    </i>
+                                    <div className="vertical-align-middle">Delete this repository</div>
+                                </a>
+
+                                <br/>
+
+                                Once you click this button to delete, there is no going back. Please be 100% certain.
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderTabTitle(icon, title) {
+            return (
+                <div style={{color: "#333"}}>
+                    <i className="material-icons vertical-align-middle">{icon}</i> &nbsp;
+                    <div className="vertical-align-middle">{title}</div>
+                </div>
+            );
+        }
+
 
         return (
             <StyledModelLayout column className="catalogue-layout-container">
@@ -1265,17 +1456,16 @@ class ModelView extends Component {
                 {/*<FixedWidthRow component={SearchBar}*/}
                 {/*className="catalogue-search-bar"*/}
                 {/*placeholder="Search 15,291 models"/>*/}
-                
-
                 <Flex component={FlexItem}
                       fluid
                       width="%"
                       className="model-view">
                     <FixedWidthRow style={{justifyContent: "left"}}>
-                        <span>
-                            <i className="material-icons" style={{fontSize: "15px"}}>book</i> &nbsp; 
-                            <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
+                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>bookmark</i> &nbsp; 
+                        <span style={{fontSize: "20px", color: "#2196E1"}}>
+                            <b>{model.user}</b> / <b>{model.id}</b>
                         </span>
+                        
                         {
                             this.isAuthor
                             ?
@@ -1293,128 +1483,44 @@ class ModelView extends Component {
                             :
                             null
                         }
+                        
                     </FixedWidthRow>
+
                     <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card blue darken-3">
-                                    <div className="card-content white-text">
+                        <Tabs className='tab-demo' tabOptions={{swipeable: true}}>
+                            <Tab title={renderTabTitle('crop_square', 'Overview')} active >
+                                {renderModelHeader()}
+                                {renderModelGallery()}
+                                {renderModelREADME()}
+                                {/*<FixedWidthRow>
+                                    <ChartContainer timeRange={series1.timerange()} width={800}>
+                                        <ChartRow height="30">
+                                            <Charts>
+                                                <LineChart axis="axis1" series={series1}/>
+                                            </Charts>
+                                        </ChartRow>
+                                    </ChartContainer>
+                                </FixedWidthRow>*/}
 
-                                        <div className="card-title">
-                                            {renderModelTitle()}
+                            </Tab>
+                            <Tab title={renderTabTitle('widgets', 'Demo')} >
+                                {renderModelDemo()}
+                            </Tab>
+                            <Tab title={renderTabTitle('comment', 'Comments')}>
+                                {renderModelComments()}
+                            </Tab>
+                            <Tab title={renderTabTitle('settings', 'Settings')} >
+                                {renderModelDangerZone()}
+                            </Tab>
+                        </Tabs>
 
-                                            {renderModelShare()}
-
-                                        </div>
-
-                                        {renderModelStatus()}
-
-                                        {renderModelDescription()}
-
-                                        <br/>
-
-
-                                        {renderModelLabels()}
-
-                                    </div>
-                                    
-                                    <div className="card-action blue darken-4">
-                                      {
-                                        model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
-                                      }
-                                      {
-                                        model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
-                                      }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </FixedWidthRow>
 
 
-                    {model.gallery.length > 0 ? 
-                     <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card white">
-                                    <div className="card-content card-gallery white-text">
-                                        <div>
-                                            <Slider {...gallerySettings}>
-                                                {galleryImages}
-                                            </Slider>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </FixedWidthRow>
-                     : null 
-                    }
-
-                    {/*<FixedWidthRow>
-                        <ChartContainer timeRange={series1.timerange()} width={800}>
-                            <ChartRow height="30">
-                                <Charts>
-                                    <LineChart axis="axis1" series={series1}/>
-                                </Charts>
-                            </ChartRow>
-                        </ChartContainer>
-                    </FixedWidthRow>*/}
-
-                    {
-                        model.status == 'LIVE' 
-                        ?
-                        renderDemoComponent()
-                        :
-                        (<FixedWidthRow>
-                            <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                                <div className="col s12 m12">
-                                    <div className="card">
-                                        <div className="card-content" style={{textAlign: "center"}}>
-                                            Currently, only metadata is available for this model. Next, deploy the model as API. 
-                                            <div className="row"></div>
-                                            {renderUploadButton()}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </FixedWidthRow>
-                        )
-                    }
-                
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card">
-                                    <div className="card-content">
-                                        {/* force to sign in to discuss.
-                                        <div>
-                                        <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
-                                        </div>
-                                        <div className="blur">
-                                            
-                                        </div>*/}
-                                        <ReactDisqusThread
-                                            id={`$[userId}/${modelName}:${tag}`}
-                                            title="Example Thread"
-                                            url={`http://dummy.ai${window.location.pathname}`}>
-                                        </ReactDisqusThread>
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </FixedWidthRow>
-                    {/*<FixedWidthRow style={{marginTop: '30px'}}><ModelSnippet {...model}/></FixedWidthRow>
-                    <TabButtonBar repoUrl={model.links['github']}/>
-                    <NotificationBanner>A new version of the model is being launched, click here to see the launch
-                        logs...</NotificationBanner>
-                    <FixedWidthRow>
-                        <Markdown tagName="article" source={model.readme} className="markdown-body"/>
-                    </FixedWidthRow>*/}
+                    
                 </Flex>
 
-                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
+                <NotificationBanner ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
             </StyledModelLayout>
         )
     }

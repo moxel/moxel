@@ -88,8 +88,8 @@ class PageHeader extends Component {
                             A platform to build and share machine intelligence.
                         </div>
                         <div>
-                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Model</Button></Link>
+                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Models</Button>
+                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Models</Button></Link>
                         </div> 
                         
                         <br/>
