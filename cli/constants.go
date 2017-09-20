@@ -60,9 +60,9 @@ resources:
 	cpu: 1
 	memory: 1Gi
 input_space: 
-	x: String
+	x: str
 output_space: 
-	y: String
+	y: str
 main:
 	type: python
 	entrypoint: serve.py::predict
