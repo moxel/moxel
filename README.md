@@ -34,6 +34,14 @@ With features like Kubernetes Federation, we can not only deploy the cluster to 
 
 ## Development
 
+First, setup environment variables,
+
+```
+. bin/env
+```
+
+## Deployment
+
 To deploy everything to `dev`,
 
 ```

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Set up environment variables for dev.
+ln -fs `pwd`/cli/bin/moxel /usr/local/bin/moxel
+export PATH=$PATH:`pwd`/bin
+
