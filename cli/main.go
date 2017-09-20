@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -252,6 +253,47 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		config["resources"] = interface{}(DefaultResources)
 	}
 	return config
+}
+
+func CommandInit() cli.Command {
+	return cli.Command{
+		Name:      "init",
+		Usage:     "Create a boilerplate yaml file",
+		ArgsUsage: "-f [yaml] [model]:[tag]",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "file, f",
+				Value: "moxel.yml",
+				Usage: "Config file to specify the model",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			file := c.String("file")
+
+			_, err := GetWorkingRepo()
+			if err != nil {
+				return err
+			}
+
+			if c.Args().Get(0) != "" {
+				modelId := c.Args().Get(0)
+				modelName, modelTag, err := ParseModelId(modelId)
+				if err != nil {
+					return err
+				}
+
+				SampleModelConfig = fmt.Sprintf("name: %s\ntag: %s\n%s", modelName, modelTag, SampleModelConfig)
+			}
+
+			yamlBytes := []byte(SampleModelConfig)
+
+			return ioutil.WriteFile(file, yamlBytes, 0777)
+		},
+	}
 }
 
 func CommandVersion() cli.Command {
@@ -598,6 +640,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		CommandVersion(),
+		CommandInit(),
 		CommandLogin(),
 		CommandTeardown(),
 		CommandDeploy(),

@@ -49,7 +49,7 @@ func GetRepo(repoPath string) (*Repo, error) {
 			break
 		}
 		if repoPath == "/" || repoPath == "." {
-			return nil, errors.New("No repo found from " + repoPath)
+			return nil, errors.New(fmt.Sprintf("Moxel must be used inside a git repository. \n\"%s\" is not a git repo. Run `git init` if you need one!", repoPath))
 		}
 		repoPath = path.Dir(repoPath)
 	}

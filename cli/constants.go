@@ -50,8 +50,22 @@ var ResourceWhitelist = map[string]bool{
 
 var DefaultResources = map[string]interface{}{
 	"cpu":    "1",
-	"memory": "512Mi",
+	"memory": "1Gi",
 }
+
+var SampleModelConfig = `image: py3-tf-cpu
+assets:
+resources: 
+	cpu: 1
+	memory: 1Gi
+input_space: 
+	x: String
+output_space: 
+	y: String
+main:
+	type: python
+	entrypoint: serve.py::predict
+`
 
 // A whitelist for model input/output types.
 // the values don't have meaning, and are always "true".
