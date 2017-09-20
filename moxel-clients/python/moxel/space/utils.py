@@ -81,7 +81,7 @@ def decode_json(results, spaces):
         elif var_space in [str, float, int, bool]:
             obj = encoded
         elif var_space in [np.float32, np.float64]:
-            obj = var_space(np.fromstring(base64.b64decode(encoded)))
+            obj = np.fromstring(base64.b64decode(encoded), dtype=var_space)[0]
         elif var_space == JSON:
             obj = var_space.from_object(encoded)
         elif var_space == Array:
