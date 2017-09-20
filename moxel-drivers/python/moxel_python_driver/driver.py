@@ -3,7 +3,7 @@ from __future__ import print_function
 # Python driver to start models.
 # Wraps a model using a flask server.
 from flask import Flask, jsonify, request
-from moxel.space import Image, String, JSON
+from moxel.space import encode_json, decode_json, get_space
 import argparse
 import json
 import random
@@ -15,6 +15,7 @@ from os.path import abspath, expanduser, exists, relpath, join, dirname
 
 VERSION='0.0.1'
 GCS_MOUNT = '/mnt/cloudfs'
+
 
 def decode_single_input(data, input_type):
     if input_type == 'Image':
@@ -29,7 +30,8 @@ def decode_single_input(data, input_type):
         raise Exception('Unknown input type: {}'.format(input_type))
 
 
-def decode_inputs(input_raw, input_space):
+def decode_inputs(input_raw, input_space_strs):
+    return decode_json(input_raw, get_space(input_space_strs))
     input_moxel = {}
     for k, v in input_space.items():
         data = input_raw[k]
@@ -50,9 +52,12 @@ def encode_single_output(output_obj, output_type):
         raise Exception('Unknown output type: {}'.format(output_type))
 
 
-def encode_outputs(output_moxel, output_space):
+def encode_outputs(output_moxel, output_space_strs):
+    return encode_json(output_moxel, get_space(output_space_strs))
+
     output_raw = {}
     for var_name, output_type in output_space.items():
+        output_type = get_space(output_type)
         output_obj = output_moxel[var_name]
         output_raw[var_name] = encode_single_output(output_obj, output_type)
     return output_raw
@@ -134,7 +139,7 @@ def main():
     def predict():
         input_raw = request.json
         input_moxel = decode_inputs(input_raw, input_space)
-        output_moxel = predict_func(input_moxel)
+        output_moxel = predict_func(**input_moxel)
         return jsonify(encode_outputs(output_moxel, output_space))
 
     app.run(port=5900, host='0.0.0.0')

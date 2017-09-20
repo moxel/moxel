@@ -71,11 +71,16 @@ main:
 // A whitelist for model input/output types.
 // the values don't have meaning, and are always "true".
 var TypeWhitelist = map[string]bool{
-	"Image":  true,
-	"JSON":   true,
-	"String": true,
-	"Bytes":  true,
-	"Array":  true,
+	"image":   true,
+	"json":    true,
+	"str":     true,
+	"int":     true,
+	"float":   true,
+	"float32": true,
+	"float64": true,
+	"bool":    true,
+	"bytes":   true,
+	"array":   true,
 }
 
 // Checks if the user has logged in.

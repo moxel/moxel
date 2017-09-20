@@ -1,7 +1,8 @@
 import requests
 import json, simplejson
 
-from moxel.utils import parse_model_id, parse_space_dict
+from moxel.utils import parse_model_id
+from moxel.space.utils import parse_space_dict, encode_json, decode_json
 from moxel.constants import MOXEL_ENDPOINT, LOCALHOST_ENDPOINT
 import moxel.space as space
 
@@ -50,29 +51,15 @@ class Model(object):
         return text == 'OK'
 
 
-    def predict(self, kwargs):
-        # Wrap input.
-        input_dict = {}
-        for var_name, var_space in self.input_space.items():
-            assert var_name in kwargs, 'Input must have argument {}'.format(var_name)
-            # Type check.
-            assert type(kwargs[var_name]) == var_space, \
-                'Type does not match for {}'.format(var_name)
+    def predict(self, *args, **kwargs):
+        if len(args) > 0:
+            raise Exception('Moxel does not support positional arguments yet.')
 
-            if var_space == space.Image:
-                # Assume base64 encoding.
-                input_object = kwargs[var_name].to_base64()
-                input_dict[var_name] = input_object
-            elif var_space == space.String:
-                input_dict[var_name] = kwargs[var_name].to_str()
-            elif var_space == space.JSON:
-                input_dict[var_name] = kwargs[var_name].to_object(input_object)
-            elif var_space == space.Array:
-                input_dict[var_name] = json.dumps(kwargs[var_name].to_list())
-            else:
-                raise Exception('Not implemented input space: ' + repr(var_space))
+        # Wrap input.
+        input_dict = encode_json(kwargs, self.input_space)
 
         # Make HTTP REST request.
+        print('endpoint', self.model_endpoint)
         raw_result = requests.post(self.model_endpoint +
                         '/{user}/{model}/{tag}'.format(
                             user=self.user, model=self.model, tag=self.tag
@@ -87,23 +74,7 @@ class Model(object):
             raise Exception('Cannot decode JSON', raw_result)
 
         # Parse result.
-        output_dict = {}
-        for var_name, var_space in self.output_space.items():
-            assert var_name in result, 'Output must have argument {}'.format(var_name)
-
-            if var_space == space.Image:
-                output_object = var_space.from_base64(result[var_name])
-                output_dict[var_name] = output_object
-            elif var_space == space.String:
-                output_dict[var_name] = var_space.from_str(result[var_name])
-            elif var_space == space.JSON:
-                output_dict[var_name] = var_space.from_object(result[var_name])
-            elif var_space == space.Array:
-                output_dict[var_name] = var_space.from_list(json.loads(result[var_name]))
-            else:
-                raise Exception('Not implemented output space: ' + str(var_space))
-
-        return output_dict
+        return decode_json(result, self.output_space)
 
 
 
