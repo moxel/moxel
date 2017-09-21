@@ -386,7 +386,7 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 }
 
 func teardownModel(user string, name string, tag string) error {
-	deployName := GetDeployName(user, name, tag)
+	deployName := getModelDeployName(user, name, tag)
 	path := GetModelPath(user, name, tag)
 
 	err := TeardownDeploy(kubeClient, deployName)
@@ -475,30 +475,40 @@ func deleteModels(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+func getModelDeployName(userId string, modelName string, tag string) string {
+	modelId := models.ModelId(userId, modelName, tag)
+	model, err := models.GetModelById(db, modelId)
+	if err != nil {
+		return ""
+	}
+
+	return GetDeployName(userId, modelName, tag, model.Commit)
+}
+
 func getModelStatus(userId string, modelName string, tag string) string {
-	deployName := GetDeployName(userId, modelName, tag)
+	deployName := getModelDeployName(userId, modelName, tag)
 
 	pods, err := GetPodsByDeployName(kubeClient, deployName)
 
 	if err != nil {
-		return "ERROR"
+		return models.StatusError
 	}
 
 	if len(pods) == 0 {
-		return "INACTIVE"
+		return models.StatusInactive
 	}
 
 	phase := pods[0].Status.Phase
 	fmt.Println("Pod phase", phase, deployName)
 
 	if phase == "Pending" {
-		return "PENDING"
+		return models.StatusPending
 	} else if phase == "Running" {
-		return "LIVE"
+		return models.StatusLive
 	} else if phase == "Terminating" {
-		return "TERMINATING"
+		return models.StatusTerminating
 	} else {
-		return "ERROR"
+		return models.StatusError
 	}
 }
 
@@ -519,11 +529,14 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 	model, err := models.GetModelById(db, modelId)
 	var status string
 	var yamlString string
-	if err == nil {
+	if model.Commit == "" {
+		status = models.StatusEmpty
+		yamlString = model.Yaml
+	} else if err == nil {
 		status = getModelStatus(user, name, tag)
 		yamlString = model.Yaml
 	} else {
-		status = "NONE"
+		status = models.StatusNone
 		yamlString = ""
 	}
 
@@ -601,6 +614,8 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 		}
 
 		path := GetModelPath(user, name, tag)
+
+		RemoveServiceFromIngress(kubeClient, path)
 
 		err = AddServiceToIngress(kubeClient, path, deployName)
 		if err != nil {
@@ -714,8 +729,14 @@ func logJob(w http.ResponseWriter, r *http.Request) {
 func logModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["user"]
-	modelId := vars["model"]
+	modelName := vars["model"]
 	tag := vars["tag"]
+
+	modelId := models.ModelId(userId, modelName, tag)
+	model, err := models.GetModelById(db, modelId)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 
 	follow, err := strconv.ParseBool(r.URL.Query().Get("follow"))
 	if err != nil {
@@ -723,11 +744,11 @@ func logModel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(fmt.Sprintf("[PUT] Logging a model deployment %s/%s:%s",
-		userId, modelId, tag))
+		userId, modelName, tag))
 
 	w.WriteHeader(200)
 	flushedWriter := FlushedWriter{HttpWriter: w}
-	if err := StreamLogsFromModel(kubeClient, userId, modelId, tag, follow, &flushedWriter); err != nil {
+	if err := StreamLogsFromModel(kubeClient, userId, modelName, tag, model.Commit, follow, &flushedWriter); err != nil {
 		http.Error(w, err.Error(), 500)
 	}
 }

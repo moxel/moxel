@@ -113,7 +113,7 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 
 		if modelStatus != targetStatus {
 			fmt.Println(fmt.Sprintf("Waiting model to be %s. Currently, it's %s", targetStatus, modelStatus))
-			time.Sleep(time.Second)
+			time.Sleep(3 * time.Second)
 		} else {
 			break
 		}
@@ -122,15 +122,17 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 	return nil
 }
 
-func TeardownModel(modelName string, modelTag string) error {
+func TeardownModel(modelName string, modelTag string, block bool) error {
 	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s. This might take a while.", modelName, modelTag))
 	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, modelTag)
 	if err != nil {
 		return err
 	}
 
-	if err := WaitForModelStatus(modelName, modelTag, "INACTIVE"); err != nil {
-		return err
+	if block {
+		if err := WaitForModelStatus(modelName, modelTag, "INACTIVE"); err != nil {
+			return err
+		}
 	}
 
 	if resp.StatusCode != 200 {
@@ -341,7 +343,7 @@ func CommandTeardown() cli.Command {
 				return err
 			}
 
-			if err := TeardownModel(modelName, tag); err != nil {
+			if err := TeardownModel(modelName, tag, true); err != nil {
 				return err
 			}
 
@@ -511,7 +513,7 @@ func CommandPush() cli.Command {
 				fmt.Printf("Model is live! Teardown it down first? [y/n]\t")
 				isYes := AskForConfirmation()
 				if isYes {
-					if err := TeardownModel(modelName, modelTag); err != nil {
+					if err := TeardownModel(modelName, modelTag, false); err != nil {
 						return err
 					}
 				} else {

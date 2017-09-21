@@ -16,6 +16,16 @@ import (
 
 var _ = fmt.Println
 
+const (
+	StatusError       = "ERROR"       // Error in querying status.
+	StatusInactive    = "INACTIVE"    // The model is pushed, but not deployed right now.
+	StatusPending     = "PENDING"     // The model is pending deployment.
+	StatusLive        = "LIVE"        // The model is live online.
+	StatusTerminating = "TERMINATING" // The model is being torn down.
+	StatusEmpty       = "EMPTY"       // The model is created but no content has been pushed.
+	StatusNone        = "NONE"        // No such model
+)
+
 type Model struct {
 	Uid       string `gorm:"size:64;primary_key"`
 	CreatedAt time.Time

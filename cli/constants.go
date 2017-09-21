@@ -11,7 +11,7 @@ import (
 )
 
 // Subject to substitution at build time.
-const CLI_VERSION = "0.0.3"
+const CLI_VERSION = "0.0.4"
 
 const AUTH0_DOMAIN = "dummyai.auth0.com"
 const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"

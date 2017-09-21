@@ -194,7 +194,7 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 	return decodeYAML(specPod, &output)
 }
 
-func GetDeployName(user string, model string, tag string) string {
+func GetDeployName(user string, model string, tag string, commit string) string {
 	user = strings.Replace(user, "-", "--", -1)
 	model = strings.Replace(model, "-", "--", -1)
 	model = strings.Replace(model, ".", "-1", -1)
@@ -204,7 +204,7 @@ func GetDeployName(user string, model string, tag string) string {
 	}
 	tag = strings.Replace(tag, ".", "-1", -1)
 
-	return "deploy-" + user + "-" + model + "-" + tag
+	return "deploy-" + user + "-" + model + "-" + tag + "-" + commit[:5]
 }
 
 func GetJobName(user string, repo string, commit string) string {
@@ -295,7 +295,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 
 	// Basic derived properties for deployment.
 	// TODO: use a better separator.
-	deployName := GetDeployName(user, name, tag)
+	deployName := GetDeployName(user, name, tag, commit)
 
 	args := struct {
 		Name      string
@@ -383,7 +383,7 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 
 	// Basic derived properties for deployment.
 	// TODO: use a better separator.
-	deployName := GetDeployName(user, name, tag)
+	deployName := GetDeployName(user, name, tag, commit)
 
 	args := struct {
 		Name      string
@@ -639,8 +639,8 @@ func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out 
 	return StreamLogsFromPod(client, podId, follow, out)
 }
 
-func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, follow bool, out io.Writer) error {
-	deployName := GetDeployName(userId, modelName, tag)
+func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, commit string, follow bool, out io.Writer) error {
+	deployName := GetDeployName(userId, modelName, tag, commit)
 
 	pods, err := GetPodsByDeployName(client, deployName)
 	if err != nil {
