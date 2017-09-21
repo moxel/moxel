@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
-import NotificationBanner from "../../components/notification-banner/notification-banner";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
@@ -11,7 +10,8 @@ import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
-import NotificationSystem from 'react-notification-system';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
+
 
 class CreateView extends Component {
     gotoUpload() {
@@ -29,6 +29,10 @@ class CreateView extends Component {
                   message: `Model ${modelId} already exists.`,
                   level: 'error'
                 });
+
+                window.setTimeout(function() {
+                    window.location.href = "/models/" + userId + "/" + modelId  + "/" + models[0].tag;
+                }, 3000);
             }else{
                 ModelStore.updateModel(userId, modelId, tag, {
                     'title': modelTitle,
@@ -45,6 +49,7 @@ class CreateView extends Component {
 
     render() {
         var username = AuthStore.username();
+        var self = this;
 
         return (
             <div className="row" style={{marginTop: "80px"}}>
@@ -119,7 +124,7 @@ class CreateView extends Component {
                         </div>
                     </form>
                 </div>
-                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
+                <NotificationBanner ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} />
             </div>
         );
     }

@@ -1,4 +1,9 @@
 *.egg-info
 .cache
 *.pyc
-
+/build
+/dist
+moxel-*
+moxel/bin/windows
+moxel/bin/linux
+moxel/bin/osx

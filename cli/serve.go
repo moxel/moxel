@@ -47,6 +47,7 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 	config = CleanupModelConfig(config)
 
 	user := GlobalUser.Username()
+
 	name := "awesome"
 	if _, ok := config["name"]; ok {
 		name = config["name"].(string)

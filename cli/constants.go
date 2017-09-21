@@ -11,7 +11,7 @@ import (
 )
 
 // Subject to substitution at build time.
-const CLI_VERSION = "0.0.3"
+const CLI_VERSION = "0.0.4"
 
 const AUTH0_DOMAIN = "dummyai.auth0.com"
 const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"
@@ -20,8 +20,8 @@ const CLOUD_VENDOR = "gcloud"
 
 const USER_CONFIG = ".dummy"
 
-var MasterAddress = "http://beta.dummy.ai/api"
-var WebsiteAddress = "http://beta.dummy.ai"
+var MasterAddress = "http://beta.moxel.ai/api"
+var WebsiteAddress = "http://beta.moxel.ai"
 
 // The URL to create a new model on Moxel website.
 var CreateModelURL = WebsiteAddress + "/new"
@@ -41,6 +41,7 @@ var YAMLWhitelist = map[string]bool{
 	"input_space":  true,
 	"output_space": true,
 	"main":         true,
+	"envs":         false,
 }
 
 var ResourceWhitelist = map[string]bool{
@@ -50,16 +51,36 @@ var ResourceWhitelist = map[string]bool{
 
 var DefaultResources = map[string]interface{}{
 	"cpu":    "1",
-	"memory": "512Mi",
+	"memory": "1Gi",
 }
+
+var SampleModelConfig = `image: py3-tf-cpu
+assets:
+resources: 
+	cpu: 1
+	memory: 1Gi
+input_space: 
+	x: str
+output_space: 
+	y: str
+main:
+	type: python
+	entrypoint: serve.py::predict
+`
 
 // A whitelist for model input/output types.
 // the values don't have meaning, and are always "true".
 var TypeWhitelist = map[string]bool{
-	"Image":  true,
-	"JSON":   true,
-	"String": true,
-	"Bytes":  true,
+	"image":   true,
+	"json":    true,
+	"str":     true,
+	"int":     true,
+	"float":   true,
+	"float32": true,
+	"float64": true,
+	"bool":    true,
+	"bytes":   true,
+	"array":   true,
 }
 
 // Checks if the user has logged in.

@@ -281,8 +281,9 @@ var Moxel = function(config) {
 			if(!mime) {
 				mime = 'image/png';
 			}
+			var self = this;
 			return new Promise((resolve, reject) => {
-				this.img.getBuffer(mime, (err, data) => {
+				self.img.getBuffer(mime, (err, data) => {
 					resolve(data);
 				});
 			})
@@ -326,6 +327,28 @@ var Moxel = function(config) {
 				}
 				resolve(self.img);
 			})
+		}
+	}
+
+	class MoxelArray {
+		// N-dimensional array.
+		constructor(array) {
+			this.array = array;
+
+			this.toJSON = this.toJSON.bind(this);
+		}
+
+		toJSON() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(JSON.stringify(self.array));
+			});
+		}
+
+		static fromJSON(json) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelArray(JSON.parse(json)));
+			});
 		}
 	}
 
@@ -398,7 +421,8 @@ var Moxel = function(config) {
 		Image: Image,
 		String: MoxelString,
 		Bytes: MoxelBytes,
-		JSON: MoxelJSON
+		JSON: MoxelJSON,
+		Array: MoxelArray
 	};
 
 	class Model {
@@ -514,6 +538,11 @@ var Moxel = function(config) {
 								blob[varName] = b64;
 								callback();
 							});
+						}else if(varSpace == space.Array) {
+							data[varName].toJSON().then((json) => {
+								blob[varName] = json;
+								callback();
+							})
 						}else{
 							console.error('Unknown variable input space', varSpace);
 						}
@@ -556,7 +585,12 @@ var Moxel = function(config) {
 						space.String.fromText(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
-						})
+						});
+					}else if(varSpace == space.Array) {
+						space.Array.fromJSON(blob[varName]).then((outputItem) => {
+							outputObject[varName] = outputItem;
+							callback();
+						});
 					}else{
 						console.error('Unknown variable output space', varSpace);
 					}

@@ -190,12 +190,11 @@ func SpecFromTemplate(templateString string, data interface{}, output interface{
 	panicNil(err)
 
 	specPod := buf.String()
-	fmt.Println(specPod)
 
 	return decodeYAML(specPod, &output)
 }
 
-func GetDeployName(user string, model string, tag string) string {
+func GetDeployName(user string, model string, tag string, commit string) string {
 	user = strings.Replace(user, "-", "--", -1)
 	model = strings.Replace(model, "-", "--", -1)
 	model = strings.Replace(model, ".", "-1", -1)
@@ -205,7 +204,7 @@ func GetDeployName(user string, model string, tag string) string {
 	}
 	tag = strings.Replace(tag, ".", "-1", -1)
 
-	return "deploy-" + user + "-" + model + "-" + tag
+	return "deploy-" + user + "-" + model + "-" + tag + "-" + commit[:5]
 }
 
 func GetJobName(user string, repo string, commit string) string {
@@ -296,7 +295,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 
 	// Basic derived properties for deployment.
 	// TODO: use a better separator.
-	deployName := GetDeployName(user, name, tag)
+	deployName := GetDeployName(user, name, tag, commit)
 
 	args := struct {
 		Name      string
@@ -350,10 +349,15 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 	return result.GetObjectMeta().GetName(), nil
 }
 
+// Deployment spec: https://godoc.org/k8s.io/api/apps/v1beta1#DeploymentSpec
 func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag string, commit string, config map[string]interface{}, replica int) (string, error) {
 	// Get basic properties.
 	image := config["image"].(string)
 	resources := config["resources"].(map[string]interface{})
+	var envs map[string]interface{}
+	if config["envs"] != nil {
+		envs = config["envs"].(map[string]interface{})
+	}
 	workPath := config["work_path"].(string)
 
 	// Create git worktree for the container.
@@ -379,7 +383,7 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 
 	// Basic derived properties for deployment.
 	// TODO: use a better separator.
-	deployName := GetDeployName(user, name, tag)
+	deployName := GetDeployName(user, name, tag, commit)
 
 	args := struct {
 		Name      string
@@ -403,6 +407,16 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 	container := deployment.Spec.Template.Spec.Containers[0]
 	container.Command = []string{"moxel-python-driver"}
 	container.Args = []string{"--json", string(paramsJSON)}
+	container.Env = []v1.EnvVar{}
+
+	for k, v := range envs {
+		container.Env = append(container.Env, v1.EnvVar{
+			Name:  k,
+			Value: v.(string),
+		})
+		fmt.Println("container.Env", container.Env)
+	}
+
 	fmt.Println(deployment)
 
 	// Set up resource specs.
@@ -625,8 +639,8 @@ func StreamLogsFromJob(client *kube.Clientset, jobName string, follow bool, out 
 	return StreamLogsFromPod(client, podId, follow, out)
 }
 
-func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, follow bool, out io.Writer) error {
-	deployName := GetDeployName(userId, modelName, tag)
+func StreamLogsFromModel(client *kube.Clientset, userId string, modelName string, tag string, commit string, follow bool, out io.Writer) error {
+	deployName := GetDeployName(userId, modelName, tag, commit)
 
 	pods, err := GetPodsByDeployName(client, deployName)
 	if err != nil {

@@ -38,6 +38,7 @@ test:
 release: 
 	@for i in  osx linux windows ; do \
 		gsutil cp bin/release/$$i/moxel gs://dummy-release/cli/`cat VERSION`/$$i/ ; \
+		gsutil cp bin/release/$$i/moxel gs://dummy-release/cli/latest/$$i/ ; \
 		echo "Distribute the following link:"; \
 		echo; \
 		echo "curl -o moxel http://beta.moxel.ai/release/cli/`cat VERSION`/$$i/moxel"; \

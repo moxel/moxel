@@ -88,7 +88,11 @@ export default function ModelSnippet({
                   <div className="card-stacked">
                     <div className="card-content">
                       <Link to={`/models/${user}/${id}/${tag}`}>
-                            <FlexItem className="snippet-id">{user} / {id}</FlexItem>
+                            <FlexItem className="snippet-id">
+                                {user}
+                                <span style={{marginLeft: "5px", marginRight: "5px"}}>/</span>
+                                {id}
+                            </FlexItem>
                             <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
                             <FlexItem className="snippet-body">
                                 <p>{description}</p>
