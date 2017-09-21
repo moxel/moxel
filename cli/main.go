@@ -221,13 +221,11 @@ func VerifyModelConfig(config map[string]interface{}) error {
 	}
 
 	// Check resources.
-	if config["resources"] == nil {
-		return errors.New("Please specify resource types: CPU, Memory.")
-	}
-
-	for k, _ := range config["resources"].(map[interface{}]interface{}) {
-		if _, ok := ResourceWhitelist[k.(string)]; !ok {
-			return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
+	if config["resources"] != nil {
+		for k, _ := range config["resources"].(map[interface{}]interface{}) {
+			if _, ok := ResourceWhitelist[k.(string)]; !ok {
+				return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
+			}
 		}
 	}
 
