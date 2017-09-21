@@ -1,4 +1,4 @@
-from moxel.space import String, Image, Array, JSON
+from moxel.space import Image, Array, JSON
 
 import numpy as np
 import base64
@@ -73,8 +73,6 @@ def decode_json(results, spaces):
         assert var_name in results, 'Requires argument {}'.format(var_name)
 
         encoded = results[var_name]
-
-        print(type(var_space))
 
         if var_space == Image:
             obj = var_space.from_base64(encoded)

@@ -39,8 +39,6 @@ class Model(object):
 
         self.input_space = parse_space_dict(self.metadata['input_space'])
         self.output_space = parse_space_dict(self.metadata['output_space'])
-        print(self.input_space)
-        print(self.output_space)
 
     def ping(self):
         text = requests.get(self.model_endpoint +
@@ -59,7 +57,6 @@ class Model(object):
         input_dict = encode_json(kwargs, self.input_space)
 
         # Make HTTP REST request.
-        print('endpoint', self.model_endpoint)
         raw_result = requests.post(self.model_endpoint +
                         '/{user}/{model}/{tag}'.format(
                             user=self.user, model=self.model, tag=self.tag
