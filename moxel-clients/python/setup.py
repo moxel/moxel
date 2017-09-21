@@ -11,7 +11,7 @@ def read(fname):
         return f.read().strip()
 
 def get_files(folder):
-    return [f for f in glob.iglob(os.path.join(folder, '**'), recursive=True) 
+    return [f for f in glob.iglob(os.path.join(folder, '**'), recursive=True)
             if not os.path.isdir(f)]
 
 if 0:
@@ -29,7 +29,7 @@ for name in ['linux', 'osx', 'windows']:
     bin_paths.append(os.path.join('moxel', 'bin', name, 'moxel'))
 
 setup(name='moxel',
-      version='0.0.0.post4',
+      version='0.0.0.post9',
       author='Moxel team',
       author_email='support@moxel.ai',
       url='http://moxel.ai',
