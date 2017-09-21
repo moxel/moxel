@@ -3,7 +3,7 @@ import json, simplejson
 
 from moxel.utils import parse_model_id
 from moxel.space.utils import parse_space_dict, encode_json, decode_json
-from moxel.constants import MOXEL_ENDPOINT, LOCALHOST_ENDPOINT
+from moxel.constants import MOXEL_ENDPOINT, MOXEL_DEV_ENDPOINT, LOCALHOST_ENDPOINT
 import moxel.space as space
 
 
@@ -19,6 +19,8 @@ class Model(object):
 
         if where == 'moxel':
             self.endpoint = MOXEL_ENDPOINT
+        elif where == 'dev':
+            self.endpoint = MOXEL_DEV_ENDPOINT
         elif where == 'localhost':
             self.endpoint = LOCALHOST_ENDPOINT
 

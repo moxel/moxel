@@ -53,7 +53,7 @@ class UploadView extends Component {
         super()
 
         this.state = {
-            step: 2,
+            step: 0,
             uploaded: false
         }
 
@@ -282,13 +282,13 @@ class UploadView extends Component {
 import random
 import json
 
-model = json.load('model.json')
+model = json.load(open('model.json', 'r'))
 
 def predict(x1, x2):
     if model['w1'] * x1 + model['w2'] * x2 > 0:
-        return {'y': 1}
+        return {'out': 1.}
     else:
-        return {'y': 0}
+        return {'out': 0.}
                                     `, 
                                     'python'
                                     )}
@@ -345,14 +345,16 @@ def predict(x1, x2):
                             Now, let's deploy your model with Moxel CLI. You'll need to create a YAML file, say `moxel.yml`:
 
                                     {renderCode(`
+name: ${modelName}
+tag: ${tag}
 image: moxel/python3    # Docker environment to run the model with.
 assets:                 # A list of Model files, such as weights.
 - model.json
 input_space:            # Input type annotations.
-  x1: Float32
-  x2: Float32
+  x1: float
+  x2: float
 output_space:           # Output type annotations.
-  y: Float32
+  out: float
 main:                   # Main entrypoint to serve the model.
   type: python  
   entrypoint: serve.py::predict
@@ -364,7 +366,7 @@ main:                   # Main entrypoint to serve the model.
                             To deploy the model, just run
 
 
-                            {renderCommandWithCopy('moxel-deploy', `moxel deploy -f moxel.yml ${modelName}/${tag}`)}
+                            {renderCommandWithCopy('moxel-deploy', `moxel push -f moxel.yml`)}
 
                             Once you've deployed the model, this page will be updated automatically.
 
@@ -385,8 +387,8 @@ import moxel
 
 model = moxel.Model('${userId}/${modelName}:${tag}', where='localhost')
 
-output = model.predict(x1=-1, x2=1.5)
-print(output['y'])`)}
+output = model.predict(x1=-1., x2=1.5)
+print(output['out'])`)}
                                     
                         </Markdown>  
                     </FixedWidthRow>
