@@ -290,7 +290,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 	}
 
 	// Add entrypoint command.
-	command = append(command, config["main"].(map[string]interface{})["cmd"].(string))
+	command = append(command, config["main"].(map[string]interface{})["entrypoint"].(string))
 	fmt.Println("command", command)
 
 	// Basic derived properties for deployment.
