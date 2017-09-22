@@ -375,7 +375,9 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 	params["assets"] = config["assets"]
 	params["input_space"] = config["input_space"]
 	params["output_space"] = config["output_space"]
-	params["setup"] = config["setup"]
+	if config["setup"] != nil {
+		params["setup"] = config["setup"]
+	}
 	params["entrypoint"] = config["main"].(map[string]interface{})["entrypoint"].(string)
 	paramsJSON, err := json.Marshal(params)
 	if err != nil {
