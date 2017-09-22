@@ -408,7 +408,7 @@ class ModelView extends Component {
                         var inputSpace = inputSpaces[inputName];
                         var input = inputs[inputName];
                         var demoWidget = document.querySelector(`#demo-input-${inputName}`);
-                        if(inputSpace == moxel.space.Image) {
+                        if(inputSpace == moxel.space.image) {
                             // TODO: Not implemented.
                             var addThumbnail = self.addThumbnails[inputName];
                             if(addThumbnail) {
@@ -416,9 +416,9 @@ class ModelView extends Component {
                                     addThumbnail(src);
                                 });
                             }
-                        }else if(inputSpace == moxel.space.JSON) {
+                        }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
-                        }else if(inputSpace == moxel.space.String) {
+                        }else if(inputSpace == moxel.space.str) {
                             input.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
@@ -440,7 +440,7 @@ class ModelView extends Component {
                         var outputSpace = outputSpaces[outputName];
                         var output = outputs[outputName];
                         var demoWidget = document.querySelector(`#demo-output-${outputName}`);
-                        if(outputSpace == moxel.space.Image) {
+                        if(outputSpace == moxel.space.image) {
                             output.toDataURL().then((url) => {
                                 demoWidget.src = url;
                                 demoWidget.style.marginTop = "0%";
@@ -448,17 +448,17 @@ class ModelView extends Component {
                                 demoWidget.style.width = "100%";
                                 resolve();
                             });
-                        }else if(outputSpace == moxel.space.JSON) {
+                        }else if(outputSpace == moxel.space.json) {
                             output.toObject().then((object) => {
                                 demoWidget.value = JSON.stringify(object, undefined, 4);    
                                 resolve();
                             })
-                        }else if(outputSpace == moxel.space.String) {
+                        }else if(outputSpace == moxel.space.str) {
                             output.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
                             });
-                        }else if(outputSpace == moxel.space.Array) {
+                        }else if(outputSpace == moxel.space.array) {
                             output.toJSON().then((json) => {
                                 demoWidget.value = json;
                                 resolve();
@@ -539,7 +539,7 @@ class ModelView extends Component {
                     reader.addEventListener("load", function () {
                         var bytes = reader.result;
 
-                        moxel.space.Image.fromBytes(bytes).then((image) => {
+                        moxel.space.image.fromBytes(bytes).then((image) => {
                           self.inputs[inputName] = image;
                           console.log('Model input updated', self.inputs);
                         })
@@ -566,7 +566,7 @@ class ModelView extends Component {
             // onchange event handler.
             return function(e) {
                 var text = document.querySelector('#demo-input-' + inputName).value;
-                moxel.space.String.fromText(text).then((str) => {
+                moxel.space.str.fromText(text).then((str) => {
                     self.inputs[inputName] = str;
                     console.log('Model input updated', self.inputs);
                 })
@@ -801,24 +801,24 @@ class ModelView extends Component {
 
         const series1 = new TimeSeries(seriesData);
 
-        var inputType = [];
+        var inputSpace = [];
 
-        for(var t in model.inputType) {
-            inputType.push(
+        for(var t in model.inputSpace) {
+            inputSpace.push(
                 (<tr>
                     <td>{t}</td>
-                    <td>{model.inputType[t]}</td>
+                    <td>{model.inputSpace[t]}</td>
                 </tr>)
             )
         }
 
-        var outputType = [];
+        var outputSpace = [];
 
-        for(var t in model.outputType) {
-            outputType.push(
+        for(var t in model.outputSpace) {
+            outputSpace.push(
                 (<tr>
                     <td>{t}</td>
-                    <td>{model.outputType[t]}</td>
+                    <td>{model.outputSpace[t]}</td>
                 </tr>)
             )
         }
@@ -859,19 +859,19 @@ class ModelView extends Component {
                              }}>{name}</p>
                     <p style={{display: "inline", borderRadius: "0px 5px 5px 0px", border: "1px solid #777777",
                                backgroundColor: "#deeaf9", padding: "3px", marginBottom: "3px",
-                             }}><b>{space}</b></p>
+                             }}><b>{space.name}</b></p>
                     <p></p>
                 </div>
             )
         }
         // Input widgets.
         console.log('model', model);
-        var inputSpaces = model['input_space'];
+        var inputSpaces = moxel.parseSpaceObject(model['input_space']);
         var inputWidgets = {}; 
         for(var inputName in inputSpaces) {
             var inputSpace = inputSpaces[inputName];
             var inputWidget = null;
-            if(inputSpace == "Bytes") {
+            if(inputSpace == moxel.space.bytes) {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
@@ -879,14 +879,14 @@ class ModelView extends Component {
                     </div>
                 );
             }
-            else if(inputSpace == "Image") {
+            else if(inputSpace == moxel.space.image) {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
                 );
-            }else if(inputSpace == "String" || inputSpace == "Array") {
+            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array) {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
@@ -902,12 +902,12 @@ class ModelView extends Component {
         this.inputWidgets = inputWidgets;
         
         // Output widgets.
-        var outputSpaces = model['output_space'];
+        var outputSpaces = moxel.parseSpaceObject(model['output_space']);
         var outputWidgets = {};
         for(var outputName in outputSpaces) {
             var outputSpace = outputSpaces[outputName];
             var outputWidget = null;
-            if(outputSpace == "JSON") {
+            if(outputSpace == moxel.space.json) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
@@ -918,7 +918,7 @@ class ModelView extends Component {
                         <br/>
                     </div>
                     
-            }else if(outputSpace == "Image") {
+            }else if(outputSpace == moxel.space.image) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
@@ -929,7 +929,7 @@ class ModelView extends Component {
                         </div>
                         <br/>
                     </div>
-            }else if(outputSpace == "String" || outputSpace == "Array") {
+            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}

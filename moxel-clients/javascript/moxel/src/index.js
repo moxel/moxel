@@ -225,6 +225,10 @@ var Moxel = function(config) {
 	var masterAPI = new MasterAPI();
 
 	class Image {
+		static get name() {
+			return "image";
+		}
+
 		// img is Jimp image.
 		constructor(img) {
 			this.img = img;
@@ -331,6 +335,10 @@ var Moxel = function(config) {
 	}
 
 	class MoxelArray {
+		static get name() {
+			return "array";
+		}
+
 		// N-dimensional array.
 		constructor(array) {
 			this.array = array;
@@ -353,6 +361,10 @@ var Moxel = function(config) {
 	}
 
 	class MoxelBytes {
+		static get name() {
+			return "bytes";
+		}
+
 		constructor(data) {
 			this.data = data;
 			this.toBase64 = this.toBase64.bind(this);
@@ -373,6 +385,10 @@ var Moxel = function(config) {
 	}
 
 	class MoxelString {
+		static get name() {
+			return "str";
+		}
+
 		// img is Jimp image.
 		constructor(text) {
 			this.text = text;
@@ -395,6 +411,10 @@ var Moxel = function(config) {
 	}
 
 	class MoxelJSON {
+		static get name() {
+			return "str";
+		}
+		
 		// JSON object type.
 		constructor(object) {
 			this.object = object;
@@ -418,11 +438,11 @@ var Moxel = function(config) {
 
 	// define submodule space.
 	var space = {
-		Image: Image,
-		String: MoxelString,
-		Bytes: MoxelBytes,
-		JSON: MoxelJSON,
-		Array: MoxelArray
+		image: Image,
+		str: MoxelString,
+		bytes: MoxelBytes,
+		json: MoxelJSON,
+		array: MoxelArray
 	};
 
 	class Model {
@@ -517,28 +537,28 @@ var Moxel = function(config) {
 							throw 'Input must have argument ' + varName;
 						}
 						// console.log(data[varName]);
-						if(varSpace == space.Image) {
+						if(varSpace == space.image) {
 							// Image.
 							data[varName].toBase64('image/png').then((item) => {
 								blob[varName] = item;
 								callback();	
 							});
-						}else if(varSpace == space.String) {
+						}else if(varSpace == space.str) {
 							data[varName].toText().then((text) => {
 								blob[varName] = text;
 								callback();
 							})
-						}else if(varSpace == space.JSON) {
+						}else if(varSpace == space.json) {
 							data[varName].toObject().then((object) => {
 								blob[varName] = object;
 								callback();
 							})
-						}else if(varSpace == space.Bytes) {
+						}else if(varSpace == space.bytes) {
 							data[varName].toBase64().then((b64) => {
 								blob[varName] = b64;
 								callback();
 							});
-						}else if(varSpace == space.Array) {
+						}else if(varSpace == space.array) {
 							data[varName].toJSON().then((json) => {
 								blob[varName] = json;
 								callback();
@@ -571,23 +591,23 @@ var Moxel = function(config) {
 				var outputObject = {};
 				async.forEachOf(dataSpace,
 				(varSpace, varName, callback) => {
-					if(varSpace == space.Image) {
-						space.Image.fromBase64(blob[varName]).then((outputItem) => {
+					if(varSpace == space.image) {
+						space.image.fromBase64(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
 						});							
-					}else if(varSpace == space.JSON) {
-						space.JSON.fromObject(blob[varName]).then((outputItem) => {
+					}else if(varSpace == space.json) {
+						space.json.fromObject(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
 						})
-					}else if(varSpace == space.String) {
-						space.String.fromText(blob[varName]).then((outputItem) => {
+					}else if(varSpace == space.str) {
+						space.str.fromText(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
 						});
-					}else if(varSpace == space.Array) {
-						space.Array.fromJSON(blob[varName]).then((outputItem) => {
+					}else if(varSpace == space.array) {
+						space.array.fromJSON(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
 						});
@@ -787,6 +807,7 @@ var Moxel = function(config) {
 
 	return {
 		space: space,
+		parseSpaceObject: function(...args) {return Utils.parseSpaceObject(...args)},
 		createModel: createModel,
 		utils: Utils
 	}
