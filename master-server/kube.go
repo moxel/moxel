@@ -281,16 +281,16 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 		}
 	}
 
-	// Add command.
-	commandInterface := config["main"].(map[string]interface{})["cmd"]
+	// Add setup commands.
 	command = append(command, "--cmd")
-
-	var cmd string
-	for _, line := range commandInterface.([]interface{}) {
-		cmd += line.(string) + " ; "
+	if config["setup"] != nil {
+		for _, line := range config["setup"].([]interface{}) {
+			command = append(command, line.(string))
+		}
 	}
-	command = append(command, cmd)
 
+	// Add entrypoint command.
+	command = append(command, config["main"].(map[string]interface{})["cmd"].(string))
 	fmt.Println("command", command)
 
 	// Basic derived properties for deployment.
@@ -375,6 +375,7 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 	params["assets"] = config["assets"]
 	params["input_space"] = config["input_space"]
 	params["output_space"] = config["output_space"]
+	params["setup"] = config["setup"]
 	params["entrypoint"] = config["main"].(map[string]interface{})["entrypoint"].(string)
 	paramsJSON, err := json.Marshal(params)
 	if err != nil {
