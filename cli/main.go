@@ -234,8 +234,15 @@ func VerifyModelConfig(config map[string]interface{}) error {
 
 	if main["type"] == nil {
 		return errors.New("Please specify main type")
-	}
+	} else if main["type"].(string) == "http" || main["type"].(string) == "python" {
+		if main["entrypoint"] == nil {
+			return errors.New("In \"main\", please specify \"entrypoint\"")
+		}
 
+		if main["entrypoint"].(string) == "" {
+			return errors.New("The main entrypoint cannot be empty string")
+		}
+	}
 	return nil
 }
 

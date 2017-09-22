@@ -72,12 +72,12 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 	params["asset_root"] = repo.Path
 
 	// TODO: verify all assets exist.
-	params["assets"] = []string{}
+	params["assets"] = []interface{}{}
 
 	if model.driverType == "python" {
 		params["entrypoint"] = main["entrypoint"].(string)
 	} else if model.driverType == "http" {
-		params["cmd"] = main["cmd"].(string)
+		params["entrypoint"] = main["entrypoint"].(string)
 	} else {
 		return nil, errors.New("Unknown driver type " + model.driverType)
 	}
@@ -150,7 +150,7 @@ func (model *LocalModel) Serve() error {
 			fmt.Println("command", command)
 			args = append(args, command.(string))
 		}
-		args = append(args, model.driverSpec["cmd"].(string))
+		args = append(args, model.driverSpec["entrypoint"].(string))
 
 		cmd = exec.Command("moxel-http-driver", args...)
 	} else {
