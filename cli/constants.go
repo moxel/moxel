@@ -40,6 +40,7 @@ var YAMLWhitelist = map[string]bool{
 	"resources":    false,
 	"input_space":  true,
 	"output_space": true,
+	"setup":        false,
 	"main":         true,
 	"envs":         false,
 }
