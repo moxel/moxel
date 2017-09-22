@@ -418,7 +418,7 @@ class ModelView extends Component {
                             }
                         }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
-                        }else if(inputSpace == moxel.space.str) {
+                        }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                             input.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
@@ -453,7 +453,7 @@ class ModelView extends Component {
                                 demoWidget.value = JSON.stringify(object, undefined, 4);    
                                 resolve();
                             })
-                        }else if(outputSpace == moxel.space.str) {
+                        }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.float || outputSpace == moxel.space.int || outputSpace == moxel.space.bool) {
                             output.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
@@ -864,6 +864,7 @@ class ModelView extends Component {
                 </div>
             )
         }
+
         // Input widgets.
         console.log('model', model);
         var inputSpaces = moxel.parseSpaceObject(model['input_space']);
@@ -886,7 +887,7 @@ class ModelView extends Component {
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
                 );
-            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array) {
+            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
@@ -929,7 +930,7 @@ class ModelView extends Component {
                         </div>
                         <br/>
                     </div>
-            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array) {
+            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}

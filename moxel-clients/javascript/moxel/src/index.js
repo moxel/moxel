@@ -384,6 +384,81 @@ var Moxel = function(config) {
 		}
 	}
 
+	class MoxelFloat {
+		static get name() {
+			return "float";
+		}
+
+		constructor(x) {
+			this.x = x;
+
+			this.toText = this.toText.bind(this);
+		}
+
+		fromText(text) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelFloat(parseFloat(text)));
+			});
+		}
+
+		toText() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(String(self.x));
+			});
+		}
+	}
+
+	class MoxelInt {
+		static get name() {
+			return "int";
+		}
+
+		constructor(x) {
+			this.x = x;
+
+			this.toText = this.toText.bind(this);
+		}
+
+		fromText(text) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelInt(parseInt(text)));
+			});
+		}
+
+		toText() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(String(self.x));
+			});
+		}
+	}
+
+	class MoxelBoolean {
+		static get name() {
+			return "bool";
+		}
+
+		constructor(x) {
+			this.x = x;
+
+			this.toText = this.toText.bind(this);
+		}
+
+		fromText(text) {
+			return new Promise((resolve, reject) => {
+				resolve(new MoxelBoolean(Boolean(text)));
+			});
+		}
+
+		toText() {
+			var self = this;
+			return new Promise((resolve, reject) => {
+				resolve(String(self.x));
+			});
+		}
+	}
+
 	class MoxelString {
 		static get name() {
 			return "str";
@@ -442,7 +517,10 @@ var Moxel = function(config) {
 		str: MoxelString,
 		bytes: MoxelBytes,
 		json: MoxelJSON,
-		array: MoxelArray
+		float: MoxelFloat,
+		int: MoxelInt,
+		bool: MoxelBoolean,
+		array: MoxelArray,
 	};
 
 	class Model {
@@ -543,7 +621,7 @@ var Moxel = function(config) {
 								blob[varName] = item;
 								callback();	
 							});
-						}else if(varSpace == space.str) {
+						}else if(varSpace == space.str || varSpace == space.float || varSpace == space.int || varSpace == space.bool) {
 							data[varName].toText().then((text) => {
 								blob[varName] = text;
 								callback();
@@ -601,7 +679,7 @@ var Moxel = function(config) {
 							outputObject[varName] = outputItem;
 							callback();
 						})
-					}else if(varSpace == space.str) {
+					}else if(varSpace == space.str || varSpace == space.int || varSpace == space.bool || varSpace == space.float) {
 						space.str.fromText(blob[varName]).then((outputItem) => {
 							outputObject[varName] = outputItem;
 							callback();
