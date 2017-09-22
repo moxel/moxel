@@ -251,6 +251,9 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		config["assets"] = []interface{}{}
 	}
 
+	if config["setup"] == nil {
+		config["setup"] = []interface{}{}
+	}
 	if _, ok := config["assets"]; !ok {
 		config["assets"] = []interface{}{}
 	}

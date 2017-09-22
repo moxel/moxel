@@ -84,7 +84,9 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 
 	params["input_space"] = config["input_space"]
 	params["output_space"] = config["output_space"]
-	params["setup"] = config["setup"]
+	if config["setup"] != nil {
+		params["setup"] = config["setup"]
+	}
 
 	model.driverSpec = cleanupInterfaceMap(params)
 
