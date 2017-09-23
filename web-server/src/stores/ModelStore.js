@@ -12,7 +12,7 @@ class ModelStoreClass {
             id: modelId,
             tag: tag,
             title: "Untitled",
-            description: "This is some magic machine learning model",
+            description: "A magicical machine learning model",
             labels: [],
             links: {},
             stars: 0,
@@ -22,7 +22,7 @@ class ModelStoreClass {
             outputType: {
             },
             gallery: [],
-            readme: "There is no description for this model."
+            readme: ""
         };
     	
         for(var k in data.metadata) {

@@ -193,7 +193,6 @@ const StyledModelLayout = styled(Flex)`
     }
 
     .editable-input {
-        padding-left: 5px;
         border-color: #fff;
         border-width: 1px;
         border-top-style: none;
@@ -207,6 +206,25 @@ const StyledModelLayout = styled(Flex)`
         background-color: rgba(255, 255, 255, 0.14);
         border-bottom: solid;
         border-color: #fff;
+        border-width: 1px;
+    }
+
+    .editable-input-dark {
+        border-color: #333;
+        border-width: 1px;
+        border-top-style: none;
+        border-right-style: none;
+        border-bottom-style: dashed;
+        border-left-style: none;
+        overflow-x: hidden;
+        overflow-y: auto;
+        resize: "none";
+    }
+
+    .editable-input-dark:hover {
+        background-color: rgba(50, 50, 50, 0.14);
+        border-bottom: solid;
+        border-color: #333;
         border-width: 1px;
     }
 
@@ -1045,13 +1063,10 @@ class ModelView extends Component {
         }
 
         function renderModelDescriptionEditor() {
-            var defaultValue = model.description;
-            if(!defaultValue) {
-                defaultValue = "(Add some descriptions for the model here)";
-            }
             return (
-                <textarea id="model-description" defaultValue={defaultValue} className="editable-input" 
-                        style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
+                <textarea id="model-description" defaultValue={model.description} 
+                        placeholder="Tell the world about your model" 
+                        className="editable-input" style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
             );
         }
 
@@ -1240,6 +1255,11 @@ class ModelView extends Component {
             );
         }
 
+        function autoGrowHeight(event) {
+            var element = event.target;
+            element.style.height = element.scrollHeight + 'px';
+        }
+
         function renderModelREADME() {
             return (
                 <FixedWidthRow>
@@ -1254,13 +1274,23 @@ class ModelView extends Component {
                                                 ?
                                                 <div>
                                                     <h5>Edit ReadMe</h5>
-                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
+                                                    <textarea style={{minHeight: "30px", maxHeight: "500px"}} scrollHeight="30" id="model-readme" onBlur={self.handleUpdateReadMe} 
+                                                        placeholder="Tell the world about your model"
+                                                        className="editable-input-dark"
+                                                        onKeyUp={autoGrowHeight}
+                                                        defaultValue={model.readme}>
                                                     </textarea>
                                                 </div>
                                                 :
-                                                <Markdown tagName="article" className="markdown-body">
-                                                    {model.readme}
-                                                </Markdown>
+                                                (
+                                                    model.readme
+                                                    ?
+                                                    <Markdown tagName="article" className="markdown-body">
+                                                        {model.readme}
+                                                    </Markdown>
+                                                    :
+                                                    null
+                                                )
                                             }
                                         </div>
                                     </div>
