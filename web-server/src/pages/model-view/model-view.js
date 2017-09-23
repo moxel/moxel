@@ -229,6 +229,10 @@ const StyledModelLayout = styled(Flex)`
         outline: none;
     }
 
+    .tab-demo-model {
+        margin-bottom: 5px;
+    }
+
     
 `;
 
@@ -944,105 +948,7 @@ class ModelView extends Component {
         }
         this.outputWidgets = outputWidgets;
 
-        function renderDemoComponent() {
-            return (
-                <FixedWidthRow>
-                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                        <div className="col s12 m12">
-                            <div className="card">
-                                <div className="card-tabs white">
-
-                                    <span className="black-text">
-                                        <div className="row">
-                                            <br/>
-                                            <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
-                                                Model Input
-                                                
-                                                <br/><br/>
-
-
-                                                {Object.values(inputWidgets)}
-
-                                                <br/>
-
-                                                {renderBrowserExample()}
-
-                                                <br/>
-
-                                                {
-                                                    self.state.isRunning 
-                                                    ?
-                                                    <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
-                                                    :    
-                                                    <a className="waves-effect btn-flat green white-text" 
-                                                        style={{padding: 0, width: "100px", textAlign: "center"}} 
-                                                        onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
-                                                        Run 
-                                                    </a>
-                                                }
-                                            </div>
-                                            <div className="col m6" style={{textAlign: "center"}} >
-                                                Model Output
-
-                                                <br/><br/>
-
-                                                {Object.values(outputWidgets)}
-
-                                                <br/>
-
-                                                {renderSaveDemoButton()}
-                                                    
-                                            </div>
-                                        </div>
-                                    </span>
-                                    {/*<Tab title="API">
-                                        <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
-                                        {`   
-                                            \`\`\`python
-                                            import requests
-                                            import base64
-                                            import os
-
-                                            # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
-                                            URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
-
-
-                                            with open('test_images/image1.jpg', 'rb') as f:
-                                                result = requests.post(URL, json={
-                                                    'image': base64.b64encode(f.read()).decode('utf-8'),
-                                                    'ext': 'jpg'
-                                                })
-                                                try:
-                                                    result = result.json()
-                                                except:
-                                                    print(result.text)
-                                                    exit(1)
-
-
-                                                image_binary = base64.b64decode(result['vis'])
-                                                with open('output.png', 'wb') as f:
-                                                    f.write(image_binary)
-                                                os.system('open output.png')
-                                            \`\`\`
-
-
-                                        `}
-                                        </Markdown>   
-
-                                    </Tab>*/}
-                                <hr/>
-
-                                  
-                                </div>
-
-                                
-
-                            </div>
-                        </div>
-                    </div>
-                </FixedWidthRow>
-            );
-        }
+        
 
         function renderModelTitle() {
             if(LayoutUtils.isMobile()) {
@@ -1366,26 +1272,134 @@ class ModelView extends Component {
             );
         }
 
-        function renderModelDemo() {
-            if(model.status == 'LIVE') {
-                return renderDemoComponent();
-            }else{
-                return (
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card">
-                                    <div className="card-content" style={{textAlign: "center"}}>
-                                        Currently, only metadata is available for this model. Next, deploy the model as API. 
-                                        <div className="row"></div>
-                                        <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
-                                    </div>
+        function renderAPIUsage() {
+            {/*<Tab title="API">
+                <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                {`   
+                    \`\`\`python
+                    import requests
+                    import base64
+                    import os
+
+                    # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
+                    URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
+
+
+                    with open('test_images/image1.jpg', 'rb') as f:
+                        result = requests.post(URL, json={
+                            'image': base64.b64encode(f.read()).decode('utf-8'),
+                            'ext': 'jpg'
+                        })
+                        try:
+                            result = result.json()
+                        except:
+                            print(result.text)
+                            exit(1)
+
+
+                        image_binary = base64.b64decode(result['vis'])
+                        with open('output.png', 'wb') as f:
+                            f.write(image_binary)
+                        os.system('open output.png')
+                    \`\`\`
+
+
+                `}
+                </Markdown>   
+
+            </Tab>*/}
+        }
+
+        function renderLiveModelDemo() {
+            return (
+                <span className="black-text">
+                    <div className="row">
+                        <br/>
+                        <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
+                            Model Input
+                            
+                            <br/><br/>
+
+
+                            {Object.values(inputWidgets)}
+
+                            <br/>
+
+                            {renderBrowserExample()}
+
+                            <br/>
+                            {
+                                self.state.isRunning 
+                                ?
+                                <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
+                                :    
+                                <a className="waves-effect btn-flat green white-text" 
+                                    style={{padding: 0, width: "100px", textAlign: "center"}} 
+                                    onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                                    Run 
+                                </a>
+                            }
+                        </div>
+                        <div className="col m6" style={{textAlign: "center"}} >
+                            Model Output
+
+                            <br/><br/>
+
+                            {Object.values(outputWidgets)}
+
+                            <br/>
+
+                            {renderSaveDemoButton()}
+                                
+                        </div>
+                    </div>
+                </span>
+            );
+        }
+
+        function renderUploadInstructions() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                
+
+                                <div className="card-content" style={{textAlign: "center"}}>
+                                    Currently, only metadata is available for this model. Next, deploy the model as API. 
+                                    <div className="row"></div>
+                                    <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
                                 </div>
                             </div>
                         </div>
-                    </FixedWidthRow>
-                );
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+
+
+        function renderModelDemo() {
+            var component = null;
+            if(model.status == 'LIVE') {
+                component = renderLiveModelDemo();
+            }else{
+                component = renderUploadInstructions();
             }
+
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content white-text">   
+                                    {component}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
         }
 
         function renderModelGallery() {
@@ -1492,11 +1506,10 @@ class ModelView extends Component {
                     </FixedWidthRow>
 
                     <FixedWidthRow>
-                        <Tabs className='tab-demo' tabOptions={{swipeable: true}}>
-                            <Tab title={renderTabTitle('crop_square', 'Overview')} active >
+                        <Tabs className='tab-demo tab-demo-model' tabOptions={{swipeable: true}}>
+                            <Tab title={renderTabTitle('widgets', 'Demo')} active >
                                 {renderModelHeader()}
                                 {renderModelGallery()}
-                                {renderModelREADME()}
                                 {/*<FixedWidthRow>
                                     <ChartContainer timeRange={series1.timerange()} width={800}>
                                         <ChartRow height="30">
@@ -1506,10 +1519,10 @@ class ModelView extends Component {
                                         </ChartRow>
                                     </ChartContainer>
                                 </FixedWidthRow>*/}
-
-                            </Tab>
-                            <Tab title={renderTabTitle('widgets', 'Demo')} >
                                 {renderModelDemo()}
+                            </Tab>
+                            <Tab title={renderTabTitle('crop_square', 'About')} >
+                                {renderModelREADME()}
                             </Tab>
                             <Tab title={renderTabTitle('comment', 'Comments')}>
                                 {renderModelComments()}
