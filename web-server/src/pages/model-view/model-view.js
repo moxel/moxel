@@ -254,6 +254,12 @@ const StyledModelLayout = styled(Flex)`
     
 `;
 
+// Some utils.
+function autoGrowHeight(event) {
+   var element = event.target;
+    element.style.height = element.scrollHeight + 'px';
+}
+
 class ModelView extends Component {
     constructor() {
         super()
@@ -875,12 +881,12 @@ class ModelView extends Component {
         // Display of variable name and space.
         var displayVariable = function(name, space) {
             return (
-                <div style={{color: "black"}}>
+                <div style={{color: "black", paddingBottom: "10px"}}>
                     <p style={{display: "inline", borderRadius: "5px 0px 0px 5px", border: "1px solid #777777",
                                backgroundColor: "none", padding: "3px", marginBottom: "3px", borderWidth: "1px 0px 1px 1px",
                              }}>{name}</p>
                     <p style={{display: "inline", borderRadius: "0px 5px 5px 0px", border: "1px solid #777777",
-                               backgroundColor: "#deeaf9", padding: "3px", marginBottom: "3px",
+                               backgroundColor: "rgb(207, 228, 253)", padding: "3px", marginBottom: "3px",
                              }}><b>{space.name}</b></p>
                     <p></p>
                 </div>
@@ -914,10 +920,12 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
                         <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} 
-                            style={{height: "150px", width: "100%", 
+                            style={{minHeight: "50px", maxHeight: "150px", width: "100%", 
                                     padding: "10px", color: "#333", width: "100%",
                                     borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                                    width: "300px", marginLeft: "auto", marginRight: "auto",
+                                    resize: "none"}}
+                            onKeyUp={autoGrowHeight}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
@@ -956,10 +964,13 @@ class ModelView extends Component {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
-                        <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#333", width: "100%",
-                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                        <textarea id={`demo-output-${outputName}`} 
+                            style={{minHeight: "50px", maxHeight: "150px", width: "100%", 
+                                   padding: "10px", color: "#333", width: "100%",
+                                   borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                    width: "300px", marginLeft: "auto", marginRight: "auto",
+                                    resize: "none"}}
+                                    onKeyUp={autoGrowHeight}/>
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
@@ -1253,11 +1264,6 @@ class ModelView extends Component {
                     </div>
                 </FixedWidthRow>
             );
-        }
-
-        function autoGrowHeight(event) {
-            var element = event.target;
-            element.style.height = element.scrollHeight + 'px';
         }
 
         function renderModelREADME() {
