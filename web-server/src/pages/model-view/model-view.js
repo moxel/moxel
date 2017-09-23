@@ -368,7 +368,7 @@ class ModelView extends Component {
 
         this.isAuthor = (userId == this.state.username);
         this.setState({
-            editMode: this.isAuthor
+            editMode: false
         })
 
         if(this.isAuthor) {
@@ -1519,15 +1519,32 @@ class ModelView extends Component {
                             self.isAuthor
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
-                                <div className="switch">
-                                    Edit Page:  &nbsp;
-                                    <label>
-                                      Off
-                                      <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
-                                      <span className="lever"></span>
-                                      On
-                                    </label>
+                                <div style={{textAlign: "center", width: "100%"}}>
+                                    {
+                                        self.state.editMode
+                                        ?
+                                        <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
+                                            Preview
+                                        </a>
+                                        :
+                                        <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
+                                            Edit
+                                        </a>
+                                    }
+                                    {/*
+                                    <div className="switch">
+                                        Edit Page:  &nbsp;
+                                        <label>
+                                          Off
+                                          <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
+                                          <span className="lever"></span>
+                                          On
+                                        </label>
+                                    </div>
+                                    */}
+                                    
                                 </div>
+
                             </span>
                             :
                             null
