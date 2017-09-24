@@ -1,3 +1,2 @@
 #!/bin/bash
-cd moxel-clients/python/moxel/bin && ./download.sh
-cd moxel-clients/python && sudo ./upload.sh
+cd moxel-clients/python && make push
