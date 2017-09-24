@@ -13,7 +13,7 @@ import os
 from os.path import abspath, expanduser, exists, relpath, join, dirname
 
 
-VERSION='0.0.1'
+VERSION='0.0.2'
 GCS_MOUNT = '/mnt/cloudfs'
 
 
@@ -92,7 +92,6 @@ def mount_asset(key, local_path):
 def main():
     print('Python driver version {}'.format(VERSION))
 
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--json', type=str)
     args = parser.parse_args()
@@ -107,19 +106,26 @@ def main():
     input_space = config['input_space']
     output_space = config['output_space']
     assets = config.get('assets', [])
+    setup = config.get('setup', [])
 
     switch_to_work_path(code_root, work_path)
 
     if not exists('.git'):
         raise Exception('This is not a valid git repository: {}'.format(root))
 
+    # Mount assets.
     if len(assets) > 0:
         print('Mounting assets...')
     for asset in assets:
         asset_path = relpath(join(work_path, asset), '.')
         mount_asset(asset_path, asset_path)
 
+    # Run setup commands.
+    for command in setup:
+        ret = os.system(command)
+        if ret != 0: exit(ret)
 
+    # Load predict function.
     [predict_file_name, predict_func_name] = entrypoint.split('::')
 
     if predict_file_name.endswith('.py'):
@@ -129,6 +135,7 @@ def main():
 
     print('Loaded prediction function', predict_func)
 
+    # Start flask server.
     app = Flask(__name__)
 
     @app.route('/', methods=['GET'])

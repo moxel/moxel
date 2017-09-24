@@ -234,8 +234,15 @@ func VerifyModelConfig(config map[string]interface{}) error {
 
 	if main["type"] == nil {
 		return errors.New("Please specify main type")
-	}
+	} else if main["type"].(string) == "http" || main["type"].(string) == "python" {
+		if main["entrypoint"] == nil {
+			return errors.New("In \"main\", please specify \"entrypoint\"")
+		}
 
+		if main["entrypoint"].(string) == "" {
+			return errors.New("The main entrypoint cannot be empty string")
+		}
+	}
 	return nil
 }
 
@@ -244,6 +251,9 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		config["assets"] = []interface{}{}
 	}
 
+	if config["setup"] == nil {
+		config["setup"] = []interface{}{}
+	}
 	if _, ok := config["assets"]; !ok {
 		config["assets"] = []interface{}{}
 	}
@@ -274,9 +284,16 @@ func CommandInit() cli.Command {
 
 			file := c.String("file")
 
-			_, err := GetWorkingRepo()
+			repo, err := GetWorkingRepo()
 			if err != nil {
 				return err
+			}
+
+			fmt.Println("Initializing moxel yaml file...")
+			fmt.Println("Current git repo: " + repo.Path)
+
+			if _, err := os.Stat(file); err == nil {
+				return errors.New(fmt.Sprintf("File %s already exists.", file))
 			}
 
 			if c.Args().Get(0) != "" {
@@ -291,7 +308,13 @@ func CommandInit() cli.Command {
 
 			yamlBytes := []byte(SampleModelConfig)
 
-			return ioutil.WriteFile(file, yamlBytes, 0777)
+			err = ioutil.WriteFile(file, yamlBytes, 0777)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Created " + file)
+			return nil
 		},
 	}
 }

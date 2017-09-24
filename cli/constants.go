@@ -40,6 +40,7 @@ var YAMLWhitelist = map[string]bool{
 	"resources":    false,
 	"input_space":  true,
 	"output_space": true,
+	"setup":        false,
 	"main":         true,
 	"envs":         false,
 }
@@ -54,15 +55,15 @@ var DefaultResources = map[string]interface{}{
 	"memory": "1Gi",
 }
 
-var SampleModelConfig = `image: py3-tf-cpu
+var SampleModelConfig = `image: moxel/python3
 assets:
 resources: 
 	cpu: 1
-	memory: 1Gi
+	memory: 1G
 input_space: 
-	x: str
+	in: str
 output_space: 
-	y: str
+	out: str
 main:
 	type: python
 	entrypoint: serve.py::predict

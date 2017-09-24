@@ -42,16 +42,17 @@ def encode_json(kwargs, spaces):
     for var_name, var_space in spaces.items():
         assert var_name in kwargs, 'Requires argument {}'.format(var_name)
 
-        assert type(kwargs[var_name]) == var_space, \
-            ('Variable type {}:{} does not match spec {}:{}.'
-             .format(var_name, type(kwargs[var_name]), var_name, var_space))
+        def check_type():
+            assert type(kwargs[var_name]) == var_space, \
+                ('Variable type {}:{} does not match spec {}:{}.'
+                .format(var_name, type(kwargs[var_name]), var_name, var_space))
 
         obj = kwargs[var_name]
         if var_space == Image:
             # Assume base64 encoding.
             encoded = obj.to_base64()
         elif var_space in [str, float, int, bool]:
-            encoded = obj
+            encoded = var_space(obj)
         elif var_space in [np.float32, np.float64]:
             encoded = base64.b64encode(obj.tostring())
         elif var_space == JSON:
@@ -77,7 +78,7 @@ def decode_json(results, spaces):
         if var_space == Image:
             obj = var_space.from_base64(encoded)
         elif var_space in [str, float, int, bool]:
-            obj = encoded
+            obj = var_space(encoded)
         elif var_space in [np.float32, np.float64]:
             obj = np.fromstring(base64.b64decode(encoded), dtype=var_space)[0]
         elif var_space == JSON:

@@ -54,11 +54,8 @@ print('[daemon] Running command {}'.format(' '.join(args.cmd)))
 sys.stdout.flush() # make sure daemon outputs finish
 
 os.chdir(args.work_path)
-ret = os.system(' '.join(args.cmd))
 
-if ret == 0:
-    exit(ret)
-else:
-    print('Command failed. Suspending the container')
-    while True:
-        time.sleep(1.)
+for command in args.cmd:
+    ret = os.system(command)
+    if ret != 0: exit(ret)
+

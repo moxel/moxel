@@ -1,6 +1,6 @@
 {
   "name": "moxel",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Javascript client for Moxel",
   "main": "lib/index.js",
   "scripts": {
