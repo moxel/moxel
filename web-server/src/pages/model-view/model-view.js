@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
-import NotificationBanner from "../../components/notification-banner/notification-banner";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
@@ -26,10 +25,12 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ReactDisqusThread from '../../components/disqus-thread';
 import {Button, Dropdown, NavItem} from 'react-materialize'
-import NotificationSystem from 'react-notification-system';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
 import 'markdown-it';
 import Markdown from 'react-markdownit';
+import ChipInput from 'material-ui-chip-input'
 import Moxel from 'moxel'
+
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -44,6 +45,11 @@ var moxel = Moxel({
 
 
 const StyledModelLayout = styled(Flex)`
+    .vertical-align-middle { 
+        display: inline-block;
+        vertical-align: middle; 
+    }
+
     .blur {
         filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='3');
         -webkit-filter: url(#blur-filter);
@@ -160,16 +166,33 @@ const StyledModelLayout = styled(Flex)`
         margin-right: 20px;
     }
 
+    .tabs {
+        background: none;
+    }
+
+    .tabs .tab a:hover {
+        border-bottom: solid;
+        border-bottom-color: #ccc;
+    }
+
+    .tabs .tab a.active {
+        border-bottom: solid;
+        border-bottom-color: #000;
+    }
+
+    .tabs .tab.disabled {
+        display: none;
+    }
+
     .tabs .tab a {
         color: rgb(0, 0, 0);
     }
 
     .tabs .indicator {
-        background-color: black;
+        background: none;
     }
 
     .editable-input {
-        padding-left: 5px;
         border-color: #fff;
         border-width: 1px;
         border-top-style: none;
@@ -183,6 +206,25 @@ const StyledModelLayout = styled(Flex)`
         background-color: rgba(255, 255, 255, 0.14);
         border-bottom: solid;
         border-color: #fff;
+        border-width: 1px;
+    }
+
+    .editable-input-dark {
+        border-color: #333;
+        border-width: 1px;
+        border-top-style: none;
+        border-right-style: none;
+        border-bottom-style: dashed;
+        border-left-style: none;
+        overflow-x: hidden;
+        overflow-y: auto;
+        resize: "none";
+    }
+
+    .editable-input-dark:hover {
+        background-color: rgba(50, 50, 50, 0.14);
+        border-bottom: solid;
+        border-color: #333;
         border-width: 1px;
     }
 
@@ -205,15 +247,18 @@ const StyledModelLayout = styled(Flex)`
         outline: none;
     }
 
-    .notifications-wrapper {
-        z-index: 99999999;
+    .tab-demo-model {
+        margin-bottom: 5px;
     }
 
-    .notification.notification-success.notification-visible {
-        position: absolute;
-        top: 50px;   
-    }
+    
 `;
+
+// Some utils.
+function autoGrowHeight(event) {
+   var element = event.target;
+    element.style.height = element.scrollHeight + 'px';
+}
 
 class ModelView extends Component {
     constructor() {
@@ -223,6 +268,8 @@ class ModelView extends Component {
         if(AuthStore.isAuthenticated()) {
             username = AuthStore.username();
         }
+
+        this.isAuthor = false;
 
         this.state = {
             model: null,
@@ -234,7 +281,10 @@ class ModelView extends Component {
             examplePtr: 0
         }
 
+        this.addNotification = this.addNotification.bind(this);
         this.handleUpvote = this.handleUpvote.bind(this);
+        this.handleLabelsChange = this.handleLabelsChange.bind(this);
+        this.handleDeleteRepository = this.handleDeleteRepository.bind(this);
         this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
         this.handleUpdateReadMe = this.handleUpdateReadMe.bind(this);
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
@@ -322,12 +372,12 @@ class ModelView extends Component {
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
-        var editMode = (userId == this.state.username);
+        this.isAuthor = (userId == this.state.username);
         this.setState({
-            editMode: editMode
+            editMode: false
         })
 
-        if(editMode) {
+        if(this.isAuthor) {
             function addNotification() {
                 if(!self.notificationSystem) {
                     window.setTimeout(addNotification, 500);
@@ -382,15 +432,21 @@ class ModelView extends Component {
                 var inputSpaces = self.moxelModel.inputSpace;
 
                 for(var inputName in inputs) {
-                    setTimeout(function(outputName) {
+                    setTimeout(function(inputName) {
                         var inputSpace = inputSpaces[inputName];
-                        var input = inputs[outputName];
-                        var demoWidget = document.querySelector(`#demo-input-${outputName}`);
-                        if(inputSpace == moxel.space.Image) {
+                        var input = inputs[inputName];
+                        var demoWidget = document.querySelector(`#demo-input-${inputName}`);
+                        if(inputSpace == moxel.space.image) {
                             // TODO: Not implemented.
-                        }else if(inputSpace == moxel.space.JSON) {
+                            var addThumbnail = self.addThumbnails[inputName];
+                            if(addThumbnail) {
+                                input.toDataURL('image/png').then((src) => {
+                                    addThumbnail(src);
+                                });
+                            }
+                        }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
-                        }else if(inputSpace == moxel.space.String) {
+                        }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                             input.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
@@ -403,6 +459,7 @@ class ModelView extends Component {
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
+            console.log('Handling output', outputs);
             self.outputs = outputs;
             return new Promise((resolve, reject) => {
                 var outputSpaces = self.moxelModel.outputSpace;
@@ -411,7 +468,7 @@ class ModelView extends Component {
                         var outputSpace = outputSpaces[outputName];
                         var output = outputs[outputName];
                         var demoWidget = document.querySelector(`#demo-output-${outputName}`);
-                        if(outputSpace == moxel.space.Image) {
+                        if(outputSpace == moxel.space.image) {
                             output.toDataURL().then((url) => {
                                 demoWidget.src = url;
                                 demoWidget.style.marginTop = "0%";
@@ -419,16 +476,21 @@ class ModelView extends Component {
                                 demoWidget.style.width = "100%";
                                 resolve();
                             });
-                        }else if(outputSpace == moxel.space.JSON) {
+                        }else if(outputSpace == moxel.space.json) {
                             output.toObject().then((object) => {
                                 demoWidget.value = JSON.stringify(object, undefined, 4);    
                                 resolve();
                             })
-                        }else if(outputSpace == moxel.space.String) {
+                        }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.float || outputSpace == moxel.space.int || outputSpace == moxel.space.bool) {
                             output.toText().then((text) => {
                                 demoWidget.value = text;
                                 resolve();
                             });
+                        }else if(outputSpace == moxel.space.array) {
+                            output.toJSON().then((json) => {
+                                demoWidget.value = json;
+                                resolve();
+                            })
                         }
                     }.bind(this, outputName), 0);
                 }    
@@ -505,7 +567,7 @@ class ModelView extends Component {
                     reader.addEventListener("load", function () {
                         var bytes = reader.result;
 
-                        moxel.space.Image.fromBytes(bytes).then((image) => {
+                        moxel.space.image.fromBytes(bytes).then((image) => {
                           self.inputs[inputName] = image;
                           console.log('Model input updated', self.inputs);
                         })
@@ -517,11 +579,22 @@ class ModelView extends Component {
             }
         }
 
+        // TODO: best practice is to decouple parent and child logic.
+        self.createAddThumbnailHandler = function(inputName) {
+            if(!self.addThumbnails) {
+                self.addThumbnails = {};
+            }
+
+            return function(addThumbnail) {
+                self.addThumbnails[inputName] = addThumbnail;
+            }
+        }
+
         self.createTextareaEditor = function(inputName) {
             // onchange event handler.
             return function(e) {
                 var text = document.querySelector('#demo-input-' + inputName).value;
-                moxel.space.String.fromText(text).then((str) => {
+                moxel.space.str.fromText(text).then((str) => {
                     self.inputs[inputName] = str;
                     console.log('Model input updated', self.inputs);
                 })
@@ -548,7 +621,33 @@ class ModelView extends Component {
         
     }
 
-    
+    addNotification(message, level) {
+        this.notificationSystem.addNotification({
+          message: message,
+          level: level
+        });
+    }
+
+    handleLabelsChange(chips) {
+        var self = this;
+
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.updateModel(userId, modelName, tag, {'labels': chips}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('Successfully updated labels.', 'success');
+            });
+        });
+    }
+
+    handleDeleteRepository() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.deleteModels(userId, modelName).then(() => {
+            window.location.href = '/models';
+        })
+    }    
 
     handleUpvote() {
         var self = this;
@@ -618,19 +717,20 @@ class ModelView extends Component {
         });
     }
 
+
+
     handleUpdateTitle() {
+        var self = this;
+
         const {userId, modelName, tag} = this.props.match.params;
 
         var modelTitle = document.querySelector('#model-title').value;
 
         ModelStore.updateModel(userId, modelName, tag, {'title': modelTitle}).then(function() {
-            this.syncModel().then(function() {
-                this.notificationSystem.addNotification({
-                  message: 'Successfully updated model title.',
-                  level: 'success'
-                });
-            }.bind(this));
-        }.bind(this));
+            self.syncModel().then(function() {
+                self.addNotification('Successfully updated model title.', 'success')
+            });
+        });
     }
 
     handleUpdateReadMe() {
@@ -671,6 +771,12 @@ class ModelView extends Component {
         var self = this;
         if(!self.moxelModel) return;
 
+        // TODO: factor this out.
+        if(self.addThumbnails) {
+            for(var k in self.addThumbnails) {
+                self.addThumbnails[k]('/images/spinner.gif')
+            }
+        }
         self.moxelModel.loadDemoExample(example.exampleId)
         .then((result) => {
             self.handleInputs(result.input);
@@ -723,24 +829,24 @@ class ModelView extends Component {
 
         const series1 = new TimeSeries(seriesData);
 
-        var inputType = [];
+        var inputSpace = [];
 
-        for(var t in model.inputType) {
-            inputType.push(
+        for(var t in model.inputSpace) {
+            inputSpace.push(
                 (<tr>
                     <td>{t}</td>
-                    <td>{model.inputType[t]}</td>
+                    <td>{model.inputSpace[t]}</td>
                 </tr>)
             )
         }
 
-        var outputType = [];
+        var outputSpace = [];
 
-        for(var t in model.outputType) {
-            outputType.push(
+        for(var t in model.outputSpace) {
+            outputSpace.push(
                 (<tr>
                     <td>{t}</td>
-                    <td>{model.outputType[t]}</td>
+                    <td>{model.outputSpace[t]}</td>
                 </tr>)
             )
         }
@@ -775,25 +881,26 @@ class ModelView extends Component {
         // Display of variable name and space.
         var displayVariable = function(name, space) {
             return (
-                <div style={{color: "black"}}>
+                <div style={{color: "black", paddingBottom: "10px"}}>
                     <p style={{display: "inline", borderRadius: "5px 0px 0px 5px", border: "1px solid #777777",
                                backgroundColor: "none", padding: "3px", marginBottom: "3px", borderWidth: "1px 0px 1px 1px",
                              }}>{name}</p>
                     <p style={{display: "inline", borderRadius: "0px 5px 5px 0px", border: "1px solid #777777",
-                               backgroundColor: "#deeaf9", padding: "3px", marginBottom: "3px",
-                             }}><b>{space}</b></p>
+                               backgroundColor: "rgb(207, 228, 253)", padding: "3px", marginBottom: "3px",
+                             }}><b>{space.name}</b></p>
                     <p></p>
                 </div>
             )
         }
+
         // Input widgets.
         console.log('model', model);
-        var inputSpaces = model['input_space'];
+        var inputSpaces = moxel.parseSpaceObject(model['input_space']);
         var inputWidgets = {}; 
         for(var inputName in inputSpaces) {
             var inputSpace = inputSpaces[inputName];
             var inputWidget = null;
-            if(inputSpace == "Bytes") {
+            if(inputSpace == moxel.space.bytes) {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
@@ -801,22 +908,24 @@ class ModelView extends Component {
                     </div>
                 );
             }
-            else if(inputSpace == "Image") {
+            else if(inputSpace == moxel.space.image) {
                 inputWidget = (
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
-                        <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></ImageUploader>
+                        <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
                 );
-            }else if(inputSpace == "String") {
+            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
                         <textarea onChange={this.createTextareaEditor(inputName)} id={`demo-input-${inputName}`} 
-                            style={{height: "150px", width: "100%", 
+                            style={{minHeight: "50px", maxHeight: "150px", width: "100%", 
                                     padding: "10px", color: "#333", width: "100%",
                                     borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                                    width: "300px", marginLeft: "auto", marginRight: "auto",
+                                    resize: "none"}}
+                            onKeyUp={autoGrowHeight}/>
                     </div>
             }
             inputWidgets[inputName] = inputWidget;
@@ -824,12 +933,12 @@ class ModelView extends Component {
         this.inputWidgets = inputWidgets;
         
         // Output widgets.
-        var outputSpaces = model['output_space'];
+        var outputSpaces = moxel.parseSpaceObject(model['output_space']);
         var outputWidgets = {};
         for(var outputName in outputSpaces) {
             var outputSpace = outputSpaces[outputName];
             var outputWidget = null;
-            if(outputSpace == "JSON") {
+            if(outputSpace == moxel.space.json) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
@@ -840,7 +949,7 @@ class ModelView extends Component {
                         <br/>
                     </div>
                     
-            }else if(outputSpace == "Image") {
+            }else if(outputSpace == moxel.space.image) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
@@ -851,141 +960,24 @@ class ModelView extends Component {
                         </div>
                         <br/>
                     </div>
-            }else if(outputSpace == "String") {
+            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
-                        <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
-                                                                           padding: "10px", color: "#333", width: "100%",
-                                                                           borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                        <textarea id={`demo-output-${outputName}`} 
+                            style={{minHeight: "50px", maxHeight: "150px", width: "100%", 
+                                   padding: "10px", color: "#333", width: "100%",
+                                   borderRadius: "5px", border: "2px dashed #C7C7C7",
+                                    width: "300px", marginLeft: "auto", marginRight: "auto",
+                                    resize: "none"}}
+                                    onKeyUp={autoGrowHeight}/>
                     </div>
             }
             outputWidgets[outputName] = outputWidget;
         }
         this.outputWidgets = outputWidgets;
 
-        function renderDemoComponent() {
-            return (
-                <FixedWidthRow>
-                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                        <div className="col s12 m12">
-                            <div className="card">
-                                <div className="card-tabs white">
-                                  <Tabs className='tab-demo white'>
-                                    <Tab title="Demo" active >
-                                        <span className="black-text">
-                                            <div className="row">
-                                                <br/>
-                                                <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
-                                                    Model Input
-                                                    
-                                                    <br/><br/>
-
-                                                    {Object.values(inputWidgets)}
-
-                                                    <br/>
-
-                                                    {renderBrowserExample()}
-
-                                                    <br/>
-
-                                                    {
-                                                        self.state.isRunning 
-                                                        ?
-                                                        <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
-                                                        :    
-                                                        <a className="waves-effect btn-flat green white-text" 
-                                                            style={{padding: 0, width: "100px", textAlign: "center"}} 
-                                                            onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
-                                                            Run 
-                                                        </a>
-                                                    }
-                                                </div>
-                                                <div className="col m6" style={{textAlign: "center"}} >
-                                                    Model Output
-
-                                                    <br/><br/>
-
-                                                    {Object.values(outputWidgets)}
-
-                                                    <br/>
-
-                                                    {renderSaveDemoButton()}
-                                                        
-                                                </div>
-                                            </div>
-                                        </span>
-                                    </Tab>
-                                    {/*<Tab title="API">
-                                        <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
-                                        {`   
-                                            \`\`\`python
-                                            import requests
-                                            import base64
-                                            import os
-
-                                            # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
-                                            URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
-
-
-                                            with open('test_images/image1.jpg', 'rb') as f:
-                                                result = requests.post(URL, json={
-                                                    'image': base64.b64encode(f.read()).decode('utf-8'),
-                                                    'ext': 'jpg'
-                                                })
-                                                try:
-                                                    result = result.json()
-                                                except:
-                                                    print(result.text)
-                                                    exit(1)
-
-
-                                                image_binary = base64.b64decode(result['vis'])
-                                                with open('output.png', 'wb') as f:
-                                                    f.write(image_binary)
-                                                os.system('open output.png')
-                                            \`\`\`
-
-
-                                        `}
-                                        </Markdown>   
-
-                                    </Tab>*/}
-                                </Tabs>
-
-                                
-                                <hr/>
-
-                                  
-                                </div>
-
-                                <div className="card-content">
-                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
-                                        <div className="col s12 m12">
-                                            {
-                                                self.state.editMode
-                                                ?
-                                                <div>
-                                                    <h5>Edit ReadMe</h5>
-                                                    <textarea style={{height: "300px"}} id="model-readme" onBlur={self.handleUpdateReadMe} defaultValue={model.readme}>
-                                                    </textarea>
-                                                </div>
-                                                :
-                                                <Markdown tagName="article" className="markdown-body">
-                                                    {model.readme}
-                                                </Markdown>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </FixedWidthRow>
-            );
-        }
+        
 
         function renderModelTitle() {
             if(LayoutUtils.isMobile()) {
@@ -1026,10 +1018,12 @@ class ModelView extends Component {
                     fontSize: "18px"
                 }
             }
+
             return (
                 <span style={shareStyle}>
                     <a className={"waves-effect btn-flat black-text model-action-btn " + (self.state.rating > 0 ? "orange lighten-1" : "white")} 
-                        onClick={self.handleUpvote}><i className="material-icons left">
+                        onClick={self.handleUpvote}>
+                        <i className="material-icons left">
                         arrow_drop_up
                         </i>{model.stars}
                     </a>
@@ -1080,13 +1074,10 @@ class ModelView extends Component {
         }
 
         function renderModelDescriptionEditor() {
-            var defaultValue = model.description;
-            if(!defaultValue) {
-                defaultValue = "(Add some descriptions for the model here)";
-            }
             return (
-                <textarea id="model-description" defaultValue={defaultValue} className="editable-input" 
-                        style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
+                <textarea id="model-description" defaultValue={model.description} 
+                        placeholder="Tell the world about your model" 
+                        className="editable-input" style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
             );
         }
 
@@ -1163,84 +1154,284 @@ class ModelView extends Component {
             }
         }
 
-        return (
-            <StyledModelLayout column className="catalogue-layout-container">
-                {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
-                {/*>Search For Your Favorite Model</FixedWidthRow>*/}
-                {/*<FixedWidthRow component={SearchBar}*/}
-                {/*className="catalogue-search-bar"*/}
-                {/*placeholder="Search 15,291 models"/>*/}
-                
 
-                <Flex component={FlexItem}
-                      fluid
-                      width="%"
-                      className="model-view">
-                    <FixedWidthRow style={{justifyContent: "left"}}>
-                        <span>
-                            <i className="material-icons" style={{fontSize: "15px"}}>book</i> &nbsp; 
-                            <b>{model.user}</b> &nbsp; / &nbsp;  <b>{model.id}</b>
-                        </span>
-                        {
-                            userId == this.state.username
-                            ?
-                            <span style={{marginLeft: "auto", marginRight: "0px"}}>
-                                <div className="switch">
-                                    Edit Page:  &nbsp;
-                                    <label>
-                                      Off
-                                      <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
-                                      <span className="lever"></span>
-                                      On
-                                    </label>
+        function renderModelLabels() {
+            if(self.state.editMode) {
+                const sourceTags=[
+                ];
+
+                return (
+                    <ChipInput
+                      defaultValue={model.labels}
+                      fullWidth="true"
+                      dataSource={sourceTags}
+                      hintText="(Add labels to model here)"
+                      hintStyle={{color: "white"}}
+                      style={{fontSize: "14px"}}
+                      underlineStyle={{borderBottom: "1px dashed rgb(255, 255, 255)", background: "none"}}
+                      onChange={(chips) => self.handleLabelsChange(chips)}
+                    />
+                );
+            }else{
+                return (
+                    <div>
+                        <p>{
+                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                        }</p>
+                    </div>
+                );
+            }
+        }
+
+        function renderUploadButton() {
+            return (
+                <div style={{textAlign: "center", width: "100%"}}>
+                    <a className="waves-effect btn-flat green white-text" 
+                        href={`/upload/${userId}/${modelName}/${tag}`} 
+                        style={{padding: 0, width: "80%", textAlign: "center"}}>
+                        {/*<i className="material-icons center">play_arrow</i>*/}
+                        Upload Model
+                    </a>
+                </div>
+            )
+        }
+
+        function renderModelHeader() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                          <div className="card blue darken-3">
+                            <div className="card-content white-text">
+
+                                <div className="card-title">
+                                    {renderModelTitle()}
+
+                                    {renderModelShare()}
                                 </div>
-                            </span>
-                            :
-                            null
-                        }
-                    </FixedWidthRow>
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                              <div className="card blue darken-3">
-                                <div className="card-content white-text">
 
-                                    <div className="card-title">
-                                        {renderModelTitle()}
+                                {renderModelStatus()}
 
-                                        {renderModelShare()}
+                                {renderModelDescription()}
 
+                                  <br/>
+
+                                    <div>
+                                        <p>{
+                                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                                        }</p>
                                     </div>
+                                </div>
+                                
+                                <div className="card-action blue darken-4">
+                                  {
+                                    model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
+                                  }
+                                  {
+                                    model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
+                                  }
+                                </div>
+                          </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
 
-                                    {renderModelStatus()}
-
-                                    {renderModelDescription()}
-
-                                      <br/>
-
-                                        <div>
-                                            <p>{
-                                                model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                            }</p>
-                                        </div>
+        function renderModelComments() {
+            return (
+                <FixedWidthRow>             
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content">
+                                    {/* force to sign in to discuss.
+                                    <div>
+                                    <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
                                     </div>
+                                    <div className="blur">
+                                        
+                                    </div>*/}
+                                    <ReactDisqusThread
+                                        id={`$[userId}/${modelName}:${tag}`}
+                                        title="Example Thread"
+                                        url={`http://dummy.ai${window.location.pathname}`}>
+                                    </ReactDisqusThread>
                                     
-                                    <div className="card-action blue darken-4">
-                                      {
-                                        model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
-                                      }
-                                      {
-                                        model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
-                                      }
-                                    </div>
-                              </div>
+                                </div>
                             </div>
                         </div>
-                    </FixedWidthRow>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderModelREADME() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content">
+                                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%"}}>
+                                        <div className="col s12 m12">
+                                            {
+                                                self.state.editMode
+                                                ?
+                                                <div>
+                                                    <h5>Edit ReadMe</h5>
+                                                    <textarea style={{minHeight: "30px", maxHeight: "500px"}} scrollHeight="30" id="model-readme" onBlur={self.handleUpdateReadMe} 
+                                                        placeholder="Tell the world about your model"
+                                                        className="editable-input-dark"
+                                                        onKeyUp={autoGrowHeight}
+                                                        defaultValue={model.readme}>
+                                                    </textarea>
+                                                </div>
+                                                :
+                                                (
+                                                    model.readme
+                                                    ?
+                                                    <Markdown tagName="article" className="markdown-body">
+                                                        {model.readme}
+                                                    </Markdown>
+                                                    :
+                                                    null
+                                                )
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderAPIUsage() {
+            {/*<Tab title="API">
+                <Markdown className="markdown-body" style={{height: "200px", overflow: "scroll", marginBottom: "20px"}}>
+                {`   
+                    \`\`\`python
+                    import requests
+                    import base64
+                    import os
+
+                    # URL = 'http://kube-dev.dummy.ai:31900/model/dummy/tf-object-detection/latest'
+                    URL = 'http://kube-dev.dummy.ai:31900/model/strin/tf-object-detection/latest'
 
 
-                    {model.gallery.length > 0 ? 
-                     <FixedWidthRow>
+                    with open('test_images/image1.jpg', 'rb') as f:
+                        result = requests.post(URL, json={
+                            'image': base64.b64encode(f.read()).decode('utf-8'),
+                            'ext': 'jpg'
+                        })
+                        try:
+                            result = result.json()
+                        except:
+                            print(result.text)
+                            exit(1)
+
+
+                        image_binary = base64.b64decode(result['vis'])
+                        with open('output.png', 'wb') as f:
+                            f.write(image_binary)
+                        os.system('open output.png')
+                    \`\`\`
+
+
+                `}
+                </Markdown>   
+
+            </Tab>*/}
+        }
+
+        function renderLiveModelDemo() {
+            return (
+                <span className="black-text">
+                    <div className="row">
+                        <br/>
+                        <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
+                            Model Input
+                            
+                            <br/><br/>
+
+
+                            {Object.values(inputWidgets)}
+
+                            <br/>
+
+                            {renderBrowserExample()}
+
+                            <br/>
+                            {
+                                self.state.isRunning 
+                                ?
+                                <img src="/images/spinner.gif" style={{width: "100px", height: "auto"}}></img>
+                                :    
+                                <a className="waves-effect btn-flat green white-text" 
+                                    style={{padding: 0, width: "100px", textAlign: "center"}} 
+                                    onClick={()=>self.handleDemoRun()}>{/*<i className="material-icons center">play_arrow</i>*/}
+                                    Run 
+                                </a>
+                            }
+                        </div>
+                        <div className="col m6" style={{textAlign: "center"}} >
+                            Model Output
+
+                            <br/><br/>
+
+                            {Object.values(outputWidgets)}
+
+                            <br/>
+
+                            {renderSaveDemoButton()}
+                                
+                        </div>
+                    </div>
+                </span>
+            );
+        }
+
+        function renderUploadInstructions() {
+            return (
+                <div className="black-text" style={{textAlign: "center"}}>
+                    Currently, only metadata is available for this model. Next, deploy the model as an API. 
+                    <div className="row"></div>
+                    <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}How to Upload Model?</a>
+                </div>
+            );
+        }
+
+
+
+        function renderModelDemo() {
+            var component = null;
+            if(model.status == 'LIVE') {
+                component = renderLiveModelDemo();
+            }else{
+                component = renderUploadInstructions();
+            }
+
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            <div className="card">
+                                <div className="card-content white-text">   
+                                    {component}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderModelGallery() {
+            if(model.gallery.length > 0) {
+                 return (
+                    <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                             <div className="col s12 m12">
                                 <div className="card white">
@@ -1255,73 +1446,145 @@ class ModelView extends Component {
                             </div>
                         </div>
                     </FixedWidthRow>
-                     : null 
-                    }
+                );
+            }else{
+                return null;
+            }
+        }
 
-                    {/*<FixedWidthRow>
-                        <ChartContainer timeRange={series1.timerange()} width={800}>
-                            <ChartRow height="30">
-                                <Charts>
-                                    <LineChart axis="axis1" series={series1}/>
-                                </Charts>
-                            </ChartRow>
-                        </ChartContainer>
-                    </FixedWidthRow>*/}
+        function renderModelDangerZone() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                          <div className="card red">
+                            <div className="card-content white-text">
 
-                    {
-                        model.status == 'LIVE' 
-                        ?
-                        renderDemoComponent()
-                        :
-                        (<FixedWidthRow>
-                            <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                                <div className="col s12 m12">
-                                    <div className="card">
-                                        <div className="card-content" style={{textAlign: "center"}}>
-                                            Currently, only metadata is available for this model. Next, deploy the model as API. 
-                                            <div className="row"></div>
-                                            <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
-                                        </div>
-                                    </div>
+                                <div className="card-title">
+                                Danger Zone
                                 </div>
+
+
+                                <a className={"waves-effect btn-flat black-text model-action-btn red lighten-3 red-text"} 
+                                    onClick={self.handleDeleteRepository}>
+                                    <i className="material-icons vertical-align-middle">
+                                    delete
+                                    </i>
+                                    <div className="vertical-align-middle">Delete this repository</div>
+                                </a>
+
+                                <br/>
+
+                                Once you click this button to delete, there is no going back. Please be 100% certain.
                             </div>
-                        </FixedWidthRow>
-                        )
-                    }
-                
-                    <FixedWidthRow>
-                        <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                            <div className="col s12 m12">
-                                <div className="card">
-                                    <div className="card-content">
-                                        {/* force to sign in to discuss.
-                                        <div>
-                                        <a onClick={()=>{AuthStore.signup(window.location.pathname);}}>Sign up</a> or <a onClick={()=>{AuthStore.login(window.location.pathname);}}>Log in</a> to join the discussion.
-                                        </div>
-                                        <div className="blur">
-                                            
-                                        </div>*/}
-                                        <ReactDisqusThread
-                                            id={`$[userId}/${modelName}:${tag}`}
-                                            title="Example Thread"
-                                            url={`http://dummy.ai${window.location.pathname}`}>
-                                        </ReactDisqusThread>
-                                        
-                                    </div>
-                                </div>
-                            </div>
+                          </div>
                         </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderTabTitle(icon, title) {
+            return (
+                <div style={{color: "#333"}}>
+                    <i className="material-icons vertical-align-middle">{icon}</i> &nbsp;
+                    <div className="vertical-align-middle">{title}</div>
+                </div>
+            );
+        }
+
+
+        return (
+            <StyledModelLayout column className="catalogue-layout-container">
+                {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
+                {/*>Search For Your Favorite Model</FixedWidthRow>*/}
+                {/*<FixedWidthRow component={SearchBar}*/}
+                {/*className="catalogue-search-bar"*/}
+                {/*placeholder="Search 15,291 models"/>*/}
+                <Flex component={FlexItem}
+                      fluid
+                      width="%"
+                      className="model-view">
+                    <FixedWidthRow style={{justifyContent: "left"}}>
+                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>bookmark</i> &nbsp; 
+                        <span style={{fontSize: "20px", color: "#2196E1"}}>
+                            <b>{model.user}</b> / <b>{model.id}</b>
+                        </span>
+                        
+                        {
+                            self.isAuthor
+                            ?
+                            <span style={{marginLeft: "auto", marginRight: "0px"}}>
+                                <div style={{textAlign: "center", width: "100%"}}>
+                                    {
+                                        self.state.editMode
+                                        ?
+                                        <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
+                                            Preview
+                                        </a>
+                                        :
+                                        <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
+                                            Edit
+                                        </a>
+                                    }
+                                    {/*
+                                    <div className="switch">
+                                        Edit Page:  &nbsp;
+                                        <label>
+                                          Off
+                                          <input type="checkbox" defaultChecked={this.state.editMode} onChange={this.handleToggleEdit}/>
+                                          <span className="lever"></span>
+                                          On
+                                        </label>
+                                    </div>
+                                    */}
+                                    
+                                </div>
+
+                            </span>
+                            :
+                            null
+                        }
+                        
                     </FixedWidthRow>
-                    {/*<FixedWidthRow style={{marginTop: '30px'}}><ModelSnippet {...model}/></FixedWidthRow>
-                    <TabButtonBar repoUrl={model.links['github']}/>
-                    <NotificationBanner>A new version of the model is being launched, click here to see the launch
-                        logs...</NotificationBanner>
+
                     <FixedWidthRow>
-                        <Markdown tagName="article" source={model.readme} className="markdown-body"/>
-                    </FixedWidthRow>*/}
+                        <Tabs className='tab-demo tab-demo-model' tabOptions={{swipeable: true}}>
+                            <Tab title={renderTabTitle('widgets', 'Demo')} active >
+                                {renderModelHeader()}
+                                {renderModelGallery()}
+                                {/*<FixedWidthRow>
+                                    <ChartContainer timeRange={series1.timerange()} width={800}>
+                                        <ChartRow height="30">
+                                            <Charts>
+                                                <LineChart axis="axis1" series={series1}/>
+                                            </Charts>
+                                        </ChartRow>
+                                    </ChartContainer>
+                                </FixedWidthRow>*/}
+                                {renderModelDemo()}
+                            </Tab>
+                            <Tab title={renderTabTitle('crop_square', 'About')} >
+                                {renderModelREADME()}
+                            </Tab>
+                            <Tab title={renderTabTitle('comment', 'Comments')}>
+                                {renderModelComments()}
+                            </Tab>
+
+                            <Tab title={renderTabTitle('settings', 'Settings')} disabled={self.isAuthor ? false : true}>
+                                {renderModelDangerZone()}
+                            </Tab>
+                            
+                            
+                        </Tabs>
+
+                    </FixedWidthRow>
+
+
+                    
                 </Flex>
 
-                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
+                <NotificationBanner ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
             </StyledModelLayout>
         )
     }

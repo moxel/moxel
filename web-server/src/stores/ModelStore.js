@@ -12,8 +12,8 @@ class ModelStoreClass {
             id: modelId,
             tag: tag,
             title: "Untitled",
-            description: "This is some magic machine learning model",
-            labels: ["deep learning"],
+            description: "A magicical machine learning model",
+            labels: [],
             links: {},
             stars: 0,
             lastUpdated: '1 days ago',
@@ -22,7 +22,7 @@ class ModelStoreClass {
             outputType: {
             },
             gallery: [],
-            readme: "There is no description for this model."
+            readme: ""
         };
     	
         for(var k in data.metadata) {
@@ -49,6 +49,18 @@ class ModelStoreClass {
 		        reject();
 		    });;
 		}.bind(this));
+	}
+
+	deleteModels(userId, modelId) { 
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelId}`,
+				{method: 'DELETE'}
+			).then((response)=>{
+	            resolve();
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
 	}
 
 	fetchModelAll() { 

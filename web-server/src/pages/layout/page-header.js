@@ -88,8 +88,8 @@ class PageHeader extends Component {
                             A platform to build and share machine intelligence.
                         </div>
                         <div>
-                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Model</Button>
-                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Model</Button></Link>
+                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Models</Button>
+                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Models</Button></Link>
                         </div> 
                         
                         <br/>
@@ -116,8 +116,9 @@ class PageHeader extends Component {
                 if(LayoutUtils.isMobile()) {
                     return  <SideNav trigger={<i className="material-icons">menu</i>} options={{ closeOnClick: true }}>
                                 <SideNavItem waves icon="home"><Link to="/">Home</Link></SideNavItem>
-                                <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
                                 <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
+                                <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
+                                <SideNavItem waves icon="bookmark border"><a href="http://docs.moxel.ai">Documentation</a></SideNavItem>
                                 <SideNavItem divider />
                                 <SideNavItem waves style={{position: "relative"}}>
                                     <ProfileImage size={32} url={AuthStore.picture()} style={{marginTop: "8px"}}/>
@@ -132,9 +133,11 @@ class PageHeader extends Component {
                     /*<ul className="right  hide-on-med-and-down">*/
                     return (
                         <ul className="right">
+                            <li><Link to="/new">Create</Link></li>
+
                             <li><Link to="/models">Models</Link></li>
 
-                            <li><Link to="/new">Create</Link></li>
+                            <li><a href="http://docs.moxel.ai">Documentation</a></li>
 
                             <ul id="dropdown1" className="dropdown-content">
                                 <li>

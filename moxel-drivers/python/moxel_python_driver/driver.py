@@ -3,7 +3,7 @@ from __future__ import print_function
 # Python driver to start models.
 # Wraps a model using a flask server.
 from flask import Flask, jsonify, request
-from moxel.space import Image, String, JSON
+from moxel.space import encode_json, decode_json, get_space
 import argparse
 import json
 import random
@@ -13,19 +13,25 @@ import os
 from os.path import abspath, expanduser, exists, relpath, join, dirname
 
 
-VERSION='0.0.1'
+VERSION='0.0.2'
 GCS_MOUNT = '/mnt/cloudfs'
+
 
 def decode_single_input(data, input_type):
     if input_type == 'Image':
         return Image.from_base64(data)
     elif input_type == 'String':
-        return String().from_str(data)
+        return String.from_str(data)
     elif input_type == 'JSON':
         return JSON.from_object(data)
+    elif input_type == 'Array':
+        return Array.from_list(json.loads(data))
+    else:
+        raise Exception('Unknown input type: {}'.format(input_type))
 
 
-def decode_inputs(input_raw, input_space):
+def decode_inputs(input_raw, input_space_strs):
+    return decode_json(input_raw, get_space(input_space_strs))
     input_moxel = {}
     for k, v in input_space.items():
         data = input_raw[k]
@@ -40,11 +46,18 @@ def encode_single_output(output_obj, output_type):
         return output_obj.to_str()
     elif output_type == 'JSON':
         return output_obj.to_object()
+    elif output_type == 'Array':
+        return json.dumps(output_obj.to_list())
+    else:
+        raise Exception('Unknown output type: {}'.format(output_type))
 
 
-def encode_outputs(output_moxel, output_space):
+def encode_outputs(output_moxel, output_space_strs):
+    return encode_json(output_moxel, get_space(output_space_strs))
+
     output_raw = {}
     for var_name, output_type in output_space.items():
+        output_type = get_space(output_type)
         output_obj = output_moxel[var_name]
         output_raw[var_name] = encode_single_output(output_obj, output_type)
     return output_raw
@@ -79,7 +92,6 @@ def mount_asset(key, local_path):
 def main():
     print('Python driver version {}'.format(VERSION))
 
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--json', type=str)
     args = parser.parse_args()
@@ -94,19 +106,26 @@ def main():
     input_space = config['input_space']
     output_space = config['output_space']
     assets = config.get('assets', [])
+    setup = config.get('setup', [])
 
     switch_to_work_path(code_root, work_path)
 
     if not exists('.git'):
         raise Exception('This is not a valid git repository: {}'.format(root))
 
+    # Mount assets.
     if len(assets) > 0:
         print('Mounting assets...')
     for asset in assets:
         asset_path = relpath(join(work_path, asset), '.')
         mount_asset(asset_path, asset_path)
 
+    # Run setup commands.
+    for command in setup:
+        ret = os.system(command)
+        if ret != 0: exit(ret)
 
+    # Load predict function.
     [predict_file_name, predict_func_name] = entrypoint.split('::')
 
     if predict_file_name.endswith('.py'):
@@ -116,6 +135,7 @@ def main():
 
     print('Loaded prediction function', predict_func)
 
+    # Start flask server.
     app = Flask(__name__)
 
     @app.route('/', methods=['GET'])
@@ -126,7 +146,7 @@ def main():
     def predict():
         input_raw = request.json
         input_moxel = decode_inputs(input_raw, input_space)
-        output_moxel = predict_func(input_moxel)
+        output_moxel = predict_func(**input_moxel)
         return jsonify(encode_outputs(output_moxel, output_space))
 
     app.run(port=5900, host='0.0.0.0')

@@ -47,6 +47,7 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 	config = CleanupModelConfig(config)
 
 	user := GlobalUser.Username()
+
 	name := "awesome"
 	if _, ok := config["name"]; ok {
 		name = config["name"].(string)
@@ -59,7 +60,6 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 
 	main := config["main"].(map[interface{}]interface{})
 	model.driverType = main["type"].(string)
-
 	params := make(map[interface{}]interface{})
 
 	repo, err := GetWorkingRepo()
@@ -73,9 +73,20 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 
 	// TODO: verify all assets exist.
 	params["assets"] = []interface{}{}
-	params["entrypoint"] = main["entrypoint"].(string)
+
+	if model.driverType == "python" {
+		params["entrypoint"] = main["entrypoint"].(string)
+	} else if model.driverType == "http" {
+		params["entrypoint"] = main["entrypoint"].(string)
+	} else {
+		return nil, errors.New("Unknown driver type " + model.driverType)
+	}
+
 	params["input_space"] = config["input_space"]
 	params["output_space"] = config["output_space"]
+	if config["setup"] != nil {
+		params["setup"] = config["setup"]
+	}
 
 	model.driverSpec = cleanupInterfaceMap(params)
 
@@ -126,34 +137,55 @@ func (model *LocalModel) Serve() error {
 	if err != nil {
 		return err
 	}
+
+	var cmd *exec.Cmd
 	if model.driverType == "python" {
-		cmd := exec.Command("moxel-python-driver", "--json", string(jsonBytes))
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		go func() {
-			err := cmd.Start()
-			if err != nil {
-				panic(err)
-
-			}
-		}()
-
-		router := mux.NewRouter()
-		router.HandleFunc("/api/users/{user}/models/{model}/{tag}", model.Get).Methods("GET")
-		router.HandleFunc("/model/{user}/{model}/{tag}", model.HandleProxy).Methods("GET")
-		router.HandleFunc("/model/{user}/{model}/{tag}", model.HandleProxy).Methods("POST")
-
-		server := &http.Server{
-			Handler:      router,
-			Addr:         fmt.Sprintf("0.0.0.0:8081"),
-			WriteTimeout: 3600 * time.Second,
-			ReadTimeout:  3600 * time.Second,
+		cmd = exec.Command("moxel-python-driver", "--json", string(jsonBytes))
+	} else if model.driverType == "http" {
+		var args []string
+		args = append(args, []string{
+			"--code_root", model.driverSpec["code_root"].(string),
+			"--asset_root", model.driverSpec["asset_root"].(string),
+			"--work_path", model.driverSpec["work_path"].(string)}...)
+		args = append(args, "--cmd")
+		for _, command := range model.driverSpec["setup"].([]interface{}) {
+			fmt.Println("command", command)
+			args = append(args, command.(string))
 		}
-		err = server.ListenAndServe()
-		if err != nil {
-			return err
-		}
+		args = append(args, model.driverSpec["entrypoint"].(string))
+
+		cmd = exec.Command("moxel-http-driver", args...)
+	} else {
+		return errors.New("Unknow driver type " + model.driverType)
 	}
+
+	// Run the HTTP driver.
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	go func() {
+		err := cmd.Start()
+		if err != nil {
+			panic(err)
+
+		}
+	}()
+
+	router := mux.NewRouter()
+	router.HandleFunc("/api/users/{user}/models/{model}/{tag}", model.Get).Methods("GET")
+	router.HandleFunc("/model/{user}/{model}/{tag}", model.HandleProxy).Methods("GET")
+	router.HandleFunc("/model/{user}/{model}/{tag}", model.HandleProxy).Methods("POST")
+
+	server := &http.Server{
+		Handler:      router,
+		Addr:         fmt.Sprintf("0.0.0.0:8081"),
+		WriteTimeout: 3600 * time.Second,
+		ReadTimeout:  3600 * time.Second,
+	}
+	err = server.ListenAndServe()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

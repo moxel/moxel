@@ -51,7 +51,7 @@ var djsConfig = {
 //     uploadEventHandlers: 
 // }
 
-export default function FileUploader({uploadEventHandlers, componentConfig}: props) {
+export default function FileUploader({uploadEventHandlers, addThumbnailHandler, componentConfig}: props) {
     var theDropzone = null;
     var theFile = null;
 
@@ -69,10 +69,23 @@ export default function FileUploader({uploadEventHandlers, componentConfig}: pro
                                 theDropzone.removeFile(theFile);
                             }
                             theFile = file;
+                            if(file.mock) return;
                             uploadEventHandlers.addedfile(file);
                         },
                         init: function(dropzone) {
                             theDropzone = dropzone;
+                            if(addThumbnailHandler) {
+                                addThumbnailHandler((src) => {
+                                    var mockFile = {
+                                        name: "image-name-example",
+                                        size: null,
+                                        mock: true
+                                    };
+                                    theDropzone.emit("addedfile", mockFile);
+                                    theDropzone.emit("thumbnail", mockFile, src);
+                                    theDropzone.emit("complete", mockFile);
+                                });
+                            }
                         }
                     }}
                    djsConfig={djsConfig} />           

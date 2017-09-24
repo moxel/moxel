@@ -6,6 +6,12 @@ RUN apt-get update && apt-get install -y redis-server python3-numpy
 
 RUN pip3 install redis dill
 
-COPY core /core
+COPY .build/moxel-drivers /drivers
+COPY .build/moxel-clients /clients
 
-ENTRYPOINT ["/core/init"]
+RUN pip install flask setuptools \
+  && pip install -e /clients/python \
+  && pip install -e /drivers/python \
+  && pip install -e /drivers/http 
+
+

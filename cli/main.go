@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -112,7 +113,7 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 
 		if modelStatus != targetStatus {
 			fmt.Println(fmt.Sprintf("Waiting model to be %s. Currently, it's %s", targetStatus, modelStatus))
-			time.Sleep(time.Second)
+			time.Sleep(3 * time.Second)
 		} else {
 			break
 		}
@@ -121,15 +122,17 @@ func WaitForModelStatus(modelName string, modelTag string, targetStatus string) 
 	return nil
 }
 
-func TeardownModel(modelName string, modelTag string) error {
+func TeardownModel(modelName string, modelTag string, block bool) error {
 	fmt.Println(fmt.Sprintf("> Tearing down model %s:%s. This might take a while.", modelName, modelTag))
 	resp, err := GlobalAPI.TeardownDeployModel(GlobalUser.Username(), modelName, modelTag)
 	if err != nil {
 		return err
 	}
 
-	if err := WaitForModelStatus(modelName, modelTag, "INACTIVE"); err != nil {
-		return err
+	if block {
+		if err := WaitForModelStatus(modelName, modelTag, "INACTIVE"); err != nil {
+			return err
+		}
 	}
 
 	if resp.StatusCode != 200 {
@@ -218,13 +221,11 @@ func VerifyModelConfig(config map[string]interface{}) error {
 	}
 
 	// Check resources.
-	if config["resources"] == nil {
-		return errors.New("Please specify resource types: CPU, Memory.")
-	}
-
-	for k, _ := range config["resources"].(map[interface{}]interface{}) {
-		if _, ok := ResourceWhitelist[k.(string)]; !ok {
-			return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
+	if config["resources"] != nil {
+		for k, _ := range config["resources"].(map[interface{}]interface{}) {
+			if _, ok := ResourceWhitelist[k.(string)]; !ok {
+				return errors.New(fmt.Sprintf("Resource type %s is not supported", k.(string)))
+			}
 		}
 	}
 
@@ -233,8 +234,15 @@ func VerifyModelConfig(config map[string]interface{}) error {
 
 	if main["type"] == nil {
 		return errors.New("Please specify main type")
-	}
+	} else if main["type"].(string) == "http" || main["type"].(string) == "python" {
+		if main["entrypoint"] == nil {
+			return errors.New("In \"main\", please specify \"entrypoint\"")
+		}
 
+		if main["entrypoint"].(string) == "" {
+			return errors.New("The main entrypoint cannot be empty string")
+		}
+	}
 	return nil
 }
 
@@ -243,6 +251,9 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		config["assets"] = []interface{}{}
 	}
 
+	if config["setup"] == nil {
+		config["setup"] = []interface{}{}
+	}
 	if _, ok := config["assets"]; !ok {
 		config["assets"] = []interface{}{}
 	}
@@ -252,6 +263,60 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		config["resources"] = interface{}(DefaultResources)
 	}
 	return config
+}
+
+func CommandInit() cli.Command {
+	return cli.Command{
+		Name:      "init",
+		Usage:     "Create a boilerplate yaml file",
+		ArgsUsage: "-f [yaml] [model]:[tag]",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "file, f",
+				Value: "moxel.yml",
+				Usage: "Config file to specify the model",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
+			file := c.String("file")
+
+			repo, err := GetWorkingRepo()
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Initializing moxel yaml file...")
+			fmt.Println("Current git repo: " + repo.Path)
+
+			if _, err := os.Stat(file); err == nil {
+				return errors.New(fmt.Sprintf("File %s already exists.", file))
+			}
+
+			if c.Args().Get(0) != "" {
+				modelId := c.Args().Get(0)
+				modelName, modelTag, err := ParseModelId(modelId)
+				if err != nil {
+					return err
+				}
+
+				SampleModelConfig = fmt.Sprintf("name: %s\ntag: %s\n%s", modelName, modelTag, SampleModelConfig)
+			}
+
+			yamlBytes := []byte(SampleModelConfig)
+
+			err = ioutil.WriteFile(file, yamlBytes, 0777)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Created " + file)
+			return nil
+		},
+	}
 }
 
 func CommandVersion() cli.Command {
@@ -299,7 +364,7 @@ func CommandTeardown() cli.Command {
 				return err
 			}
 
-			if err := TeardownModel(modelName, tag); err != nil {
+			if err := TeardownModel(modelName, tag, true); err != nil {
 				return err
 			}
 
@@ -469,7 +534,7 @@ func CommandPush() cli.Command {
 				fmt.Printf("Model is live! Teardown it down first? [y/n]\t")
 				isYes := AskForConfirmation()
 				if isYes {
-					if err := TeardownModel(modelName, modelTag); err != nil {
+					if err := TeardownModel(modelName, modelTag, false); err != nil {
 						return err
 					}
 				} else {
@@ -598,6 +663,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		CommandVersion(),
+		CommandInit(),
 		CommandLogin(),
 		CommandTeardown(),
 		CommandDeploy(),

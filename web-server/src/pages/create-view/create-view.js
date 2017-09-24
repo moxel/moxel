@@ -2,7 +2,6 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
-import NotificationBanner from "../../components/notification-banner/notification-banner";
 import {store} from "../../mock-data";
 import {Flex, FlexItem} from "layout-components";
 import TabButtonBar from "../../components/tab-button-bar";
@@ -11,7 +10,8 @@ import Markdown from 'react-markdownit';
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
-import NotificationSystem from 'react-notification-system';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
+
 
 class CreateView extends Component {
     gotoUpload() {
@@ -29,6 +29,10 @@ class CreateView extends Component {
                   message: `Model ${modelId} already exists.`,
                   level: 'error'
                 });
+
+                window.setTimeout(function() {
+                    window.location.href = "/models/" + userId + "/" + modelId  + "/" + models[0].tag;
+                }, 3000);
             }else{
                 ModelStore.updateModel(userId, modelId, tag, {
                     'title': modelTitle,
@@ -43,8 +47,14 @@ class CreateView extends Component {
         return false;
     }
 
+    componentDidMount() {
+        this.userInput.focus();
+        this.modelInput.focus();
+    }
+
     render() {
         var username = AuthStore.username();
+        var self = this;
 
         return (
             <div className="row" style={{marginTop: "80px"}}>
@@ -64,19 +74,16 @@ class CreateView extends Component {
 
                         <div className="row" style={{marginBottom: "0px"}}>
                             <div className="col s12 m10 offset-m1">
-                                {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
-                                    <i className="material-icons">star</i>
-                                </div>*/}
                                 <div className="input-field col s2 m2">
-                                <label htmlFor="username">User</label>
-                                    <input id="username" type="text" className="validate" value={username} style={{pointerEvents: "none"}}/>
+                                    <label htmlFor="username">User</label>
+                                    <input id="username" type="text" className="validate" value={username} style={{pointerEvents: "none"}} ref={(input) => { this.userInput = input; }}/>
                                 </div>
                                 <div className="col s1 m1" style={{fontSize: "40px", width: "40px"}}>
                                     /
                                 </div>
                                 <div className="input-field col s7 m7">
                                     <label htmlFor="modelId" data-error="wrong" data-success="right">Model Name</label>
-                                    <input id="modelId" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true"/>
+                                    <input id="modelId" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true" ref={(input) => {this.modelInput = input;}}/>
                                 </div>
 
                                 
@@ -119,7 +126,7 @@ class CreateView extends Component {
                         </div>
                     </form>
                 </div>
-                <NotificationSystem ref={(notificationSystem) => {this.notificationSystem = notificationSystem;}} />
+                <NotificationBanner ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} />
             </div>
         );
     }

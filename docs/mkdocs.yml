@@ -2,11 +2,32 @@ site_name: Moxel
 theme: 'material'
 extra:
   palette:
-    primary: 'indigo'
+    primary: 'blue'
     accent: 'light blue'
+  logo: 'images/x.png'
+  social:
+    - type: 'github'
+      link: 'https://github.com/moxel'
+    - type: 'twitter'
+      link: 'https://twitter.com/moxel_ai'
+    # - type: 'linkedin'
+    #   link: 'https://linkedin.com/in/moxel'
+  feature:
+    tabs: true
+site_favicon: 'images/x.png'
+site_url: 'http://beta.moxel.ai'
+
+
+# Copyright
+copyright: 'Copyright &copy; 2017 Moxel'
+
 pages:
 - index.md
-- Moxel:
-  - 'moxel/install.md'
+- Install:
+  - install/cli.md
 - Tutorial:
-  - 'tutorials/caffe-colorization.md'
+  - Deploy in Python:
+    - 'tutorials/question-answering.md'
+  - Deploy with HTTP server:
+    - 'tutorials/caffe-colorization.md'
+

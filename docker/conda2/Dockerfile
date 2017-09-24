@@ -1,9 +1,9 @@
-FROM bvlc/caffe:cpu
+FROM continuumio/anaconda
 
-MAINTAINER Tim Shi <tianlins@cs.stanford.edu>
+MAINTAINER Jim Fan <jimfan@cs.stanford.edu>
 
 RUN apt update \
-    && apt-get install -y python3 python3-dev tree python3-pip git wget build-essential curl \
+    && apt-get install -y tree git wget build-essential curl \
     && wget https://github.com/libfuse/libfuse/releases/download/fuse-3.0.1/fuse-3.0.1.tar.gz -O /tmp/fuse.tar.gz \
     && (cd /tmp && tar -xvf /tmp/fuse.tar.gz) 
 
@@ -23,7 +23,7 @@ RUN echo "deb http://packages.cloud.google.com/apt gcsfuse-jessie main" | tee /e
 
 RUN mkdir -p /mnt/cloudfs
 
-RUN pip3 install pexpect pyyaml
+RUN conda install pexpect pyyaml
 
 COPY core /core
 

@@ -1,0 +1,2 @@
+recursive-include moxel/bin * 
+include requirements.txt
