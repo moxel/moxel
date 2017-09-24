@@ -5,7 +5,7 @@ import glob
 from setuptools import setup, find_packages
 
 # PATH = os.path.join(os.path.dirname(__file__))
-with open('VERSION', 'r') as f:
+with open('moxel/VERSION', 'r') as f:
     version = f.read()
     version = version.replace('\n', '')
 
