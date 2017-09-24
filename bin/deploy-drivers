@@ -1,0 +1,3 @@
+#!/bin/bash
+echo '[pip] uploading python drivers'
+cd moxel-drivers/python && make push

@@ -1,3 +1,8 @@
+# Deployment
+
+This folder holds binaries and scripts for deploying Moxel.
+
+
 # Credentialing
 
 ## Python PIP

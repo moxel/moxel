@@ -1,7 +1,11 @@
 from setuptools import setup
 
+with open('VERSION', 'r') as f:
+    version = f.read()
+    version = version.replace('\n', '')
+
 setup(name='moxel-python-driver',
-      version='0.0.1',
+      version=version,
       description='python driver for moxel models',
       # url='www.moxel.ai',
       author='moxel',
