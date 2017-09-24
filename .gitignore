@@ -14,7 +14,9 @@
 .ropeproject
 .build
 tags
+*.bk
 
 # Specific Paths
 /master-server/bin
 .cache
+
