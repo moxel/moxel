@@ -284,9 +284,16 @@ func CommandInit() cli.Command {
 
 			file := c.String("file")
 
-			_, err := GetWorkingRepo()
+			repo, err := GetWorkingRepo()
 			if err != nil {
 				return err
+			}
+
+			fmt.Println("Initializing moxel yaml file...")
+			fmt.Println("Current git repo: " + repo.Path)
+
+			if _, err := os.Stat(file); err == nil {
+				return errors.New(fmt.Sprintf("File %s already exists.", file))
 			}
 
 			if c.Args().Get(0) != "" {
@@ -301,7 +308,13 @@ func CommandInit() cli.Command {
 
 			yamlBytes := []byte(SampleModelConfig)
 
-			return ioutil.WriteFile(file, yamlBytes, 0777)
+			err = ioutil.WriteFile(file, yamlBytes, 0777)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Created " + file)
+			return nil
 		},
 	}
 }
