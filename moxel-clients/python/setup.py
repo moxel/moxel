@@ -4,12 +4,6 @@ import sys
 import glob
 from setuptools import setup, find_packages
 
-# PATH = os.path.join(os.path.dirname(__file__))
-with open('moxel/VERSION', 'r') as f:
-    version = f.read()
-    version = version.replace('\n', '')
-
-
 def read(fname):
     with open(fname) as f:
         return f.read().strip()
@@ -33,7 +27,7 @@ for name in ['linux', 'osx', 'windows']:
     bin_paths.append(os.path.join('moxel', 'bin', name, 'moxel'))
 
 setup(name='moxel',
-      version=version,
+      version='0.0.3.post5',
       author='Moxel team',
       author_email='support@moxel.ai',
       url='http://moxel.ai',
