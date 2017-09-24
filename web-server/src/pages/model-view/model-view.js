@@ -1395,21 +1395,11 @@ class ModelView extends Component {
 
         function renderUploadInstructions() {
             return (
-                <FixedWidthRow>
-                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
-                        <div className="col s12 m12">
-                            <div className="card">
-                                
-
-                                <div className="card-content" style={{textAlign: "center"}}>
-                                    Currently, only metadata is available for this model. Next, deploy the model as API. 
-                                    <div className="row"></div>
-                                    <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}Upload Model</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </FixedWidthRow>
+                <div className="black-text" style={{textAlign: "center"}}>
+                    Currently, only metadata is available for this model. Next, deploy the model as an API. 
+                    <div className="row"></div>
+                    <a className="waves-effect btn-flat green white-text" href={`/upload/${userId}/${modelName}/${tag}`} style={{padding: 0, width: "80%", textAlign: "center"}}>{/*<i className="material-icons center">play_arrow</i>*/}How to Upload Model?</a>
+                </div>
             );
         }
 

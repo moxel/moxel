@@ -157,13 +157,17 @@ class UploadView extends Component {
             this.finalizeStep()
             return
         }
+
+        window.scrollTo(0, 0);
         this.setState({
             step: this.state.step + 1
-        })
+        });
     }
 
     backStep() {
         if(this.state.step == 0) return
+
+        window.scrollTo(0, 0);
         this.setState({
             step: this.state.step - 1
         })
@@ -272,9 +276,11 @@ class UploadView extends Component {
                             <Tab title="Python" active>
                                 <FixedWidthRow>
                                    <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
-                                    Deploying a model to Moxel is as easy as writing a prediction function. 
+                                    First, make sure your model code sits in a git repository. If not, you can create one by running `git init` in your model folder. 
 
-                                    First, create a file called `serve.py`, and write down your `predict` function. As an example, we'll show how to wrap a Perceptron model.
+                                    {renderCommandWithCopy('moxel-git-init', 'git init')}
+
+                                    Deploying a model to Moxel is as easy as writing a prediction function. Create a file called `serve.py`, and write down your `predict` function. As an example, we'll show how to wrap a Perceptron model.
 
                                     
                                     {renderCode(`
@@ -284,11 +290,14 @@ import json
 
 model = json.load(open('model.json', 'r'))
 
-def predict(x1, x2):
-    if model['w1'] * x1 + model['w2'] * x2 > 0:
-        return {'out': 1.}
-    else:
-        return {'out': 0.}
+def predict(sentence):
+    words = sentence.split(' ')
+    score = 0.
+    for word in words: 
+        score += model.get(word, 0.)
+    
+    if score > 0: return {'sentiment': '+'}
+    else: return {'sentiment': '-'}
                                     `, 
                                     'python'
                                     )}
@@ -297,15 +306,18 @@ def predict(x1, x2):
 
                                     {renderCode(`
 {
-    "w1": 2.78,
-    "w2": -3.14
+    "happy": 2.0,
+    "sad": -2.0,
+    "nervous": -1.0,
+    "enjoy": 1.0,
+    "confident": 1.0
 }
                                     `,
                                     'json')
                                     }
 
 
-                                    Now, make sure your model code sits in a git repository. If not, you can create one by `git init`. Check in your code to git. Moxel will push any files tracked by git.
+                                    Now, check in your code to git. Moxel will push any files tracked by git.
 
                                     {renderCommandWithCopy('moxel-git-add', 'git add serve.py')}
 
@@ -325,20 +337,8 @@ def predict(x1, x2):
                     </div>
                 )
                 break; 
-            case 2: // Deploy Your Model.
-                let yaml = ("image: moxel/python3\n" +
-                            "resources:\n" +
-                            "  memory: 256Mi\n" +
-                            "  cpu: 1\n" +
-                            "input_space:\n" +
-                            "  seed: String\n" +
-                            "output_space:\n" +
-                            "  number: String\n" +
-                            "cmd:\n" +
-                            "- echo 'Hello, world'\n" +
-                            "- python serve-model.py\n"
-                            )
-
+            case 2: 
+                // Deploy Your Model.
                 content = (
                     <FixedWidthRow>
                         <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
@@ -351,10 +351,9 @@ image: moxel/python3    # Docker environment to run the model with.
 assets:                 # A list of Model files, such as weights.
 - model.json
 input_space:            # Input type annotations.
-  x1: float
-  x2: float
+  sentence: str
 output_space:           # Output type annotations.
-  out: float
+  sentiment: str
 main:                   # Main entrypoint to serve the model.
   type: python  
   entrypoint: serve.py::predict
@@ -387,8 +386,8 @@ import moxel
 
 model = moxel.Model('${userId}/${modelName}:${tag}', where='localhost')
 
-output = model.predict(x1=-1., x2=1.5)
-print(output['out'])`)}
+output = model.predict(sentence="I am happy")
+print(output)`)}
                                     
                         </Markdown>  
                     </FixedWidthRow>
