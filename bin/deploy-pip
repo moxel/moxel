@@ -1,2 +1,3 @@
 #!/bin/bash
-cd moxel-clients/python && make push
+./bin/deploy-drivers
+./bin/deploy-clients
