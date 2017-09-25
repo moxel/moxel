@@ -17,6 +17,7 @@ RUN pip3 install librosa>=0.5 scipy numpy pyxdg python_speech_features sox panda
 RUN ln -fs /usr/bin/python3 /usr/bin/python \
     && ln -fs /usr/bin/pip3 /usr/bin/pip
 
+# Add drivers.
 COPY .build/moxel-drivers /drivers
 COPY .build/moxel-clients /clients
 

@@ -2,7 +2,14 @@ FROM moxel/conda3
 
 MAINTAINER Jim Fan <jimfan@cs.stanford.edu>
 
-RUN conda install pytorch torchvision -c soumith
+RUN conda install -y pytorch torchvision -c soumith
 
-COPY core /core
-ENTRYPOINT ["/core/init"]
+# Add drivers.
+COPY .build/moxel-drivers /drivers
+COPY .build/moxel-clients /clients
+
+RUN pip install flask setuptools \
+  && pip install -e /clients/python \
+  && pip install -e /drivers/python \
+  && pip install -e /drivers/http 
+

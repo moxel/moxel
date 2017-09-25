@@ -25,6 +25,12 @@ RUN mkdir -p /mnt/cloudfs
 
 RUN conda install pexpect pyyaml
 
-COPY core /core
+# Add drivers.
+COPY .build/moxel-drivers /drivers
+COPY .build/moxel-clients /clients
 
-ENTRYPOINT ["/core/init"]
+RUN pip install flask setuptools \
+  && pip install -e /clients/python \
+  && pip install -e /drivers/python \
+  && pip install -e /drivers/http 
+
