@@ -1,4 +1,4 @@
-URL='moxel/py3-caffe-cpu'
+URL='moxel/py2-caffe-cpu'
 
 CMD ?= "hello" 
 
