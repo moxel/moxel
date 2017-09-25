@@ -83,7 +83,7 @@ class CreateView extends Component {
                                 </div>
                                 <div className="input-field col s7 m7">
                                     <label htmlFor="modelId" data-error="wrong" data-success="right">Model Name</label>
-                                    <input id="modelId" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true" ref={(input) => {this.modelInput = input;}}/>
+                                    <input id="modelId" pattern="[a-z0-9\.\-]+" title="Model name should only contain lowercase letters, numbers, dash and dot, e.g. inception-v3.2015" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true" ref={(input) => {this.modelInput = input;}}/>
                                 </div>
 
                                 
