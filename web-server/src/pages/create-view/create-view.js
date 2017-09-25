@@ -36,7 +36,7 @@ class CreateView extends Component {
             if(models.length != 0) {
                 // Model already exists.
                 self.notificationSystem.addNotification({
-                  message: `Model ${modelId} already exists.`,
+                  message: `Model ${modelId} already exists. Continuing to page...`,
                   level: 'error'
                 });
 
@@ -121,7 +121,7 @@ class CreateView extends Component {
                 <FixedWidthRow>
                     <div className="row" style={{marginTop: "40px", marginLeft: "0px", marginRight: "0px", width: "100%"}}>
                         <div className="col s12  m12">
-                            <form className="card" onSubmit={(event) => {event.preventDefault(); this.gotoUpload();}}>
+                            <form className="card" onSubmit={(event) => {event.preventDefault(); self.gotoUpload();}}>
                                 <div className="row">
                                 </div>
                                 <div className="row">
