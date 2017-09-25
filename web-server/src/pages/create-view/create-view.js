@@ -57,77 +57,79 @@ class CreateView extends Component {
         var self = this;
 
         return (
-            <div className="row" style={{marginTop: "80px"}}>
-                <div className="col s12  m8 offset-m2">
-                    <form className="card" onSubmit={(event) => {event.preventDefault(); this.gotoUpload();}}>
-                        <div className="row">
-                        </div>
-                        <div className="row">
-                            <div className="col s12 m10 offset-m1">
-                                <h4>Contribute a new model</h4>
-                                <p style={{color: "grey"}}>A model repository contains all versions of the model, and describes how it's used.</p>
-                                {/*<p>
-                                Need names for AI? Checkout <a href="https://en.wikipedia.org/wiki/List_of_fictional_computers">this</a> for inspiration.
-                                </p>*/}
+            <FixedWidthRow>
+                <div className="row" style={{marginTop: "40px", marginLeft: "0px", marginRight: "0px", width: "100%"}}>
+                    <div className="col s12  m12">
+                        <form className="card" onSubmit={(event) => {event.preventDefault(); this.gotoUpload();}}>
+                            <div className="row">
                             </div>
-                        </div>
-
-                        <div className="row" style={{marginBottom: "0px"}}>
-                            <div className="col s12 m10 offset-m1">
-                                <div className="input-field col s2 m2">
-                                    <label htmlFor="username">User</label>
-                                    <input id="username" type="text" className="validate" value={username} style={{pointerEvents: "none"}} ref={(input) => { this.userInput = input; }}/>
-                                </div>
-                                <div className="col s1 m1" style={{fontSize: "40px", width: "40px"}}>
-                                    /
-                                </div>
-                                <div className="input-field col s7 m7">
-                                    <label htmlFor="modelId" data-error="wrong" data-success="right">Model Name</label>
-                                    <input id="modelId" pattern="[a-z0-9\.\-]+" title="Model name should only contain lowercase letters, numbers, dash and dot, e.g. inception-v3.2015" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true" ref={(input) => {this.modelInput = input;}}/>
-                                </div>
-
-                                
-                            </div>
-                        </div>
-
-                        <div className="row">
-                            <div className="col s12 m10 offset-m1">
-                                {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
-                                    <i className="material-icons">edit</i>
-                                </div>*/}
-                                <div className="input-field col s10 m10">
-                                    <label htmlFor="modelTitle">Model Title</label>
-                                    <input id="modelTitle" type="text" className="validate" required aria-required="true"/>
+                            <div className="row">
+                                <div className="col s12 m10 offset-m1">
+                                    <h4>Contribute a new model</h4>
+                                    <p style={{color: "grey"}}>A model repository contains all versions of the model, and describes how it's used.</p>
+                                    {/*<p>
+                                    Need names for AI? Checkout <a href="https://en.wikipedia.org/wiki/List_of_fictional_computers">this</a> for inspiration.
+                                    </p>*/}
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="row">
-                            <div className="col s12 m10 offset-m1">
-                                {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
-                                    <i className="material-icons">edit</i>
-                                </div>*/}
-                                <div className="input-field col s10 m10">
-                                    <label htmlFor="modelDescription">Model Description (Optional)</label>
-                                    <input id="modelDescription" type="text" className="validate" aria-required="true"/>
+                            <div className="row" style={{marginBottom: "0px"}}>
+                                <div className="col s12 m10 offset-m1">
+                                    <div className="input-field col s2 m2">
+                                        <label htmlFor="username">User</label>
+                                        <input id="username" type="text" className="validate" value={username} style={{pointerEvents: "none"}} ref={(input) => { this.userInput = input; }}/>
+                                    </div>
+                                    <div className="col s1 m1" style={{fontSize: "40px", width: "40px"}}>
+                                        /
+                                    </div>
+                                    <div className="input-field col s7 m7">
+                                        <label htmlFor="modelId" data-error="wrong" data-success="right">Model Name</label>
+                                        <input id="modelId" pattern="[a-z0-9\.\-]+" title="Model name should only contain lowercase letters, numbers, dash and dot, e.g. inception-v3.2015" required="" aria-required="true" type="text" className="validate" required="true" aria-required="true" ref={(input) => {this.modelInput = input;}}/>
+                                    </div>
+
+                                    
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="row">
-                            <div className="col s4 m4 offset-s9 offset-m9">
-                                <button className="waves-effect waves-light btn blue">
-                                    Create Model
-                                </button> 
+                            <div className="row">
+                                <div className="col s12 m10 offset-m1">
+                                    {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
+                                        <i className="material-icons">edit</i>
+                                    </div>*/}
+                                    <div className="input-field col s10 m10">
+                                        <label htmlFor="modelTitle">Model Title</label>
+                                        <input id="modelTitle" type="text" className="validate" required aria-required="true"/>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="row">
-                        </div>
-                    </form>
+                            <div className="row">
+                                <div className="col s12 m10 offset-m1">
+                                    {/*<div className="col s1 m1" style={{fontSize: "40px", width: "40px", paddingRight: "40px"}}>
+                                        <i className="material-icons">edit</i>
+                                    </div>*/}
+                                    <div className="input-field col s10 m10">
+                                        <label htmlFor="modelDescription">Model Description (Optional)</label>
+                                        <input id="modelDescription" type="text" className="validate" aria-required="true"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col s4 m4 offset-s9 offset-m9">
+                                    <button className="waves-effect waves-light btn blue">
+                                        Create Model
+                                    </button> 
+                                </div>
+                            </div>
+
+                            <div className="row">
+                            </div>
+                        </form>
+                    </div>
+                    <NotificationBanner ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} />
                 </div>
-                <NotificationBanner ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} />
-            </div>
+            </FixedWidthRow>
         );
     }
 }
