@@ -3,3 +3,4 @@ numpy
 six
 requests
 simplejson
+moxel-python-driver

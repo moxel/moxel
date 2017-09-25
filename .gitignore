@@ -20,3 +20,5 @@ tags
 /master-server/bin
 .cache
 
+# Backups
+*.bk

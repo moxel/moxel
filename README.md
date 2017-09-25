@@ -1,6 +1,10 @@
 # Moxel: Github for AI.
 
-[![CircleCI](https://circleci.com/gh/dummy-ai/warpdrive.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/dummy-ai/warpdrive)
+Branch Status:
+
+* Master [![](https://circleci.com/gh/moxel/moxel/tree/master.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/moxel/moxel/tree/master) 
+* strin [![CircleCI](https://circleci.com/gh/moxel/moxel/tree/strin-dev.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/moxel/moxel/tree/strin-dev)
+* jimfan [![CircleCI](https://circleci.com/gh/moxel/moxel/tree/jimfan.svg?style=svg&circle-token=ab7f25421f04dc332db146c802e275dcb3d3b1ac)](https://circleci.com/gh/moxel/moxel/tree/jimfan)
 
 
 > World's Best Models, Built by the Community.

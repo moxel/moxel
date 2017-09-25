@@ -3,7 +3,7 @@ from setuptools import setup
 setup(name='moxel-http-driver',
       version='0.0.1',
       description='generic http driver for moxel models',
-      url='www.moxel.ai',
+      url='http://moxel.ai',
       author='moxel',
       author_email='support@moxel.ai',
       license='MIT',
