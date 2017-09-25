@@ -225,7 +225,7 @@ var Moxel = function(config) {
 	var masterAPI = new MasterAPI();
 
 	class Image {
-		static get name() {
+		static get type() {
 			return "image";
 		}
 
@@ -335,7 +335,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelArray {
-		static get name() {
+		static get type() {
 			return "array";
 		}
 
@@ -361,7 +361,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelBytes {
-		static get name() {
+		static get type() {
 			return "bytes";
 		}
 
@@ -385,7 +385,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelFloat {
-		static get name() {
+		static get type() {
 			return "float";
 		}
 
@@ -410,7 +410,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelInt {
-		static get name() {
+		static get type() {
 			return "int";
 		}
 
@@ -435,7 +435,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelBoolean {
-		static get name() {
+		static get type() {
 			return "bool";
 		}
 
@@ -460,7 +460,7 @@ var Moxel = function(config) {
 	}
 
 	class MoxelString {
-		static get name() {
+		static get type() {
 			return "str";
 		}
 
@@ -486,8 +486,8 @@ var Moxel = function(config) {
 	}
 
 	class MoxelJSON {
-		static get name() {
-			return "str";
+		static get type() {
+			return "json";
 		}
 		
 		// JSON object type.
@@ -885,7 +885,7 @@ var Moxel = function(config) {
 
 	return {
 		space: space,
-		parseSpaceObject: function(...args) {return Utils.parseSpaceObject(...args)},
+		parseSpaceObject: Utils.parseSpaceObject,
 		createModel: createModel,
 		utils: Utils
 	}

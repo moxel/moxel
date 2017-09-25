@@ -255,9 +255,13 @@ const StyledModelLayout = styled(Flex)`
 `;
 
 // Some utils.
-function autoGrowHeight(event) {
-   var element = event.target;
+function growHeight(element) {
     element.style.height = element.scrollHeight + 'px';
+}
+
+function autoGrowHeight(event) {
+    var element = event.target;
+    growHeight(element);   
 }
 
 class ModelView extends Component {
@@ -449,6 +453,7 @@ class ModelView extends Component {
                         }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                             input.toText().then((text) => {
                                 demoWidget.value = text;
+                                growHeight(demoWidget);
                                 resolve();
                             });
                         }
@@ -887,7 +892,7 @@ class ModelView extends Component {
                              }}>{name}</p>
                     <p style={{display: "inline", borderRadius: "0px 5px 5px 0px", border: "1px solid #777777",
                                backgroundColor: "rgb(207, 228, 253)", padding: "3px", marginBottom: "3px",
-                             }}><b>{space.name}</b></p>
+                             }}><b>{space.type}</b></p>
                     <p></p>
                 </div>
             )
