@@ -228,6 +228,11 @@ func VerifyModelConfig(config map[string]interface{}) error {
 		}
 	}
 
+	// Check images.
+	if _, ok := ImageWhitelist[config["image"].(string)]; !ok {
+		return errors.New(fmt.Sprintf("Image \"%s\" is not supported", config["image"].(string)))
+	}
+
 	// Check main.
 	main := config["main"].(map[interface{}]interface{})
 
@@ -261,6 +266,8 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 		fmt.Println("Using default resource setting", DefaultResources)
 		config["resources"] = interface{}(DefaultResources)
 	}
+
+	config["image"] = "moxel/" + config["image"].(string)
 	return config
 }
 

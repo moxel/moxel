@@ -84,6 +84,13 @@ var TypeWhitelist = map[string]bool{
 	"array":   true,
 }
 
+// A whitelist for model images.
+var ImageWhitelist = map[string]bool{
+	"py3-tf-cpu":    true,
+	"python3":       true,
+	"py2-caffe-cpu": true,
+}
+
 // Checks if the user has logged in.
 func CheckLogin() error {
 	if GlobalUser.Initialized() {
