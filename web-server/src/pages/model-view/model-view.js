@@ -1407,12 +1407,21 @@ class ModelView extends Component {
         }
 
 
+        function renderNoModelDemo() {
+            return (
+                <div className="black-text" style={{textAlign: "center"}}>
+                    No demos to show... Looks like the author hasn't uploaded the model yet :(
+                </div>
+            );
+        }
 
         function renderModelDemo() {
             var component = null;
             if(model.status == 'LIVE') {
                 component = renderLiveModelDemo();
-            }else{
+            }else if(!self.isAuthor) {
+                component = renderNoModelDemo();
+            } else{
                 component = renderUploadInstructions();
             }
 

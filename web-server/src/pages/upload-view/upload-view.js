@@ -233,57 +233,45 @@ class UploadView extends Component {
                 function setupInstructions() {
                     return (
                         <div>
-                            <div className="row">
-                                <br/>
-                            </div>
-                                    
-                            <div className="row">
-                                <div className="col s12 offset-m1 m10">
-                                     Moxel provides a Command Line Tool (CLI) to easily upload models. 
-                                     <br/>
-                                     To install, run this in your terminal:
-                                     {renderCommandWithCopy('moxel-install', 'pip install moxel')}
+                             Moxel provides a Command Line Tool (CLI) to easily upload models. 
+                             <br/>
+                             To install, run this in your terminal:
+                             {renderCommandWithCopy('moxel-install', 'pip install moxel')}
 
-                                    After installation, try login 
+                            After installation, try login 
 
-                                    {renderCommandWithCopy('moxel-login', 'moxel login')}
+                            {renderCommandWithCopy('moxel-login', 'moxel login')}
 
-                                    This will open your browser and guide you through the login portal.
+                            This will open your browser and guide you through the login portal.
 
-                                    <br/>
+                            <br/>
 
-                                    After login, you should be able to run the following to list your model repositories.
+                            After login, you should be able to run the following to list your model repositories.
 
-                                    {renderCommandWithCopy('moxel-ls', 'moxel ls')}
+                            {renderCommandWithCopy('moxel-ls', 'moxel ls')}
 
-                                </div>
-                            </div>
-
-                           
                         </div>
-                    )
-                }
+                    );
+                };
 
                 content = setupInstructions();
                 break; 
             case 1: // Wrap Your Model.
-                
-                
-
                 content = (
-                    <div className="black-text">
-                        <Tabs className='tab-demo'>
-                            <Tab title="Python" active>
-                                <FixedWidthRow>
-                                   <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
-                                    First, make sure your model code sits in a git repository. If not, you can create one by running `git init` in your model folder. 
+                    <Tabs className='tab-demo'>
+                        <Tab title="Python" active>
+                               <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
 
-                                    {renderCommandWithCopy('moxel-git-init', 'git init')}
+                               <br/>
 
-                                    Deploying a model to Moxel is as easy as writing a prediction function. Create a file called `serve.py`, and write down your `predict` function. As an example, we'll show how to wrap a Perceptron model.
+                                First, make sure your model code sits in a git repository. If not, you can create one by running `git init` in your model folder. 
 
-                                    
-                                    {renderCode(`
+                                {renderCommandWithCopy('moxel-git-init', 'git init')}
+
+                                Deploying a model to Moxel is as easy as writing a prediction function. Create a file called `serve.py`, and write down your `predict` function. As an example, we'll show how to wrap a Perceptron model.
+
+                                
+                                {renderCode(`
 # serve.py
 import random
 import json
@@ -295,16 +283,16 @@ def predict(sentence):
     score = 0.
     for word in words: 
         score += model.get(word, 0.)
-    
+
     if score > 0: return {'sentiment': '+'}
     else: return {'sentiment': '-'}
-                                    `, 
-                                    'python'
-                                    )}
+                                `, 
+                                'python'
+                                )}
 
-                                    This function takes inputs `x1`, `x2`, and produces the classification output `y`. The model weights are loaded from a JSON file, `model.json`,
+                                This function takes inputs `x1`, `x2`, and produces the classification output `y`. The model weights are loaded from a JSON file, `model.json`,
 
-                                    {renderCode(`
+                                {renderCode(`
 {
     "happy": 2.0,
     "sad": -2.0,
@@ -312,39 +300,32 @@ def predict(sentence):
     "enjoy": 1.0,
     "confident": 1.0
 }
-                                    `,
-                                    'json')
-                                    }
+                                `,
+                                'json')
+                                }
 
 
-                                    Now, check in your code to git. Moxel will push any files tracked by git.
+                                Now, check in your code to git. Moxel pushes any files tracked by git.
 
-                                    {renderCommandWithCopy('moxel-git-add', 'git add serve.py')}
+                                {renderCommandWithCopy('moxel-git-add', 'git add serve.py')}
 
-                                    Typically, machine learning model has large weight files. You do not need to check in those files, as they would be uploaded by Moxel to cloud storage.
+                                Typically, machine learning model has large weight files. You do not need to check in those files, as they would be uploaded by Moxel to cloud storage.
 
-                                    <br/>
+                                <br/>
 
-                                    Next, Moxel would wrap this function as a web service. 
-
-                                    
-                                    </Markdown>  
-                                </FixedWidthRow>
-                            </Tab>
-                        </Tabs>
-                        
-                        
-                    </div>
-                )
+                                
+                                </Markdown>  
+                        </Tab>
+                    </Tabs>
+                );
                 break; 
             case 2: 
                 // Deploy Your Model.
                 content = (
-                    <FixedWidthRow>
-                        <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
-                            Now, let's deploy your model with Moxel CLI. You'll need to create a YAML file, say `moxel.yml`:
+                    <Markdown tagName="instruction" className="markdown-body" style={{width: "100%", marginTop: "15px"}}>
+                        Now, let's deploy your model with Moxel CLI. You'll need to create a YAML file, say `moxel.yml`:
 
-                                    {renderCode(`
+                                {renderCode(`
 name: ${modelName}
 tag: ${tag}
 image: moxel/python3    # Docker environment to run the model with.
@@ -357,43 +338,20 @@ output_space:           # Output type annotations.
 main:                   # Main entrypoint to serve the model.
   type: python  
   entrypoint: serve.py::predict
-                                    `, 
-                                    'yaml'
-                                    )}
+                                `, 
+                                'yaml'
+                                )}
 
 
-                            To deploy the model, just run
+                        To deploy the model, run
 
 
-                            {renderCommandWithCopy('moxel-deploy', `moxel push -f moxel.yml`)}
-
-                            Once you've deployed the model, this page will be updated automatically.
-
-                            <br/>
-
-                            ## Serving Model Locally
-                            
-                            <br/>
-
-                            To test if the model works locally, try 
-
-                            {renderCommandWithCopy('moxel-serve', 'moxel serve -f moxel.yml')}
-
-                            This will start serving the model on your local machine. It listens for HTTP requests at port 5900. The easiest way to test it out is Moxel client:
-
-                            {renderCode(`
-import moxel
-
-model = moxel.Model('${userId}/${modelName}:${tag}', where='localhost')
-
-output = model.predict(sentence="I am happy")
-print(output)`)}
-                                    
-                        </Markdown>  
-                    </FixedWidthRow>
+                        {renderCommandWithCopy('moxel-deploy', `moxel push -f moxel.yml`)}
 
                         
-                )
+                                
+                    </Markdown>  
+                );
                 break;
             case 3:
                 content = (
@@ -419,16 +377,24 @@ print(output)`)}
         }
 
         return (
-            <div>
-                <div className="row">
-                    <div className="col s12 offset-m2 m8">
+            <div style={{width: "860px", minWidth: "860px", maxWidth: "860px", marginLeft: "auto", marginRight: "auto"}}>
+                <div className="row" style={{width: "100%"}}>
+                    <div className="col s12 m12">
                         <Stepper steps={this.steps} activeStep={ this.state.step } />
                     </div>
                 </div>
-                <div className="row">
-                    <div className="col s12 offset-m2 m8">
+                <div className="row" style={{width: "100%"}}>
+                    <div className="col s12 m12">
                         <div className="card">
-                            {content}
+                            <div className="row">
+                                <br/>
+                            </div>
+                                    
+                            <div className="row">
+                                <div className="col s12 offset-m1 m10">
+                                {content}
+                                </div>
+                            </div>
 
                             <div className="row">
                                 <div className="col s2 m2 offset-s8 offset-m8">

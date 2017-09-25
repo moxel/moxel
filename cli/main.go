@@ -264,6 +264,13 @@ func CleanupModelConfig(config map[string]interface{}) map[string]interface{} {
 	return config
 }
 
+func VerifyModelTag(tag string) error {
+	if tag != "latest" {
+		return errors.New("Model versioning is still under development. Only tag \"latest\" is supported. \n\nHow would you like your models versioned? Reach out to support@moxel.ai to tell us!")
+	}
+	return nil
+}
+
 func CommandInit() cli.Command {
 	return cli.Command{
 		Name:      "init",
@@ -299,6 +306,10 @@ func CommandInit() cli.Command {
 				modelId := c.Args().Get(0)
 				modelName, modelTag, err := ParseModelId(modelId)
 				if err != nil {
+					return err
+				}
+
+				if err := VerifyModelTag(modelTag); err != nil {
 					return err
 				}
 
@@ -488,6 +499,10 @@ func CommandPush() cli.Command {
 				if err != nil {
 					return err
 				}
+			}
+
+			if err := VerifyModelTag(modelTag); err != nil {
+				return err
 			}
 
 			if modelName == "" {
