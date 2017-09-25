@@ -116,11 +116,28 @@ func (api *MasterAPI) LogModel(user string, name string, tag string, out io.Writ
 	return nil
 }
 
-func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, yaml string) (*grequests.Response, error) {
+func (api *MasterAPI) PutModel(user string, name string, tag string, commit string, metadata map[string]interface{}, spec map[string]interface{}) (*grequests.Response, error) {
+	metadataYAML := ""
+	var err error
+	if metadata != nil {
+		metadataYAML, err = SaveYAMLToString(metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	specYAML := ""
+	if spec != nil {
+		specYAML, err = SaveYAMLToString(spec)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return grequests.Put(MasterEndpoint(fmt.Sprintf("/users/%s/models/%s/%s", user, name, tag)), &grequests.RequestOptions{
 		JSON: map[string]string{
-			"commit": commit,
-			"yaml":   yaml,
+			"commit":   commit,
+			"metadata": metadataYAML,
+			"spec":     specYAML,
 		},
 	})
 }

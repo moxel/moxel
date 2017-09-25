@@ -1,5 +1,7 @@
 import yaml from 'js-yaml';
 
+// ModelStore to fetch metdata.
+// To get model spec, use Moxel JS client.
 class ModelStoreClass {
 	constructor() {
 		this.formatModel = this.formatModel.bind(this)
@@ -7,6 +9,7 @@ class ModelStoreClass {
 	}
 
 	formatModel(userId, modelId, tag, data) {
+		console.log('format model', data);
 		var model = {
             user: userId,
             id: modelId,
@@ -17,10 +20,6 @@ class ModelStoreClass {
             links: {},
             stars: 0,
             lastUpdated: '1 days ago',
-            inputType: {
-            },
-            outputType: {
-            },
             gallery: [],
             readme: ""
         };
@@ -40,7 +39,7 @@ class ModelStoreClass {
 			fetch(`/api/users/${userId}/models/${modelId}/${tag}`).then((response)=>{
 	            return response.json();
 	        }).then(function(data) {
-	        	console.log('resp', data)
+	        	console.log('Model metadata', data)
 
 	        	var model = this.formatModel(userId, modelId, tag, data);
 
@@ -125,7 +124,7 @@ class ModelStoreClass {
 
 	updateModel(userId, modelId, tag, modelProps) {
 		var body = {
-			'yaml': yaml.safeDump(modelProps)
+			'metadata': yaml.safeDump(modelProps)
 		};
 
 		if(modelProps.status) {

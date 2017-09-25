@@ -59,18 +59,22 @@ class Model(object):
         input_dict = encode_json(kwargs, self.input_space)
 
         # Make HTTP REST request.
-        raw_result = requests.post(self.model_endpoint +
+        response = requests.post(self.model_endpoint +
                         '/{user}/{model}/{tag}'.format(
                             user=self.user, model=self.model, tag=self.tag
                         ),
                         json=input_dict
                     )
 
-        try:
-            result = raw_result.json()
-        except simplejson.scanner.JSONDecodeError:
-            import pdb; pdb.set_trace();
-            raise Exception('Cannot decode JSON', raw_result)
+        raw_result = response.text
+
+        if response.status_code == 200:
+            result = json.loads(raw_result)
+        elif response.status_code == 500:
+            result = json.loads(raw_result)
+            raise Exception(result.get('error', 'Unknown error'))
+        else:
+            raise Exception(response.text)
 
         # Parse result.
         return decode_json(result, self.output_space)
