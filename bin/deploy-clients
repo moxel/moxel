@@ -1,1 +1,3 @@
 #!/bin/bash
+echo '[pip] uploading python clients'
+cd moxel-clients/python && make push
