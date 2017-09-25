@@ -279,13 +279,13 @@ import json
 model = json.load(open('model.json', 'r'))
 
 def predict(sentence):
-words = sentence.split(' ')
-score = 0.
-for word in words: 
-    score += model.get(word, 0.)
+    words = sentence.split(' ')
+    score = 0.
+    for word in words: 
+        score += model.get(word, 0.)
 
-if score > 0: return {'sentiment': '+'}
-else: return {'sentiment': '-'}
+    if score > 0: return {'sentiment': '+'}
+    else: return {'sentiment': '-'}
                                 `, 
                                 'python'
                                 )}
@@ -294,11 +294,11 @@ else: return {'sentiment': '-'}
 
                                 {renderCode(`
 {
-"happy": 2.0,
-"sad": -2.0,
-"nervous": -1.0,
-"enjoy": 1.0,
-"confident": 1.0
+    "happy": 2.0,
+    "sad": -2.0,
+    "nervous": -1.0,
+    "enjoy": 1.0,
+    "confident": 1.0
 }
                                 `,
                                 'json')
@@ -332,12 +332,12 @@ image: moxel/python3    # Docker environment to run the model with.
 assets:                 # A list of Model files, such as weights.
 - model.json
 input_space:            # Input type annotations.
-sentence: str
+  sentence: str
 output_space:           # Output type annotations.
-sentiment: str
+  sentiment: str
 main:                   # Main entrypoint to serve the model.
-type: python  
-entrypoint: serve.py::predict
+  type: python  
+  entrypoint: serve.py::predict
                                 `, 
                                 'yaml'
                                 )}
