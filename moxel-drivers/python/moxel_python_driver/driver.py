@@ -142,6 +142,10 @@ def main():
     def healthcheck():
         return 'OK'
 
+    @app.errorhandler(500)
+    def internal_error(e):
+        return jsonify({'error': str(e)}), 500
+
     @app.route('/', methods=['POST'])
     def predict():
         input_raw = request.json

@@ -871,7 +871,18 @@ var Moxel = function(config) {
 	                    }
 					);
 				}).then((response) => {
-					return response.json();
+					if(response.status == 200) {
+						return response.json();
+					}else if(response.status == 500) {
+						response.json().then((obj) => {
+							console.log('error obj', obj);
+							reject(obj.error);
+						})
+					}else{
+						response.text().then((message) => {
+							reject(message);
+						});
+					}
 				}).then((outputBlob) => {
 					// Parse result.
 					console.log('Moxel output blob', outputBlob);

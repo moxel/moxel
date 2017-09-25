@@ -516,13 +516,20 @@ class ModelView extends Component {
             }
 
             console.log('Moxel predicting...');
-            self.state.model.predict(self.inputs).then((outputs) => {
+            self.state.model.predict(self.inputs)
+            .then((outputs) => {
                 console.log('Moxel output', outputs);
                 self.handleOutputs(outputs).then(() => {;
                     self.setState({
                         isRunning: false
                     })
                 });
+            })
+            .catch((message) => {
+                self.addNotification('Error: ' + message, 'error');
+                self.setState({
+                    isRunning: false
+                })
             });
         };
 
@@ -538,10 +545,7 @@ class ModelView extends Component {
                 return self.syncExamples();
             })
             .then((examples) => {
-                this.notificationSystem.addNotification({
-                  message: 'Successfully added an example!',
-                  level: 'success'
-                });
+                self.addNotification('Successfully added an example!', 'success');
             })
             .catch((err) => {
                 console.error(err);
