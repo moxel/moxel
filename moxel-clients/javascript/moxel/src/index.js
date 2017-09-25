@@ -853,6 +853,10 @@ var Moxel = function(config) {
 			// Get back an outputBlob.
 			// Decode the outputBlob into outputObject.
 			return new Promise(function(resolve, reject) {
+				if(self.status != 'LIVE') {
+					reject('The model must be in LIVE state');
+				}
+
 				// Input encoding.
 				var inputBlob = {};
 
@@ -907,11 +911,7 @@ var Moxel = function(config) {
 
 			masterAPI.getModel(user, name, tag).then((result) => {
 				var model = new Model(user, name, tag, result);
-				if(model.status == 'LIVE') {
-					resolve(model);
-				}else{
-					reject('The model must be in LIVE state');
-				}
+				resolve(model);
 			});
 		});
 	}	
