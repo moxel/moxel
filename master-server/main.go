@@ -302,6 +302,7 @@ func getAuth(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+// TODO: put lock on this.
 func putModel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -320,59 +321,63 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 		commit = params["commit"].(string)
 	}
 
-	fmt.Println(fmt.Sprintf("[PUT] Create a new model %s/%s:%s",
+	fmt.Println(fmt.Sprintf("[PUT] Create / Update model metadata %s/%s:%s",
 		user, name, tag))
 
-	// Check if the model already exists.
 	model, err := models.GetModelById(db, models.ModelId(user, name, tag))
-	if err == nil {
-		// http.Error(w, fmt.Sprintf("Model %s/%s:%s already exists", user, name, tag), 500)
-		// Model already exists. Update the metadata.
-		// TODO: use transaction to avoid race.
-		// First merge YAML.
+	if err == nil { // Model already exists. Update it.
+		// Merge metdata.
 		var currMetadata map[interface{}]interface{}
-		yaml.Unmarshal([]byte(model.Yaml), &currMetadata)
+		yaml.Unmarshal([]byte(model.Metadata), &currMetadata)
 
 		var newMetadata map[interface{}]interface{}
-		yaml.Unmarshal([]byte(params["yaml"].(string)), &newMetadata)
+		yaml.Unmarshal([]byte(params["metadata"].(string)), &newMetadata)
 
 		updateInterfaceMap(currMetadata, newMetadata)
+
+		// Overwrite Spec.
+		var specYAML string
+		if params["spec"] != nil {
+			specYAML = params["spec"].(string)
+		} else {
+			specYAML = model.Spec
+		}
 
 		if commit == "" {
 			commit = model.Commit
 		}
 
-		status := model.Status
-
-		yamlBytes, err := yaml.Marshal(cleanupInterfaceMap(currMetadata))
+		metadataBytes, err := yaml.Marshal(cleanupInterfaceMap(currMetadata))
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		yamlString := string(yamlBytes)
+		metadataYAML := string(metadataBytes)
 
-		fmt.Println(yamlString)
+		fmt.Println("Model metadata", metadataYAML)
+		fmt.Println("Model spec", specYAML)
 
 		model = models.Model{
-			UserId: vars["user"],
-			Name:   vars["model"],
-			Tag:    vars["tag"],
-			Yaml:   yamlString,
-			Commit: commit,
-			Status: status,
+			UserId:   vars["user"],
+			Name:     vars["model"],
+			Tag:      vars["tag"],
+			Metadata: metadataYAML,
+			Spec:     specYAML,
+			Commit:   commit,
+			Status:   model.Status,
 		}
 
 		models.UpdateModel(db, model)
 		return
-	} else {
-		// Create a new model.
+	} else { // Create a new model.
 		model = models.Model{
-			UserId: vars["user"],
-			Name:   vars["model"],
-			Tag:    vars["tag"],
-			Yaml:   params["yaml"].(string),
-			Commit: commit,
-			Status: "INACTIVE",
+			UserId:   vars["user"],
+			Name:     vars["model"],
+			Tag:      vars["tag"],
+			Spec:     "",
+			Metadata: params["metadata"].(string),
+			Commit:   commit,
+			Status:   "INACTIVE",
 		}
 
 		err = models.AddModel(db, model)
@@ -528,30 +533,35 @@ func getModel(w http.ResponseWriter, r *http.Request) {
 
 	model, err := models.GetModelById(db, modelId)
 	var status string
-	var yamlString string
+	var metadataYAML string
+	var specYAML string
+
 	if model.Commit == "" {
 		status = models.StatusEmpty
-		yamlString = model.Yaml
+		metadataYAML = model.Metadata
+		specYAML = model.Spec
 	} else if err == nil {
 		status = getModelStatus(user, name, tag)
-		yamlString = model.Yaml
+		metadataYAML = model.Metadata
+		specYAML = model.Spec
 	} else {
 		status = models.StatusNone
-		yamlString = ""
+		metadataYAML = ""
+		specYAML = ""
 	}
 
-	// fmt.Println(model)
-
-	// Convert YAML into JSON.
 	var metadata map[interface{}]interface{}
-	yaml.Unmarshal([]byte(yamlString), &metadata)
+	yaml.Unmarshal([]byte(metadataYAML), &metadata)
+
+	var spec map[interface{}]interface{}
+	yaml.Unmarshal([]byte(specYAML), &spec)
 
 	// By default YAML returns map[interface{}][interface{}} for nested maps.
 	// See https://github.com/go-yaml/yaml/issues/139
 	results := cleanupInterfaceMap(map[interface{}]interface{}{
 		"status":   status,
-		"yaml":     yamlString,
 		"metadata": metadata,
+		"spec":     spec,
 	})
 
 	response, err := json.Marshal(results)
@@ -599,7 +609,7 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			replicas = 1
 		}
-		deployName, err := CreateDeployV2(kubeClient, user, name, tag, model.Commit, model.Yaml, replicas)
+		deployName, err := CreateDeployV2(kubeClient, user, name, tag, model.Commit, model.Spec, replicas)
 		if err != nil {
 			http.Error(w, "Unable to create deployment. "+err.Error(), 500)
 			return
@@ -625,8 +635,6 @@ func postModel(w http.ResponseWriter, r *http.Request) {
 			TeardownDeploy(kubeClient, deployName)
 			return
 		}
-
-		models.UpdateModel(db, model)
 
 		w.WriteHeader(200)
 		return
@@ -946,6 +954,14 @@ func main() {
 		defer db.Close()
 
 		models.MigrateDB(db)
+	} else if command == "migrate092417" {
+		// Migrate database schema.
+		// Currently, model metadata are separate for every version of the model.
+		// We want to have them share same metadata.
+		db = models.CreateDB(DBAddress)
+		db.Model(&models.Model{}).DropColumn("repo")
+		models.MigrateDB(db)
+
 	} else if command == "start" {
 		// Database.
 		db = models.CreateDB(DBAddress)

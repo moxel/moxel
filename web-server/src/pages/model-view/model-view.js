@@ -305,27 +305,21 @@ class ModelView extends Component {
         return new Promise(function(resolve, reject) {
             const {userId, modelName, tag} = self.props.match.params;
 
-            ModelStore.fetchModel(userId, modelName, tag).then(function(model) {
-                console.log('[Fetch Model]', model);
-                if(model.status == 'NONE') {
-                    // This model does not exist.
-
-                }
-
+            moxel.createModel(`${userId}/${modelName}:${tag}`).then(function(model) {
+                console.log('Moxel model', model);
                 self.setState({
                     model: model
-                })
-
+                });
                 resolve(model);
             }).catch(function(e) {
                 console.error('Cannot fetch model', e);
                 var model = {
                     status: "UNKNOWN"
-                }
+                };
 
                 self.setState({
                     model: model
-                })
+                });
             });
         });
     }
@@ -399,7 +393,7 @@ class ModelView extends Component {
         .then((model) => {
             // Update document title.
             // Meta tags are handled at server-side rendering.
-            document.title = `${model.title} | Moxel`;
+            document.title = `${model.metadata.title} | Moxel`;
         })
         .catch((err) => {
             console.error(err);
@@ -432,8 +426,9 @@ class ModelView extends Component {
         // Handle input visualization.
         self.handleInputs = function(inputs) {
             self.inputs = inputs;
+            console.log('Handling inputs', inputs);
             return new Promise((resolve, reject) => {
-                var inputSpaces = self.moxelModel.inputSpace;
+                var inputSpaces = self.state.model.inputSpace;
 
                 for(var inputName in inputs) {
                     setTimeout(function(inputName) {
@@ -464,10 +459,11 @@ class ModelView extends Component {
 
         // Handle output visualization.
         self.handleOutputs = function(outputs) {
-            console.log('Handling output', outputs);
+            console.log('Handling outputs', outputs);
             self.outputs = outputs;
             return new Promise((resolve, reject) => {
-                var outputSpaces = self.moxelModel.outputSpace;
+                var outputSpaces = self.state.model.outputSpace;
+
                 for(var outputName in outputs) {
                     setTimeout(function(outputName) {
                         var outputSpace = outputSpaces[outputName];
@@ -508,12 +504,11 @@ class ModelView extends Component {
                 isRunning: true
             })
             // Make sure the model and all inputs are loaded.
-            if(!self.moxelModel) {
+            if(!self.state.model) {
                 return;
             }
 
-            var inputSpaces = self.state.model['input_space'];
-            for(var inputName in inputSpaces) {
+            for(var inputName in self.state.model.inputSpace) {
                 if(!self.inputs[inputName]) {
                     console.error('Moxel model input ${inputName} not found.');
                     return;
@@ -521,7 +516,7 @@ class ModelView extends Component {
             }
 
             console.log('Moxel predicting...');
-            self.moxelModel.predict(self.inputs).then((outputs) => {
+            self.state.model.predict(self.inputs).then((outputs) => {
                 console.log('Moxel output', outputs);
                 self.handleOutputs(outputs).then(() => {;
                     self.setState({
@@ -534,11 +529,11 @@ class ModelView extends Component {
         // Handle save demo.
         self.handleSaveDemo = function() {
             // Make sure the model and all inputs are loaded.
-            if(!self.moxelModel) {
+            if(!self.state.model) {
                 return;
             }
 
-            self.moxelModel.saveDemoExample(self.inputs, self.outputs)
+            self.state.model.saveDemoExample(self.inputs, self.outputs)
             .then(() => {
                 return self.syncExamples();
             })
@@ -688,9 +683,9 @@ class ModelView extends Component {
         var model = self.state.model;
 
         if(newRating == 1.) {
-            model['stars'] = model['stars'] + 1;
+            model.metadata.stars = model.metadata.stars + 1;
         }else{
-            model['stars'] = model['stars'] - 1;
+            model.metadata.stars = model.metadata.stars - 1;
         }
 
         self.setState({
@@ -705,16 +700,16 @@ class ModelView extends Component {
         })
         .then((model) => {
             if(newRating == 1.) {
-                model['stars'] = model.stars + 1;
+                model.metadata.stars = model.metadata.stars + 1;
             }else{
-                model['stars'] = model.stars - 1;
+                model.metadata.stars = model.metadata.stars - 1;
             }
 
             self.setState({
                 model: model
             })
 
-            ModelStore.updateModel(userId, modelName, tag, {'stars': model['stars']}).then(function() {
+            ModelStore.updateModel(userId, modelName, tag, {'stars': model.metadata.stars}).then(function() {
                 self.syncModel().then(function() {
                     self.doingHandleUpvote = false;
                 });
@@ -774,7 +769,7 @@ class ModelView extends Component {
 
     handlePopulateExample(example) {
         var self = this;
-        if(!self.moxelModel) return;
+        if(!self.state.model) return;
 
         // TODO: factor this out.
         if(self.addThumbnails) {
@@ -782,7 +777,7 @@ class ModelView extends Component {
                 self.addThumbnails[k]('/images/spinner.gif')
             }
         }
-        self.moxelModel.loadDemoExample(example.exampleId)
+        self.state.model.loadDemoExample(example.exampleId)
         .then((result) => {
             self.handleInputs(result.input);
         })
@@ -860,7 +855,7 @@ class ModelView extends Component {
         var galleryThumb = [];
         var galleryImages = [];
 
-        for(var imgSrc of model.gallery) {
+        for(var imgSrc of model.metadata.gallery) {
             galleryImages.push(
                 <div style={{backgroundImage: `url(${imgSrc})`, backgroundSize: "cover"}}></div>
             );
@@ -899,11 +894,9 @@ class ModelView extends Component {
         }
 
         // Input widgets.
-        console.log('model', model);
-        var inputSpaces = moxel.parseSpaceObject(model['input_space']);
         var inputWidgets = {}; 
-        for(var inputName in inputSpaces) {
-            var inputSpace = inputSpaces[inputName];
+        for(var inputName in model.inputSpace) {
+            var inputSpace = model.inputSpace[inputName];
             var inputWidget = null;
             if(inputSpace == moxel.space.bytes) {
                 inputWidget = (
@@ -938,10 +931,9 @@ class ModelView extends Component {
         this.inputWidgets = inputWidgets;
         
         // Output widgets.
-        var outputSpaces = moxel.parseSpaceObject(model['output_space']);
         var outputWidgets = {};
-        for(var outputName in outputSpaces) {
-            var outputSpace = outputSpaces[outputName];
+        for(var outputName in model.outputSpace) {
+            var outputSpace = model.outputSpace[outputName];
             var outputWidget = null;
             if(outputSpace == moxel.space.json) {
                 outputWidget = 
@@ -1000,12 +992,12 @@ class ModelView extends Component {
             if(self.state.editMode) {
                 return (
                     <span>
-                        <input id="model-title" defaultValue={model.title} className="editable-input" 
+                        <input id="model-title" defaultValue={model.metadata.title} className="editable-input" 
                             style={titleStyle} onBlur={self.handleUpdateTitle}/>
                     </span>
                 );
             }else{
-                return <div style={titleStyle}>{model.title}</div>;
+                return <div style={titleStyle}>{model.metadata.title}</div>;
             }
         }
 
@@ -1030,7 +1022,7 @@ class ModelView extends Component {
                         onClick={self.handleUpvote}>
                         <i className="material-icons left">
                         arrow_drop_up
-                        </i>{model.stars}
+                        </i>{model.metadata.stars}
                     </a>
                     
                     &nbsp;
@@ -1080,14 +1072,14 @@ class ModelView extends Component {
 
         function renderModelDescriptionEditor() {
             return (
-                <textarea id="model-description" defaultValue={model.description} 
+                <textarea id="model-description" defaultValue={model.metadata.description} 
                         placeholder="Tell the world about your model" 
                         className="editable-input" style={{resize: "none"}} onBlur={self.handleUpdateDescription}/>
             );
         }
 
         function renderModelDescriptionDisplay() {
-            return <p>{model.description}</p>
+            return <p>{model.metadata.description}</p>
         }
 
         function renderModelDescription() {
@@ -1167,7 +1159,7 @@ class ModelView extends Component {
 
                 return (
                     <ChipInput
-                      defaultValue={model.labels}
+                      defaultValue={model.metadata.labels}
                       fullWidth="true"
                       dataSource={sourceTags}
                       hintText="(Add labels to model here)"
@@ -1181,7 +1173,7 @@ class ModelView extends Component {
                 return (
                     <div>
                         <p>{
-                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
                         }</p>
                     </div>
                 );
@@ -1223,17 +1215,17 @@ class ModelView extends Component {
 
                                     <div>
                                         <p>{
-                                            model.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
                                         }</p>
                                     </div>
                                 </div>
                                 
                                 <div className="card-action blue darken-4">
                                   {
-                                    model.links.github ? <a target="_blank" href={`${model.links.github}`}>Github</a> : <span></span>
+                                    model.metadata.links.github ? <a target="_blank" href={`${model.metadata.links.github}`}>Github</a> : <span></span>
                                   }
                                   {
-                                    model.links.arxiv ? <a target="_blank" href={`${model.links.arxiv}` }>Arxiv</a> : <span></span>
+                                    model.metadata.links.arxiv ? <a target="_blank" href={`${model.metadata.links.arxiv}` }>Arxiv</a> : <span></span>
                                   }
                                 </div>
                           </div>
@@ -1289,18 +1281,20 @@ class ModelView extends Component {
                                                         placeholder="Tell the world about your model"
                                                         className="editable-input-dark"
                                                         onKeyUp={autoGrowHeight}
-                                                        defaultValue={model.readme}>
+                                                        defaultValue={model.metadata.readme}>
                                                     </textarea>
                                                 </div>
                                                 :
                                                 (
-                                                    model.readme
+                                                    model.metadata.readme
                                                     ?
                                                     <Markdown tagName="article" className="markdown-body">
-                                                        {model.readme}
+                                                        {model.metadata.readme}
                                                     </Markdown>
                                                     :
-                                                    null
+                                                    <div>
+                                                    This model does not have a story yet :(
+                                                    </div>
                                                 )
                                             }
                                         </div>
@@ -1434,7 +1428,7 @@ class ModelView extends Component {
         }
 
         function renderModelGallery() {
-            if(model.gallery.length > 0) {
+            if(model.metadata.gallery.length > 0) {
                  return (
                     <FixedWidthRow>
                         <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -1513,7 +1507,7 @@ class ModelView extends Component {
                     <FixedWidthRow style={{justifyContent: "left"}}>
                         <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>bookmark</i> &nbsp; 
                         <span style={{fontSize: "20px", color: "#2196E1"}}>
-                            <b>{model.user}</b> / <b>{model.id}</b>
+                            <b>{model.user}</b> / <b>{model.name}</b>
                         </span>
                         
                         {

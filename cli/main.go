@@ -142,9 +142,8 @@ func TeardownModel(modelName string, modelTag string, block bool) error {
 }
 
 // Create or update a model.
-func PutModel(modelName string, tag string, commit string, config map[string]interface{}) error {
-	yamlString, _ := SaveYAMLToString(config)
-	resp, err := GlobalAPI.PutModel(GlobalUser.Username(), modelName, tag, commit, yamlString)
+func PutModel(modelName string, tag string, commit string, spec map[string]interface{}) error {
+	resp, err := GlobalAPI.PutModel(GlobalUser.Username(), modelName, tag, commit, nil, spec)
 	if err != nil {
 		return err
 	}

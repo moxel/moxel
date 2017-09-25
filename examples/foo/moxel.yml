@@ -1,0 +1,16 @@
+name: foo
+tag: latest
+image: moxel/py3-tf-cpu
+assets:
+- asset
+resources:
+  cpu: 1
+  memory: "512Mi"
+input_space:
+  seed: String
+output_space:
+  number: String
+main:
+  type: http
+  cmd: 
+  - python server.py

@@ -528,10 +528,11 @@ var Moxel = function(config) {
 			this.user = user;
 			this.name = name;
 			this.tag = tag;
-			this.metadata = result.metadata;
+			this.metadata = this.formatMetadata(result.metadata);
+			this.spec = result.spec;
 			this.status = result.status;
-			this.inputSpace = Utils.parseSpaceObject(this.metadata['input_space']);
-			this.outputSpace = Utils.parseSpaceObject(this.metadata['output_space']);
+			this.inputSpace = Utils.parseSpaceObject(this.spec['input_space']);
+			this.outputSpace = Utils.parseSpaceObject(this.spec['output_space']);
 
 			this.predict = this.predict.bind(this);			
 			this._store = this._store.bind(this);
@@ -545,6 +546,27 @@ var Moxel = function(config) {
 			this._listExamples = this._listExamples.bind(this);
 			this.listRuntimeExamples = this.listRuntimeExamples.bind(this);
 			this.listDemoExamples = this.listDemoExamples.bind(this);
+		}
+
+		formatMetadata(newMetadata) {
+			var metadata = {
+	            title: "Untitled",
+	            description: "A magicical machine learning model",
+	            labels: [],
+	            links: {},
+	            stars: 0,
+	            lastUpdated: '1 days ago',
+	            gallery: [],
+	            readme: ""
+	        };
+
+	        for(var k in newMetadata) {
+	        	metadata[k] = newMetadata[k];
+	        }
+
+	        metadata["stars"] = parseInt(metadata["stars"]);
+
+	        return metadata;
 		}
 
 		// TODO: if user has access to this code, they can store anything on our cloud.

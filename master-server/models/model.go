@@ -31,13 +31,13 @@ type Model struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	// TODO: check size.
-	UserId string `gorm:"size:64"`
-	Name   string `gorm:"size:64"`
-	Tag    string
-	Repo   string
-	Commit string
-	Yaml   string
-	Status string
+	UserId   string `gorm:"size:64"`
+	Name     string `gorm:"size:64"`
+	Tag      string
+	Commit   string
+	Spec     string
+	Metadata string
+	Status   string
 }
 
 type ModelList []map[string]interface{}
@@ -52,7 +52,7 @@ func (modelList ModelList) Swap(i, j int) {
 
 // TODO: refactor this...
 func (modelList ModelList) Less(i, j int) bool {
-	start := time.Now()
+	// start := time.Now()
 	starsI := modelList[i]["metadata"].(map[string]interface{})["stars"]
 	if starsI == nil {
 		starsI = interface{}("0")
@@ -64,23 +64,27 @@ func (modelList ModelList) Less(i, j int) bool {
 
 	numStarsI, _ := strconv.Atoi(starsI.(string))
 	numStarsJ, _ := strconv.Atoi(starsJ.(string))
-	end := time.Now()
+	// end := time.Now()
 
-	fmt.Println("elapsed", end.Sub(start))
+	// fmt.Println("elapsed", end.Sub(start))
 	return numStarsI > numStarsJ
 }
 
 // Convert model struct to map representation.
 func (model *Model) ToMap() map[string]interface{} {
 	var metadata map[interface{}]interface{}
-	yaml.Unmarshal([]byte(model.Yaml), &metadata)
+	yaml.Unmarshal([]byte(model.Metadata), &metadata)
+
+	var spec map[interface{}]interface{}
+	yaml.Unmarshal([]byte(model.Spec), &spec)
+
 	return cleanupInterfaceMap(map[interface{}]interface{}{
 		"uid":      model.Uid,
 		"name":     model.Name,
 		"tag":      model.Tag,
 		"status":   model.Status,
-		"yaml":     model.Yaml,
 		"metadata": metadata,
+		"spec":     spec,
 	})
 }
 

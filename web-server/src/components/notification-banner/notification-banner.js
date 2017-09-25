@@ -23,14 +23,12 @@ class NotificationBanner extends Component {
     }
 
     addNotification(obj) {
-        console.log('add notification');
         this.notificationSystem.addNotification(obj);
     }
 
     render() {
         var self = this;
 
-        console.log('props', self.props);
         return (
             <StyledLayout>
                 <NotificationSystem ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} {...self.props}/>
