@@ -72,9 +72,9 @@ class Model(object):
             result = json.loads(raw_result)
         elif response.status_code == 500:
             result = json.loads(raw_result)
-            raise Exception(result.get('error', 'Unknown error'))
+            raise Exception('[Error from model] ' + result.get('error', 'Unknown error'))
         else:
-            raise Exception(response.text)
+            raise Exception('[Error from model] ' + response.text)
 
         # Parse result.
         return decode_json(result, self.output_space)
