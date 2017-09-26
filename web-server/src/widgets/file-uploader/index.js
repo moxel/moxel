@@ -28,6 +28,59 @@ const StyledFileUploader = styled(FlexItem)`
         text-align: center;
     }
 
+    .dropzone.dz-clickable {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .dropzone .dz-message {
+        display: block !important;
+        text-align: center;
+        margin: 0;
+        position: absolute !important;
+        z-index: 99999;
+        color: rgba(255, 255, 255, 0);
+        height: 100%;
+        width: 100%;
+        vertical-align: middle;
+        background: rgba(255, 255, 255, 0);
+        -webkit-transition: background-color .5s;
+        transition: background-color .5s;
+    }
+
+    .dropzone .dz-message:hover {
+        background: rgba(255, 255, 255, 0.39);
+    }
+    
+
+    .dz-details {
+        display: none;
+    }
+
+    .dropzone .dz-preview .dz-image {
+        border-radius: 20px;
+        width: 120px;
+        height: 120px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .dropzone .dz-preview.dz-image-preview {
+        background: white;
+        width: 100%;
+        margin: 0;
+        height: 100%;
+    }
+
+    .dropzone .dz-preview.dz-image-preview {
+        background: white;
+        height: 100% !important;
+        width: 100% !important;
+    }
+
     height: 300px;
     width: auto;
 `

@@ -250,8 +250,9 @@ const StyledModelLayout = styled(Flex)`
     .tab-demo-model {
         margin-bottom: 5px;
     }
-
     
+
+
 `;
 
 // Some utils.
@@ -776,11 +777,11 @@ class ModelView extends Component {
         if(!self.state.model) return;
 
         // TODO: factor this out.
-        if(self.addThumbnails) {
-            for(var k in self.addThumbnails) {
-                self.addThumbnails[k]('/images/spinner.gif')
-            }
-        }
+        // if(self.addThumbnails) {
+        //     for(var k in self.addThumbnails) {
+        //         self.addThumbnails[k]('/images/spinner.gif')
+        //     }
+        // }
         self.state.model.loadDemoExample(example.exampleId)
         .then((result) => {
             self.handleInputs(result.input);
@@ -955,9 +956,13 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
                         <div style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
-                                            width: "300px", marginLeft: "auto", marginRight: "auto"}}>
-                            <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
-                                style={{width: "50%", height: "auto", marginTop: "25%", marginBottom: "25%"}}/>
+                                            width: "300px", height: "300px", marginLeft: "auto", 
+                                            marginRight: "auto", padding: "5px"}}>
+                            <div style={{display: "flex",  justifyContent: "center", alignItems: "center", overflow: "hidden",
+                                             borderRadius: "20px", width: "100%", height: "100%"}}>
+                                <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
+                                    style={{flexShrink: 0, minWidth: "100%",  minHeight: "100%"}}/>
+                            </div>
                         </div>
                         <br/>
                     </div>
