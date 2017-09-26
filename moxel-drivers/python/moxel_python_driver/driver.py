@@ -140,7 +140,11 @@ def main():
 
     @app.route('/', methods=['GET'])
     def healthcheck():
-        return 'OK'
+        return jsonify({
+            'status': 'OK'
+            'type': 'python',
+            'version': VERSION
+        })
 
     @app.errorhandler(500)
     def internal_error(e):
