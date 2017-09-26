@@ -45,15 +45,15 @@ Create a new file called `moxel.yml`. This Moxel config describes basic metadata
 ```
 name: question-answering
 tag: latest
-image: dummyai/py3-tf-cpu
+image: py3-tf-cpu
 resources:
   memory: 1Gi
   cpu: "1"
 input_space:
-  paragraph: String
-  question: String
+  paragraph: str
+  question: str
 output_space:
-  answer: String
+  answer: str
 main:
   type: python
   entrypoint: serve.py::get_answer
