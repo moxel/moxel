@@ -473,9 +473,6 @@ class ModelView extends Component {
                         if(outputSpace == moxel.space.image) {
                             output.toDataURL().then((url) => {
                                 demoWidget.src = url;
-                                demoWidget.style.marginTop = "0%";
-                                demoWidget.style.marginBottom = "0%";
-                                demoWidget.style.width = "100%";
                                 resolve();
                             });
                         }else if(outputSpace == moxel.space.json) {
@@ -947,7 +944,7 @@ class ModelView extends Component {
                         <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto", resize: "none"}}/>
                         <br/>
                     </div>
                     
@@ -961,7 +958,8 @@ class ModelView extends Component {
                             <div style={{display: "flex",  justifyContent: "center", alignItems: "center", overflow: "hidden",
                                              borderRadius: "20px", width: "100%", height: "100%"}}>
                                 <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
-                                    style={{flexShrink: 0, minWidth: "100%",  minHeight: "100%"}}/>
+                                    style={{flexShrink: 0, minWidth: "100%",  minHeight: "100%", 
+                                            maxWidth: "130%",  maxHeight: "130%"}}/>
                             </div>
                         </div>
                         <br/>

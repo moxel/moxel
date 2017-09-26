@@ -68,6 +68,16 @@ const StyledFileUploader = styled(FlexItem)`
         overflow: hidden;
     }
 
+    .dz-image img {
+        width: auto !important;
+        height: auto !important;
+        min-width: 100% !important;
+        min-height: 100% !important;
+        max-width: 130% !important;
+        max-height: 130% !important;
+        flex-shrink: 0 !important;
+    }
+
     .dropzone .dz-preview.dz-image-preview {
         background: white;
         width: 100%;
