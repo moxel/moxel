@@ -18,7 +18,7 @@ const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"
 const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiIxLjiuOEB8NF3J" // Suffer from reverse-compilation.
 const CLOUD_VENDOR = "gcloud"
 
-const USER_CONFIG = ".dummy"
+const USER_CONFIG = ".moxel"
 
 var MasterAddress = "http://beta.moxel.ai/api"
 var WebsiteAddress = "http://beta.moxel.ai"
