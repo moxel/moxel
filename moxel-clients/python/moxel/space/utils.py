@@ -2,6 +2,7 @@ from moxel.space import Image, Array, JSON
 
 import numpy as np
 import base64
+import six
 import json
 
 
@@ -21,6 +22,9 @@ SPACE_MAP = {
 def get_space(name):
     ''' Convert space repr to actual class.
     '''
+    if six.PY2 and type(name) == unicode:
+        name = str(name)
+
     if type(name) == str:
         assert name in SPACE_MAP, 'Cannot get unknown space {}'.format(name)
         return SPACE_MAP[name]
@@ -29,7 +33,7 @@ def get_space(name):
             k: get_space(v) for k, v in name.items()
         }
     else:
-        raise Exception('Only str and dict are supported in get_space')
+        raise Exception('Only str and dict are supported in get_space. Not ' + str(type(name)))
 
 
 def encode_json(kwargs, spaces):
