@@ -370,15 +370,25 @@ func CommandLogin() cli.Command {
 		Usage: "Log in Moxel",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
+				Name:  "console, c",
+				Usage: "Login using console instead web browser",
+			},
+			cli.BoolFlag{
 				Name:  "debug",
 				Usage: "Show debugging information",
 			},
 		},
 		Action: func(c *cli.Context) error {
 			GlobalContext = c
-			err := StartBrowserLoginFlow()
-			if err != nil {
+			var err error
+
+			if c.Bool("console") {
 				err = StartHeadlessLoginFlow()
+			} else {
+				err = StartBrowserLoginFlow()
+				if err != nil {
+					err = StartHeadlessLoginFlow()
+				}
 			}
 			return err
 		},

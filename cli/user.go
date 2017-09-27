@@ -17,7 +17,6 @@ func (user *User) Initialized() bool {
 }
 
 func (user *User) UpdateUserConfig(newConfig map[string]interface{}) {
-	// create dummy file if not exists
 	_, err := os.Stat(GetUserConfigPath())
 	if os.IsNotExist(err) {
 		var file, err = os.Create(user.GetConfigPath())
