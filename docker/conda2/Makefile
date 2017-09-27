@@ -9,6 +9,5 @@ push:
 	docker push $(URL):latest
 
 build:
-	cp -rf ../core ./core
-	docker build -t $(URL):`cat VERSION` .
+	docker build --build-arg DATE="`date`" -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest

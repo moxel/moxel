@@ -1,11 +1,11 @@
-FROM continuumio/anaconda3
+FROM continuumio/anaconda
 
 MAINTAINER Moxel <support@moxel.ai>
 
 RUN apt update \
     && apt-get install -y tree git wget build-essential curl 
 
-RUN conda install pexpect pyyaml
+RUN conda install -y pexpect pyyaml pytorch torchvision -c soumith
 
 # Install moxel drivers.
 ARG DATE=$DATE

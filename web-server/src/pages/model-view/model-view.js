@@ -250,8 +250,9 @@ const StyledModelLayout = styled(Flex)`
     .tab-demo-model {
         margin-bottom: 5px;
     }
-
     
+
+
 `;
 
 // Some utils.
@@ -286,6 +287,8 @@ class ModelView extends Component {
         }
 
         this.addNotification = this.addNotification.bind(this);
+        this.handlePublish = this.handlePublish.bind(this);
+        this.handleMakePrivate = this.handleMakePrivate.bind(this);
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleLabelsChange = this.handleLabelsChange.bind(this);
         this.handleDeleteRepository = this.handleDeleteRepository.bind(this);
@@ -472,9 +475,6 @@ class ModelView extends Component {
                         if(outputSpace == moxel.space.image) {
                             output.toDataURL().then((url) => {
                                 demoWidget.src = url;
-                                demoWidget.style.marginTop = "0%";
-                                demoWidget.style.marginBottom = "0%";
-                                demoWidget.style.width = "100%";
                                 resolve();
                             });
                         }else if(outputSpace == moxel.space.json) {
@@ -632,6 +632,36 @@ class ModelView extends Component {
         });
     }
 
+    handlePublish() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        if(self.state.model.status != 'LIVE') {
+            self.addNotification('Please upload a model first :)', 'error');
+            return;
+        }
+
+        ModelStore.updateModel(userId, modelName, tag, {'access': 'public'}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('The model has been successfully published!', 'success');
+            });
+        });
+        
+    }
+
+    handleMakePrivate() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.updateModel(userId, modelName, tag, {'access': 'private'}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('The model has been made private.', 'success');
+            });
+        });
+    }
+
+
+
     handleLabelsChange(chips) {
         var self = this;
 
@@ -776,11 +806,11 @@ class ModelView extends Component {
         if(!self.state.model) return;
 
         // TODO: factor this out.
-        if(self.addThumbnails) {
-            for(var k in self.addThumbnails) {
-                self.addThumbnails[k]('/images/spinner.gif')
-            }
-        }
+        // if(self.addThumbnails) {
+        //     for(var k in self.addThumbnails) {
+        //         self.addThumbnails[k]('/images/spinner.gif')
+        //     }
+        // }
         self.state.model.loadDemoExample(example.exampleId)
         .then((result) => {
             self.handleInputs(result.input);
@@ -794,20 +824,23 @@ class ModelView extends Component {
     render() {
         var self = this;
 
-        if(!this.state.model) {
+        const model = this.state.model;
+
+        if(!model) {
             return null
         }
 
-        if(this.state.model.status == "UNKNOWN") {
+        if(model.status == "UNKNOWN"
+            || 
+           (model.metadata.access != "public" && !this.isAuthor)) {
             return <Error404View/>
         }
 
-        if(this.state.model.status == "NONE") {
+        if(model.status == "NONE") {
             return <ErrorNoneView/>
         }
 
         const {userId, modelName, tag} = this.props.match.params;
-        const model = this.state.model;
 
         var statusButton = null;
         if(model.status == "LIVE") {
@@ -946,7 +979,7 @@ class ModelView extends Component {
                         <textarea id={`demo-output-${outputName}`} style={{height: "150px", width: "100%", 
                                                                            padding: "10px", color: "#333", width: "100%",
                                                                            borderRadius: "5px", border: "2px dashed #C7C7C7",
-                                                                    width: "300px", marginLeft: "auto", marginRight: "auto"}}/>
+                                                                    width: "300px", marginLeft: "auto", marginRight: "auto", resize: "none"}}/>
                         <br/>
                     </div>
                     
@@ -955,9 +988,14 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
                         <div style={{borderRadius: "5px", border: "2px dashed #C7C7C7", width: "100%",
-                                            width: "300px", marginLeft: "auto", marginRight: "auto"}}>
-                            <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
-                                style={{width: "50%", height: "auto", marginTop: "25%", marginBottom: "25%"}}/>
+                                            width: "300px", height: "300px", marginLeft: "auto", 
+                                            marginRight: "auto", padding: "5px"}}>
+                            <div style={{display: "flex",  justifyContent: "center", alignItems: "center", overflow: "hidden",
+                                             borderRadius: "20px", width: "100%", height: "100%"}}>
+                                <img src="/images/pic-template.png" id={`demo-output-${outputName}`} 
+                                    style={{flexShrink: 0, minWidth: "100%",  minHeight: "100%", 
+                                            maxWidth: "130%",  maxHeight: "130%"}}/>
+                            </div>
                         </div>
                         <br/>
                     </div>
@@ -1518,9 +1556,33 @@ class ModelView extends Component {
                       width="%"
                       className="model-view">
                     <FixedWidthRow style={{justifyContent: "left"}}>
-                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>bookmark</i> &nbsp; 
+                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>
+                            {
+                                model.metadata.access == "public"
+                                ?
+                                    <span>bookmark</span>
+                                :
+                                    <span>lock</span>
+
+                            }
+                        </i> &nbsp; 
                         <span style={{fontSize: "20px", color: "#2196E1"}}>
-                            <b>{model.user}</b> / <b>{model.name}</b>
+                            <b>{model.user}</b> / <b>{model.name}</b> 
+                            {
+                                model.metadata.access == "public"
+                                ?
+                                    <span></span>
+                                :
+                                    <span style={{marginLeft: "10px",
+                                                  padding: "2px",
+                                                  border: "solid 1px #d6d7da",
+                                                  color: "#929191",
+                                                  fontSize: "15px",
+                                                  borderRadius: "5px"
+                                            }}>
+                                        Private
+                                    </span>
+                            }
                         </span>
                         
                         {
@@ -1537,6 +1599,18 @@ class ModelView extends Component {
                                         :
                                         <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
                                             Edit
+                                        </a>
+                                    }
+                                    &nbsp;
+                                    {
+                                        self.state.model.metadata.access != "public"
+                                        ?
+                                        <a className="waves-effect btn green white-text" onClick={self.handlePublish}>
+                                            Publish
+                                        </a>
+                                        :
+                                        <a className="waves-effect btn white black-text" onClick={self.handleMakePrivate}>
+                                            Make Private
                                         </a>
                                     }
                                     {/*

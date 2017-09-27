@@ -11,3 +11,4 @@ RUN conda install pexpect pyyaml
 ARG DATE=$DATE
 RUN pip install flask setuptools \
   && pip install -U moxel-python-driver moxel-http-driver moxel
+

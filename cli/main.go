@@ -508,16 +508,16 @@ func CommandPush() cli.Command {
 				}
 			}
 
-			if err := VerifyModelTag(modelTag); err != nil {
-				return err
-			}
-
 			if modelName == "" {
-				return errors.New("Model name cannot be empty")
+				return errors.New("Model name cannot be empty\nTry: moxel push [command options] -f [yaml] [model]:[tag]")
 			}
 
 			if modelTag == "" {
-				return errors.New("Model tag cannot be empty")
+				return errors.New("Model tag cannot be empty\nTry: moxel push [command options] -f [yaml] [model]:[tag]")
+			}
+
+			if err := VerifyModelTag(modelTag); err != nil {
+				return err
 			}
 
 			fmt.Println("Pushing to " + modelId)

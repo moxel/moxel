@@ -86,9 +86,15 @@ var TypeWhitelist = map[string]bool{
 
 // A whitelist for model images.
 var ImageWhitelist = map[string]bool{
-	"py3-tf-cpu":    true,
-	"python3":       true,
-	"py2-caffe-cpu": true,
+	"py3-tf":      true,
+	"py3-tf-0.11": true,
+	"conda2":      true,
+	"conda3":      true,
+	"python3":     true,
+	"py2-caffe":   true,
+	"py2-pytorch": true,
+	"py3-pytorch": true,
+	"redis":       true,
 }
 
 // Checks if the user has logged in.

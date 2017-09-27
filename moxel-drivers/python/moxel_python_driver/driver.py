@@ -97,6 +97,7 @@ def main():
     args = parser.parse_args()
 
     config = json.loads(args.json)
+    print('[debug] config', config)
 
     code_root = config.get('code_root', './')
     asset_root = config.get('asset_root', '')
@@ -140,7 +141,11 @@ def main():
 
     @app.route('/', methods=['GET'])
     def healthcheck():
-        return 'OK'
+        return jsonify({
+            'status': 'OK',
+            'type': 'python',
+            'version': VERSION
+        })
 
     @app.errorhandler(500)
     def internal_error(e):
