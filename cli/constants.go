@@ -113,15 +113,12 @@ func CheckLogin() error {
 		}
 
 		if resp.StatusCode != 200 {
-			fmt.Printf("Server response %d: %s\n", resp.StatusCode, resp.String())
-			fmt.Println("Please login first. Run `warp login`")
-			return errors.New("User not logged in")
+			return errors.New("Please login first. Run \"moxel login\".")
 		}
 
 		return nil
 	} else {
-		fmt.Println("Please login first. Run `warp login`")
-		return errors.New("User login failed")
+		return errors.New("Please login first. Run \"moxel login\".")
 	}
 }
 
@@ -161,12 +158,24 @@ func MasterEndpoint(path string) string {
 	return MasterAddress + path
 }
 
-func GetUserConfigPath() string {
+func GetUserHome() string {
 	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
+	if err == nil {
+		return usr.HomeDir
 	}
-	return usr.HomeDir + "/" + USER_CONFIG
+	// Fall back to reading $HOME - work around user.Current() not
+	// working for cross compiled binaries on OSX.
+	// https://github.com/golang/go/issues/6376
+	home := os.Getenv("HOME")
+	if home != "" {
+		return home
+	}
+
+	return "/tmp"
+}
+
+func GetUserConfigPath() string {
+	return GetUserHome() + "/" + USER_CONFIG
 }
 
 func GetRedirectURL() string {
