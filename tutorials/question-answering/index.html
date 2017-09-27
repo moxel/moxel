@@ -371,42 +371,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3-2" type="checkbox" id="nav-3-2">
-    
-    <label class="md-nav__link" for="nav-3-2">
-      Deploy with HTTP server
-    </label>
-    <nav class="md-nav" data-md-component="collapsible" data-md-level="3">
-      <label class="md-nav__title" for="nav-3-2">
-        Deploy with HTTP server
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../caffe-colorization/" title="Caffe colorization" class="md-nav__link">
-      Caffe colorization
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -514,15 +478,15 @@ def get_answer(paragraph, question):
 <p>Create a new file called <code>moxel.yml</code>. This Moxel config describes basic metadata about the model. </p>
 <pre><code>name: question-answering
 tag: latest
-image: dummyai/py3-tf-cpu
+image: py3-tf
 resources:
   memory: 1Gi
   cpu: &quot;1&quot;
 input_space:
-  paragraph: String
-  question: String
+  paragraph: str
+  question: str
 output_space:
-  answer: String
+  answer: str
 main:
   type: python
   entrypoint: serve.py::get_answer
@@ -549,10 +513,10 @@ main:
 
 model = moxel.Model('&lt;username&gt;/question-answering:latest', where='localhost')
 
-output = model.predict({
-    'paragraph': 'Daniel is 10 years old.',
-    'question': 'How old is Daniel?'
-})
+output = model.predict(
+    paragraph='Daniel is 10 years old.', 
+    question: 'How old is Daniel?'
+)
 
 print(output['answer'])
 </code></pre>
@@ -562,7 +526,7 @@ print(output['answer'])
 <pre><code>moxel push -f moxel.yml
 </code></pre>
 
-<p>You'll see logs streamed live from the model. Shortly, the model will be available under <em>beta.moxel.ai/<username>/question-answer</em>. </p>
+<p>You'll see logs streamed live from the model. Shortly, the model will be available under <em>beta.moxel.ai/\&lt;username>/question-answer</em>. </p>
 <p>Once you go to the model, spend time to make the page look nice, by adding model description, readme, labels, ... Share it on Facebook / Twitter, and have your friends try it out!</p>
 <p><br/></p>
                 
@@ -597,20 +561,6 @@ print(output['answer'])
             </div>
           </a>
         
-        
-          <a href="../caffe-colorization/" title="Caffe colorization" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
-            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
-              <span class="md-flex__ellipsis">
-                <span class="md-footer-nav__direction">
-                  Next
-                </span>
-                Caffe colorization
-              </span>
-            </div>
-            <div class="md-flex__cell md-flex__cell--shrink">
-              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
-            </div>
-          </a>
         
       </nav>
     </div>
