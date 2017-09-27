@@ -20,6 +20,7 @@ jobs:
         - image: python:3
     steps:
         - run: git clone https://github.com/moxel/perceptron
+        - run: pip install moxel
         - run: cd perceptron && git checkout -b ci-perceptron && python test_push.py && python test_client.py
 
 workflows:
