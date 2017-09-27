@@ -471,7 +471,11 @@ func CommandPush() cli.Command {
 			cli.StringFlag{
 				Name:  "file, f",
 				Value: "moxel.yml",
-				Usage: "Config file to specify the model",
+				Usage: "Config file to specify the model.",
+			},
+			cli.BoolFlag{
+				Name:  "yes, y",
+				Usage: "Confirm to overwrite if the model is already live.",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -552,8 +556,12 @@ func CommandPush() cli.Command {
 			}
 
 			if modelData["status"] == "LIVE" {
-				fmt.Printf("Model is live! Teardown it down first? [y/n]\t")
-				isYes := AskForConfirmation()
+				isYes := c.Bool("yes")
+				if !isYes {
+					fmt.Printf("Model is live! Teardown it down first? [y/n]\t")
+					isYes = AskForConfirmation()
+				}
+
 				if isYes {
 					if err := TeardownModel(modelName, modelTag, false); err != nil {
 						return err
