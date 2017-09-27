@@ -40,3 +40,6 @@
 [submodule "tests/upload-tests/perceptron"]
 	path = tests/upload-tests/perceptron
 	url = https://github.com/moxel/moxel/perceptron
+[submodule "tests/upload-tests/perceptron-argparser"]
+	path = tests/upload-tests/perceptron-argparser
+	url = https://github.com/moxel/perceptron
