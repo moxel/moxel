@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -184,6 +185,14 @@ func DeleteModel(modelName string, tag string) error {
 	return nil
 }
 
+func VerifyVariableFormat(variable string) error {
+	varPattern, _ := regexp.Compile(`^[a-zA-Z0-9_]*$`)
+	if !varPattern.MatchString(variable) {
+		return errors.New(fmt.Sprintf("Variable \"%s\" does not match required format %s", variable, varPattern))
+	}
+	return nil
+}
+
 // Verify if the model configuration has the correct format.
 func VerifyModelConfig(config map[string]interface{}) error {
 	// Check if all keys in config are in whitelist.
@@ -205,7 +214,11 @@ func VerifyModelConfig(config map[string]interface{}) error {
 
 	// Check model input types.
 	inputSpace := config["input_space"].(map[interface{}]interface{})
-	for _, v := range inputSpace {
+	for k, v := range inputSpace {
+		if err := VerifyVariableFormat(k.(string)); err != nil {
+			return err
+		}
+
 		if _, ok := TypeWhitelist[v.(string)]; !ok {
 			return errors.New(fmt.Sprintf("Input type %s is not valid", v.(string)))
 		}
@@ -213,7 +226,11 @@ func VerifyModelConfig(config map[string]interface{}) error {
 
 	// Check model output types.
 	outputSpace := config["output_space"].(map[interface{}]interface{})
-	for _, v := range outputSpace {
+	for k, v := range outputSpace {
+		if err := VerifyVariableFormat(k.(string)); err != nil {
+			return err
+		}
+
 		if _, ok := TypeWhitelist[v.(string)]; !ok {
 			return errors.New(fmt.Sprintf("Output type %s is not valid", v.(string)))
 		}
