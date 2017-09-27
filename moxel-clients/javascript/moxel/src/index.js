@@ -557,7 +557,8 @@ var Moxel = function(config) {
 	            stars: 0,
 	            lastUpdated: '1 days ago',
 	            gallery: [],
-	            readme: ""
+	            readme: "",
+	            access: "private"
 	        };
 
 	        for(var k in newMetadata) {

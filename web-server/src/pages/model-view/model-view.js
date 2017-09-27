@@ -287,6 +287,8 @@ class ModelView extends Component {
         }
 
         this.addNotification = this.addNotification.bind(this);
+        this.handlePublish = this.handlePublish.bind(this);
+        this.handleMakePrivate = this.handleMakePrivate.bind(this);
         this.handleUpvote = this.handleUpvote.bind(this);
         this.handleLabelsChange = this.handleLabelsChange.bind(this);
         this.handleDeleteRepository = this.handleDeleteRepository.bind(this);
@@ -630,6 +632,36 @@ class ModelView extends Component {
         });
     }
 
+    handlePublish() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        if(self.state.model.status != 'LIVE') {
+            self.addNotification('Please upload a model first :)', 'error');
+            return;
+        }
+
+        ModelStore.updateModel(userId, modelName, tag, {'access': 'public'}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('The model has been successfully published!', 'success');
+            });
+        });
+        
+    }
+
+    handleMakePrivate() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.updateModel(userId, modelName, tag, {'access': 'private'}).then(function() {
+            self.syncModel().then(function() {
+                self.addNotification('The model has been made private.', 'success');
+            });
+        });
+    }
+
+
+
     handleLabelsChange(chips) {
         var self = this;
 
@@ -796,7 +828,10 @@ class ModelView extends Component {
             return null
         }
 
-        if(this.state.model.status == "UNKNOWN") {
+        if(this.state.model.status == "UNKNOWN"
+            || 
+           (this.state.model.access != "public" && !this.isAuthor)
+           ) {
             return <Error404View/>
         }
 
@@ -1521,9 +1556,33 @@ class ModelView extends Component {
                       width="%"
                       className="model-view">
                     <FixedWidthRow style={{justifyContent: "left"}}>
-                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>bookmark</i> &nbsp; 
+                        <i className="material-icons" style={{fontSize: "20px", color: "gray"}}>
+                            {
+                                model.metadata.access == "public"
+                                ?
+                                    <span>bookmark</span>
+                                :
+                                    <span>lock</span>
+
+                            }
+                        </i> &nbsp; 
                         <span style={{fontSize: "20px", color: "#2196E1"}}>
-                            <b>{model.user}</b> / <b>{model.name}</b>
+                            <b>{model.user}</b> / <b>{model.name}</b> 
+                            {
+                                model.metadata.access == "public"
+                                ?
+                                    <span></span>
+                                :
+                                    <span style={{marginLeft: "10px",
+                                                  padding: "2px",
+                                                  border: "solid 1px #d6d7da",
+                                                  color: "#929191",
+                                                  fontSize: "15px",
+                                                  borderRadius: "5px"
+                                            }}>
+                                        Private
+                                    </span>
+                            }
                         </span>
                         
                         {
@@ -1540,6 +1599,18 @@ class ModelView extends Component {
                                         :
                                         <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
                                             Edit
+                                        </a>
+                                    }
+                                    &nbsp;
+                                    {
+                                        self.state.model.metadata.access != "public"
+                                        ?
+                                        <a className="waves-effect btn green white-text" onClick={self.handlePublish}>
+                                            Publish
+                                        </a>
+                                        :
+                                        <a className="waves-effect btn white black-text" onClick={self.handleMakePrivate}>
+                                            Make Private
                                         </a>
                                     }
                                     {/*
