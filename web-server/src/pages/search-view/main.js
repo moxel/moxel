@@ -25,7 +25,9 @@ class Main extends Component {
                 var uid = model.user + "/" + model.id;
                 if(uid in modelHash) continue;
                 modelHash[uid] = model;
-                modelAgg.push(model); 
+                if(model.access == "public" || model.user == AuthStore.username()) {
+                    modelAgg.push(model); 
+                }
             }
             console.log(modelAgg)
             this.setState({

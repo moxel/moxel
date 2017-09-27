@@ -328,7 +328,7 @@ def predict(sentence):
                                 {renderCode(`
 name: ${modelName}
 tag: ${tag}
-image: moxel/python3    # Docker environment to run the model with.
+image: python3    # Docker environment to run the model with.
 assets:                 # A list of Model files, such as weights.
 - model.json
 input_space:            # Input type annotations.

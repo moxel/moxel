@@ -824,23 +824,23 @@ class ModelView extends Component {
     render() {
         var self = this;
 
-        if(!this.state.model) {
+        const model = this.state.model;
+
+        if(!model) {
             return null
         }
 
-        if(this.state.model.status == "UNKNOWN"
+        if(model.status == "UNKNOWN"
             || 
-           (this.state.model.access != "public" && !this.isAuthor)
-           ) {
+           (model.metadata.access != "public" && !this.isAuthor)) {
             return <Error404View/>
         }
 
-        if(this.state.model.status == "NONE") {
+        if(model.status == "NONE") {
             return <ErrorNoneView/>
         }
 
         const {userId, modelName, tag} = this.props.match.params;
-        const model = this.state.model;
 
         var statusButton = null;
         if(model.status == "LIVE") {
