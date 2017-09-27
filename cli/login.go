@@ -44,9 +44,6 @@ func StartHeadlessLoginFlow() error {
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println(res)
-	fmt.Println(string(body))
-
 	credentials := make(map[string]interface{})
 
 	err = json.Unmarshal(body, &credentials)
@@ -59,8 +56,6 @@ func StartHeadlessLoginFlow() error {
 	}
 	accessToken := credentials["access_token"].(string)
 	idToken := credentials["id_token"].(string)
-
-	fmt.Println("access token", accessToken)
 
 	// make a request to get user profile.
 	req, _ = http.NewRequest("GET",
@@ -81,7 +76,6 @@ func StartHeadlessLoginFlow() error {
 		profile["username"] = profile["nickname"]
 	}
 
-	fmt.Println("profile", profile)
 	user := User{}
 	user.UpdateUserConfig(map[string]interface{}{
 		"JWT":         idToken,
@@ -89,6 +83,7 @@ func StartHeadlessLoginFlow() error {
 		"profile":     profile,
 	})
 
+	fmt.Println("Logged in successfully!")
 	return nil
 }
 
