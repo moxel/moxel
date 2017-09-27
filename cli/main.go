@@ -376,8 +376,11 @@ func CommandLogin() cli.Command {
 		},
 		Action: func(c *cli.Context) error {
 			GlobalContext = c
-			StartLoginFlow()
-			return nil
+			err := StartBrowserLoginFlow()
+			if err != nil {
+				err = StartHeadlessLoginFlow()
+			}
+			return err
 		},
 	}
 }
