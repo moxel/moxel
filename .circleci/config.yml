@@ -22,6 +22,15 @@ jobs:
         - run: git clone https://github.com/moxel/perceptron
         - run: pip install moxel pexpect
         - run: cd perceptron && git checkout -b ci-perceptron && git pull origin ci-perceptron && python test_push.py && python test_client.py
+        - run: ENV=dev moxel teardown ci-perceptron:latest
+  ci-perceptron-dir: 
+    docker:
+        - image: python:3
+    steps:
+        - run: git clone https://github.com/moxel/perceptron
+        - run: pip install moxel pexpect
+        - run: cd perceptron && git checkout -b ci-perceptron-dir && git pull origin ci-perceptron-dir && python test_push.py && python test_client.py
+        - run: ENV=dev moxel teardown ci-perceptrond-dir:latest
 
 workflows:
   version: 2
