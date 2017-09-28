@@ -30,6 +30,7 @@ import 'markdown-it';
 import Markdown from 'react-markdownit';
 import ChipInput from 'material-ui-chip-input'
 import Moxel from 'moxel'
+import Mousetrap from 'mousetrap'
 
 
 // Most browsers don't support Object.values
@@ -533,6 +534,11 @@ class ModelView extends Component {
             });
         };
 
+        Mousetrap.prototype.stopCallback = function () {
+             return false;
+        }
+        Mousetrap.bind(['shift+enter', 'ctrl+enter'], self.handleDemoRun);
+
         // Handle save demo.
         self.handleSaveDemo = function() {
             // Make sure the model and all inputs are loaded.
@@ -815,6 +821,10 @@ class ModelView extends Component {
         .then((result) => {
             self.handleInputs(result.input);
         })
+    }
+
+    componentWillUnmount() {
+        Mousetrap.bind(['shift+enter', 'ctrl+enter'], this.handleDemoRun);
     }
 
     componentDidUpdate() {
