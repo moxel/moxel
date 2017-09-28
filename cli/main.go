@@ -95,7 +95,6 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 				assetInfo, _ := os.Stat(assetPath)
 				if assetInfo.Mode().IsDir() {
 					filepath.Walk(assetPath, func(path string, f os.FileInfo, err error) error {
-						fmt.Printf("Visited: %s\n", path)
 						if assetInfo, _ := os.Stat(path); !assetInfo.Mode().IsDir() {
 							path, _ = filepath.Rel(repo.Path, path)
 							assetPaths = append(assetPaths, path)
@@ -107,7 +106,6 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 					assetPaths = append(assetPaths, assetPath)
 				}
 			}
-			fmt.Println("assetPaths", assetPaths)
 		}
 		// Push data to cloud.
 		if err := repo.PushData(assetPaths, GlobalUser.Username(), modelName, commit); err != nil {
