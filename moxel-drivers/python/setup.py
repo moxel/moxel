@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='moxel-python-driver',
-      version='0.0.1.post20', # to be replaced by sed.
+      version='0.0.1.post31', # to be replaced by sed.
       description='python driver for moxel models',
       # url='www.moxel.ai',
       author='moxel',
