@@ -3,4 +3,3 @@
 
 ./bin/deploy-master $1
 ./bin/deploy-web $1
-./bin/release-cli

@@ -38,9 +38,10 @@ class Model(object):
             raise Exception('Model must be LIVE to be used')
 
         self.metadata = data.get('metadata', {})
+        self.spec = data.get('spec', {})
 
-        self.input_space = parse_space_dict(self.metadata['input_space'])
-        self.output_space = parse_space_dict(self.metadata['output_space'])
+        self.input_space = parse_space_dict(self.spec['input_space'])
+        self.output_space = parse_space_dict(self.spec['output_space'])
 
     def ping(self):
         text = requests.get(self.model_endpoint +

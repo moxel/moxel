@@ -9,7 +9,7 @@ import json
 import random
 import subprocess
 from base64 import b64encode
-import os
+import os, sys
 from os.path import abspath, expanduser, exists, relpath, join, dirname
 
 
@@ -97,6 +97,9 @@ def main():
     args = parser.parse_args()
 
     config = json.loads(args.json)
+    # Clear argv in case user module parses arguments
+    # https://github.com/moxel/moxel/issues/117
+    sys.argv[1:] = []
     print('[debug] config', config)
 
     code_root = config.get('code_root', './')
@@ -159,6 +162,7 @@ def main():
         return jsonify(encode_outputs(output_moxel, output_space))
 
     app.run(port=5900, host='0.0.0.0')
+
 
 if __name__ == '__main__':
     exit(main())
