@@ -1,3 +1,5 @@
 #!/bin/bash
-./bin/deploy-drivers
-./bin/deploy-clients
+./bin/release-cli
+sudo ./bin/deploy-drivers
+sudo ./bin/deploy-clients
+

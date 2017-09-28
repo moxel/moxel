@@ -45,7 +45,7 @@ Create a new file called `moxel.yml`. This Moxel config describes basic metadata
 ```
 name: question-answering
 tag: latest
-image: py3-tf-cpu
+image: py3-tf
 resources:
   memory: 1Gi
   cpu: "1"
@@ -87,10 +87,10 @@ import moxel
 
 model = moxel.Model('<username>/question-answering:latest', where='localhost')
 
-output = model.predict({
-    'paragraph': 'Daniel is 10 years old.',
-    'question': 'How old is Daniel?'
-})
+output = model.predict(
+	paragraph='Daniel is 10 years old.', 
+	question: 'How old is Daniel?'
+)
 
 print(output['answer'])
 ```
@@ -103,7 +103,7 @@ To deploy the model, it's simple. Just run
 moxel push -f moxel.yml
 ```
 
-You'll see logs streamed live from the model. Shortly, the model will be available under *beta.moxel.ai/<username>/question-answer*. 
+You'll see logs streamed live from the model. Shortly, the model will be available under *beta.moxel.ai/\<username\>/question-answer*. 
 
 Once you go to the model, spend time to make the page look nice, by adding model description, readme, labels, ... Share it on Facebook / Twitter, and have your friends try it out!
 

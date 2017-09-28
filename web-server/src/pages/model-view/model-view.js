@@ -999,7 +999,7 @@ class ModelView extends Component {
                         </div>
                         <br/>
                     </div>
-            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
+            }else if(outputSpace == moxel.space.str || outputSpace == moxel.space.array || outputSpace == moxel.space.float || outputSpace == moxel.space.int || outputSpace == moxel.space.bool) {
                 outputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}

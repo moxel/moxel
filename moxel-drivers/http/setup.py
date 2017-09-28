@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='moxel-http-driver',
-      version='0.0.1',
+      version='0.0.1.post24',
       description='generic http driver for moxel models',
       url='http://moxel.ai',
       author='moxel',

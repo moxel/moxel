@@ -28,6 +28,4 @@ pages:
 - Tutorial:
   - Deploy in Python:
     - 'tutorials/question-answering.md'
-  - Deploy with HTTP server:
-    - 'tutorials/caffe-colorization.md'
 
