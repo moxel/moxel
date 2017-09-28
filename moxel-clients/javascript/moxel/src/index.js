@@ -879,10 +879,18 @@ var Moxel = function(config) {
 					if(response.status == 200) {
 						return response.json();
 					}else if(response.status == 500) {
-						response.json().then((obj) => {
-							console.log('error obj', obj);
-							reject(obj.error);
-						})
+						try {
+							response.json()
+							.then((obj) => {
+								console.log('error obj', obj);
+								reject(obj.error);
+							})
+							.catch((err) => {
+								reject(err);
+							});
+						}catch(err) {
+							reject(err);
+						}
 					}else{
 						response.text().then((message) => {
 							reject(message);
