@@ -279,8 +279,10 @@ class ModelView extends Component {
         this.state = {
             model: null,
             rating: 0,
-            pageViewCount: {},
-            demoRunCount: {},
+            pageViewCount: [],
+            pageViewsTotalCount: 0,
+            demoRunCount: [],
+            demoRunTotalCount: 0,
             editMode: false,
             username: username,
             isRunning: false,
@@ -381,8 +383,12 @@ class ModelView extends Component {
             for(var k in result) {
                 data.push({'date': k, 'count': result[k]})
             }
+            var pageViewsTotalCount = result["total"];
+            if(!pageViewsTotalCount) pageViewsTotalCount = 0;
+
             self.setState({
-                pageViewCount: data
+                pageViewCount: data,
+                pageViewsTotalCount: pageViewsTotalCount
             })
         });
     }
@@ -398,8 +404,13 @@ class ModelView extends Component {
             for(var k in result) {
                 data.push({'date': k, 'count': result[k]})
             }
+
+            var demoRunTotalCount = result["total"];
+            if(!demoRunTotalCount) demoRunTotalCount = 0;
+
             self.setState({
-                demoRunCount: data
+                demoRunCount: data,
+                demoRunTotalCount: demoRunTotalCount
             })
         });
     }
@@ -1570,6 +1581,7 @@ class ModelView extends Component {
             var dateToday = new Date(new Date().toJSON().slice(0,10));
             const numDays = 300;
 
+            
             return (
                 <FixedWidthRow>
                     <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -1578,7 +1590,14 @@ class ModelView extends Component {
                             <div className="card">
                                 <div className="card-content black-text" style={{paddingTop: "5px"}}>   
                                     <Tabs inkBarStyle={{backgroundColor: "red", marginBottom: "10px"}} tabItemContainerStyle={{background: "none"}}>
-                                        <Tab label="Page Views" buttonStyle={{color: "black"}} active >
+                                        <Tab label={<span>Page Views &nbsp;
+                                                        <span style={{backgroundColor: "red",
+                                                                    color: "white",
+                                                                    padding: "3px",
+                                                                    borderRadius: "3px"
+                                                                }}>{self.state.pageViewsTotalCount}
+                                                        </span>
+                                                    </span>} buttonStyle={{color: "black"}} active >
                                             <CalendarHeatmap
                                               endDate={dateToday} // e.g. 2017-09-29
                                               numDays={numDays}
@@ -1594,7 +1613,14 @@ class ModelView extends Component {
                                             />
                                         </Tab>
 
-                                        <Tab label="Demo Runs" buttonStyle={{color: "black"}}>
+                                        <Tab label={<span>Demo Runs &nbsp;
+                                                        <span style={{backgroundColor: "red",
+                                                                    color: "white",
+                                                                    padding: "3px",
+                                                                    borderRadius: "3px"
+                                                                }}>{self.state.demoRunTotalCount}
+                                                        </span>
+                                                    </span>} buttonStyle={{color: "black"}}>
                                             <CalendarHeatmap
                                               endDate={dateToday}
                                               numDays={numDays}
