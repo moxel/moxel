@@ -279,7 +279,8 @@ class ModelView extends Component {
         this.state = {
             model: null,
             rating: 0,
-            pageView: {},
+            pageViewCount: {},
+            demoRunCount: {},
             editMode: false,
             username: username,
             isRunning: false,
@@ -381,7 +382,24 @@ class ModelView extends Component {
                 data.push({'date': k, 'count': result[k]})
             }
             self.setState({
-                pageView: data
+                pageViewCount: data
+            })
+        });
+    }
+
+    syncModelDemoRun() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.getModelDemoRun(userId, modelName, tag)
+        .then((result) => {
+            console.log('demo run data', result);
+            var data = [];
+            for(var k in result) {
+                data.push({'date': k, 'count': result[k]})
+            }
+            self.setState({
+                demoRunCount: data
             })
         });
     }
@@ -421,11 +439,12 @@ class ModelView extends Component {
         });
         this.syncRating();
 
-        // Sync page view.
+        // Sync analytics count.
         ModelStore.incrModelPageView(userId, modelName, tag)
         .then(()=>{
             self.syncModelPageView();
         })
+        self.syncModelDemoRun();
 
 
         // Add event handler for image upload.
@@ -525,6 +544,8 @@ class ModelView extends Component {
 
         // Handle run button.
         self.handleDemoRun = function() {
+            const {userId, modelName, tag} = this.props.match.params;
+
             self.setState({
                 isRunning: true
             })
@@ -555,6 +576,12 @@ class ModelView extends Component {
                 self.setState({
                     isRunning: false
                 })
+            });
+
+            // Send analytics.
+            ModelStore.incrModelDemoRun(userId, modelName, tag)
+            .then(() => {
+                self.syncModelDemoRun();
             });
         };
 
@@ -1523,6 +1550,26 @@ class ModelView extends Component {
         }
 
         function renderModelStatistics() {
+            var classForValue = (value) => {
+                if (!value) {
+                  return 'color-empty';
+                }
+                var scale;
+                if(value.count <= 10) {
+                    scale = 1;
+                }else if(value.count <= 20) {
+                    scale = 2;
+                }else if(value.count <= 50) {
+                    scale = 3;
+                }else {
+                    scale = 4;
+                }
+                return `color-scale-${scale}`;
+              }
+
+            var dateToday = new Date(new Date().toJSON().slice(0,10));
+            const numDays = 300;
+
             return (
                 <FixedWidthRow>
                     <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
@@ -1533,25 +1580,10 @@ class ModelView extends Component {
                                     <Tabs inkBarStyle={{backgroundColor: "red", marginBottom: "10px"}} tabItemContainerStyle={{background: "none"}}>
                                         <Tab label="Page Views" buttonStyle={{color: "black"}} active >
                                             <CalendarHeatmap
-                                              endDate={new Date(new Date().toJSON().slice(0,10))} // e.g. 2017-09-29
-                                              numDays={300}
-                                              values={self.state.pageView}
-                                              classForValue={(value) => {
-                                                if (!value) {
-                                                  return 'color-empty';
-                                                }
-                                                var scale;
-                                                if(value.count <= 10) {
-                                                    scale = 1;
-                                                }else if(value.count <= 20) {
-                                                    scale = 2;
-                                                }else if(value.count <= 50) {
-                                                    scale = 3;
-                                                }else {
-                                                    scale = 4;
-                                                }
-                                                return `color-scale-${scale}`;
-                                              }}
+                                              endDate={dateToday} // e.g. 2017-09-29
+                                              numDays={numDays}
+                                              values={self.state.pageViewCount}
+                                              classForValue={classForValue}
                                               titleForValue={(value) => {
                                                 console.log('titleForValue', value);
                                                 return 'title';
@@ -1564,30 +1596,10 @@ class ModelView extends Component {
 
                                         <Tab label="Demo Runs" buttonStyle={{color: "black"}}>
                                             <CalendarHeatmap
-                                              endDate={new Date('2016-04-01')}
-                                              numDays={300}
-                                              values={[
-                                                { date: '2016-01-01', count: 1 },
-                                                { date: '2016-01-03', count: 4 },
-                                                { date: '2016-01-06', count: 2 },
-                                                // ...and so on
-                                              ]}
-                                              classForValue={(value) => {
-                                                if (!value) {
-                                                  return 'color-empty';
-                                                }
-                                                var scale;
-                                                if(value.count <= 10) {
-                                                    scale = 1;
-                                                }else if(value.count <= 20) {
-                                                    scale = 2;
-                                                }else if(value.count <= 50) {
-                                                    scale = 3;
-                                                }else {
-                                                    scale = 4;
-                                                }
-                                                return `color-scale-${scale}`;
-                                              }}
+                                              endDate={dateToday}
+                                              numDays={numDays}
+                                              values={self.state.demoRunCount}
+                                              classForValue={classForValue}
                                             />
                                         </Tab>
                                     </Tabs>

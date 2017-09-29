@@ -430,6 +430,43 @@ func getModelPageView(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+func putModelDemoRun(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	err := IncrDemoRunCount(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+func getModelDemoRun(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	result, err := GetDemoRunCount(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response, err := json.Marshal(result)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), result), 500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(response)
+}
 func teardownModel(user string, name string, tag string) error {
 	deployName := getModelDeployName(user, name, tag)
 	path := GetModelPath(user, name, tag)
@@ -1055,6 +1092,8 @@ func main() {
 		// Endpoints for analytics.
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", putModelPageView).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", getModelPageView).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/demo-run", putModelDemoRun).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/demo-run", getModelDemoRun).Methods("GET")
 		// List models.
 		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")

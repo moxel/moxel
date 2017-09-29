@@ -64,9 +64,35 @@ class ModelStoreClass {
 		});
 	}
 
+	getModelDemoRun(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/demo-run`).then((response)=>{
+	            return response.json();
+	        }).then(function(data) {
+	        	resolve(data);
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
 	incrModelPageView(userId, modelName, tag) {
 		return new Promise(function(resolve, reject) {
 			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/page-view`,
+				{	
+					method: 'PUT'
+				}
+			).then((response)=>{
+				resolve();
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
+	incrModelDemoRun(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/demo-run`,
 				{	
 					method: 'PUT'
 				}
