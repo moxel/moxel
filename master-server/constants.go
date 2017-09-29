@@ -38,6 +38,8 @@ var GitRoot string = "/mnt/nfs/code"
 var GitBin = "/usr/bin/git"
 
 var DBAddress string
+var RedisDBAddress string
+var RedisDBPassword string
 
 func InitGlobal() {
 	env := os.Getenv("ENV")
@@ -55,12 +57,16 @@ func InitGlobal() {
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
 		DBAddress = "35.185.221.185"
+		RedisDBAddress = "35.203.154.15"
+		RedisDBPassword = "zqYT1YVPsEBr"
 	} else if env == "dev" {
 		// Run in dev mode.
 		GitRegistry = fmt.Sprintf("http://dev.dummy.ai/git")
 		KubeConfig = "secrets-dev/admin.conf"
 		gcsCredentials = "secrets-dev/dummy-87bbacfcb748.json"
 		DBAddress = "35.185.221.185"
+		RedisDBAddress = "35.203.154.15"
+		RedisDBPassword = "zqYT1YVPsEBr"
 	} else {
 		// default: Production.
 		DBAddress = "35.197.24.27"

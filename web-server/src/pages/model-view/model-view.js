@@ -8,7 +8,8 @@ import TabButtonBar from "../../components/tab-button-bar";
 import styled from "styled-components";
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
 import { TimeSeries, TimeRange } from "pondjs";
-import {Tabs, Tab} from 'react-materialize'
+// import {Tabs, Tab} from 'react-materialize'
+import {Tabs, Tab} from 'material-ui/Tabs';
 import ImageUploader from "../../widgets/image-uploader";
 import FileUploader from "../../widgets/file-uploader";
 import ModelStore from "../../stores/ModelStore";
@@ -31,7 +32,7 @@ import Markdown from 'react-markdownit';
 import ChipInput from 'material-ui-chip-input'
 import Moxel from 'moxel'
 import Mousetrap from 'mousetrap'
-
+import CalendarHeatmap from 'react-calendar-heatmap';
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -167,32 +168,6 @@ const StyledModelLayout = styled(Flex)`
         margin-right: 20px;
     }
 
-    .tabs {
-        background: none;
-    }
-
-    .tabs .tab a:hover {
-        border-bottom: solid;
-        border-bottom-color: #ccc;
-    }
-
-    .tabs .tab a.active {
-        border-bottom: solid;
-        border-bottom-color: #000;
-    }
-
-    .tabs .tab.disabled {
-        display: none;
-    }
-
-    .tabs .tab a {
-        color: rgb(0, 0, 0);
-    }
-
-    .tabs .indicator {
-        background: none;
-    }
-
     .editable-input {
         border-color: #fff;
         border-width: 1px;
@@ -253,7 +228,31 @@ const StyledModelLayout = styled(Flex)`
     }
     
 
+    .react-calendar-heatmap .color-empty { fill: #eeeeee; }
+    .react-calendar-heatmap .color-scale-1 { fill: #d6e685; }
+    .react-calendar-heatmap .color-scale-2 { fill: #8cc665; }
+    .react-calendar-heatmap .color-scale-3 { fill: #44a340; }
+    .react-calendar-heatmap .color-scale-4 { fill: #1e6823; }
+    .react-calendar-heatmap {
+        font-size: 10px;
+    }
 
+    .react-calendar-heatmap rect:after {            
+        position : absolute;
+         content : attr(title);
+         opacity : 0;
+         z-index: 9999999;
+    }
+
+    .react-calendar-heatmap rect:hover {            
+        stroke: black;
+    }
+
+    .react-calendar-heatmap rect:hover:after {        
+        opacity : 1;
+        z-index: 9999999;
+        border-width:1px;
+    }
 `;
 
 // Some utils.
@@ -280,6 +279,7 @@ class ModelView extends Component {
         this.state = {
             model: null,
             rating: 0,
+            pageView: {},
             editMode: false,
             username: username,
             isRunning: false,
@@ -369,6 +369,23 @@ class ModelView extends Component {
         })
     }
 
+    syncModelPageView() {
+        var self = this;
+        const {userId, modelName, tag} = self.props.match.params;
+
+        ModelStore.getModelPageView(userId, modelName, tag)
+        .then((result) => {
+            console.log('page view data', result);
+            var data = [];
+            for(var k in result) {
+                data.push({'date': k, 'count': result[k]})
+            }
+            self.setState({
+                pageView: data
+            })
+        });
+    }
+
     componentDidMount() {
         console.log('mouting component');
         var self = this;
@@ -403,6 +420,13 @@ class ModelView extends Component {
             console.error(err);
         });
         this.syncRating();
+
+        // Sync page view.
+        ModelStore.incrModelPageView(userId, modelName, tag)
+        .then(()=>{
+            self.syncModelPageView();
+        })
+
 
         // Add event handler for image upload.
         this.handleDemoRun = null;
@@ -1463,6 +1487,15 @@ class ModelView extends Component {
             );
         }
 
+        function renderCardTitle(icon, title) {
+            return (
+                <div style={{textTransform: "uppercase", fontSize: "14px", fontWeight: "500"}}>
+                    <i className="material-icons vertical-align-middle">{icon}</i> &nbsp;
+                    <div className="vertical-align-middle">{title}</div>
+                </div>
+            );
+        }
+
         function renderModelDemo() {
             var component = null;
             if(model.status == 'LIVE') {
@@ -1477,9 +1510,87 @@ class ModelView extends Component {
                 <FixedWidthRow>
                     <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
                         <div className="col s12 m12">
+                            {/*renderCardTitle('mouse', 'Try it out')*/}
                             <div className="card">
                                 <div className="card-content white-text">   
                                     {component}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
+            );
+        }
+
+        function renderModelStatistics() {
+            return (
+                <FixedWidthRow>
+                    <div className="row" style={{marginLeft: 0, marginRight: 0, width: "100%", marginBottom: 0}}>
+                        <div className="col s12 m12">
+                            {renderCardTitle('insert_chart', 'Dashboard')}
+                            <div className="card">
+                                <div className="card-content black-text" style={{paddingTop: "5px"}}>   
+                                    <Tabs inkBarStyle={{backgroundColor: "red", marginBottom: "10px"}} tabItemContainerStyle={{background: "none"}}>
+                                        <Tab label="Page Views" buttonStyle={{color: "black"}} active >
+                                            <CalendarHeatmap
+                                              endDate={new Date(new Date().toJSON().slice(0,10))} // e.g. 2017-09-29
+                                              numDays={300}
+                                              values={self.state.pageView}
+                                              classForValue={(value) => {
+                                                if (!value) {
+                                                  return 'color-empty';
+                                                }
+                                                var scale;
+                                                if(value.count <= 10) {
+                                                    scale = 1;
+                                                }else if(value.count <= 20) {
+                                                    scale = 2;
+                                                }else if(value.count <= 50) {
+                                                    scale = 3;
+                                                }else {
+                                                    scale = 4;
+                                                }
+                                                return `color-scale-${scale}`;
+                                              }}
+                                              titleForValue={(value) => {
+                                                console.log('titleForValue', value);
+                                                return 'title';
+                                              }}
+                                              tooltipDataAttrs={{ 'data-toggle': 'tooltip' }}
+                                              style={{fontSize: "10px"}}
+
+                                            />
+                                        </Tab>
+
+                                        <Tab label="Demo Runs" buttonStyle={{color: "black"}}>
+                                            <CalendarHeatmap
+                                              endDate={new Date('2016-04-01')}
+                                              numDays={300}
+                                              values={[
+                                                { date: '2016-01-01', count: 1 },
+                                                { date: '2016-01-03', count: 4 },
+                                                { date: '2016-01-06', count: 2 },
+                                                // ...and so on
+                                              ]}
+                                              classForValue={(value) => {
+                                                if (!value) {
+                                                  return 'color-empty';
+                                                }
+                                                var scale;
+                                                if(value.count <= 10) {
+                                                    scale = 1;
+                                                }else if(value.count <= 20) {
+                                                    scale = 2;
+                                                }else if(value.count <= 50) {
+                                                    scale = 3;
+                                                }else {
+                                                    scale = 4;
+                                                }
+                                                return `color-scale-${scale}`;
+                                              }}
+                                            />
+                                        </Tab>
+                                    </Tabs>
                                 </div>
                             </div>
                         </div>
@@ -1645,8 +1756,8 @@ class ModelView extends Component {
                     </FixedWidthRow>
 
                     <FixedWidthRow>
-                        <Tabs className='tab-demo tab-demo-model' tabOptions={{swipeable: true}}>
-                            <Tab title={renderTabTitle('widgets', 'Demo')} active >
+                        <Tabs inkBarStyle={{backgroundColor: "red"}} tabItemContainerStyle={{background: "none"}}>
+                            <Tab label={renderTabTitle('widgets', 'Demo')} active >
                                 {renderModelHeader()}
                                 {renderModelGallery()}
                                 {/*<FixedWidthRow>
@@ -1659,15 +1770,16 @@ class ModelView extends Component {
                                     </ChartContainer>
                                 </FixedWidthRow>*/}
                                 {renderModelDemo()}
+                                {renderModelStatistics()}
                             </Tab>
-                            <Tab title={renderTabTitle('crop_square', 'About')} >
+                            <Tab label={renderTabTitle('crop_square', 'About')} >
                                 {renderModelREADME()}
                             </Tab>
-                            <Tab title={renderTabTitle('comment', 'Comments')}>
+                            <Tab label={renderTabTitle('comment', 'Comments')}>
                                 {renderModelComments()}
                             </Tab>
 
-                            <Tab title={renderTabTitle('settings', 'Settings')} disabled={self.isAuthor ? false : true}>
+                            <Tab label={renderTabTitle('settings', 'Settings')} disabled={self.isAuthor ? false : true}>
                                 {renderModelDangerZone()}
                             </Tab>
                             
