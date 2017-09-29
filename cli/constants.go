@@ -92,6 +92,7 @@ var ImageWhitelist = map[string]bool{
 	"conda3":      true,
 	"python3":     true,
 	"py2-caffe":   true,
+	"py2-theano":  true,
 	"py2-pytorch": true,
 	"py3-pytorch": true,
 	"redis":       true,

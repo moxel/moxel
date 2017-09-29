@@ -43,3 +43,6 @@
 [submodule "tests/upload-tests/perceptron-argparser"]
 	path = tests/upload-tests/perceptron-argparser
 	url = https://github.com/moxel/perceptron
+[submodule "tests/upload-tests/theano-bare"]
+	path = tests/upload-tests/theano-bare
+	url = https://github.com/moxel/theano-bare
