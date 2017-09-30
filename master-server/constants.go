@@ -72,5 +72,7 @@ func InitGlobal() {
 	} else {
 		// default: Production.
 		DBAddress = "35.197.24.27"
+		RedisDBAddress = "35.203.139.111"
+		RedisDBPassword = "RKe3DcnXeCLJ"
 	}
 }

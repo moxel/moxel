@@ -68,6 +68,12 @@ make test ARGS="github.com/dummy-ai/mvp/master-server -run TestGetRepoURL"
 make test ARGS="github.com/dummy-ai/mvp/master-server/models -run TestAddModel"
 ```
 
+### Send Template Email
+
+```
+make test ARGS="github.com/dummy-ai/mvp/master-server -run TestSendTemplateEmail"
+```
+
 ### Deploy
 
 ```
