@@ -33,6 +33,8 @@ import ChipInput from 'material-ui-chip-input'
 import Moxel from 'moxel'
 import Mousetrap from 'mousetrap'
 import CalendarHeatmap from 'react-calendar-heatmap';
+import ReactTooltip from 'react-tooltip'
+
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -237,7 +239,7 @@ const StyledModelLayout = styled(Flex)`
         font-size: 10px;
     }
 
-    .react-calendar-heatmap rect:after {            
+    .react-calendar-heatmap title {            
         position : absolute;
          content : attr(title);
          opacity : 0;
@@ -248,7 +250,7 @@ const StyledModelLayout = styled(Flex)`
         stroke: black;
     }
 
-    .react-calendar-heatmap rect:hover:after {        
+    .react-calendar-heatmap title:hover {        
         opacity : 1;
         z-index: 9999999;
         border-width:1px;
@@ -1607,7 +1609,10 @@ class ModelView extends Component {
                                                 console.log('titleForValue', value);
                                                 return 'title';
                                               }}
-                                              tooltipDataAttrs={{ 'data-toggle': 'tooltip' }}
+                                              tooltipDataAttrs={(value) => {
+                                                if(!value.count) return { 'data-tip': `No views yet :(`}
+                                                else return { 'data-tip': `${value.count} view(s) on ${value.date}`}
+                                              }}
                                               style={{fontSize: "10px"}}
 
                                             />
@@ -1625,6 +1630,10 @@ class ModelView extends Component {
                                               endDate={dateToday}
                                               numDays={numDays}
                                               values={self.state.demoRunCount}
+                                              tooltipDataAttrs={(value) => {
+                                                if(!value.count) return { 'data-tip': `No runs yet :(`}
+                                                return { 'data-tip': `${value.count} run(s) on ${value.date}`}
+                                              }}
                                               classForValue={classForValue}
                                             />
                                         </Tab>
@@ -1633,6 +1642,7 @@ class ModelView extends Component {
                             </div>
                         </div>
                     </div>
+                <ReactTooltip />
                 </FixedWidthRow>
             );
         }
@@ -1753,7 +1763,7 @@ class ModelView extends Component {
                                         self.state.editMode
                                         ?
                                         <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
-                                            Preview
+                                            Done
                                         </a>
                                         :
                                         <a className="waves-effect btn white black-text" onClick={self.handleToggleEdit}>
