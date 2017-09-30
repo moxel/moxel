@@ -8,6 +8,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dummy-ai/mvp/master-server/models"
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/levigross/grequests"
@@ -22,6 +23,7 @@ import (
 )
 
 var db *gorm.DB
+var kvstore *redis.Client
 var kubeClient *kube.Clientset
 
 func printRequest(r *http.Request, args ...interface{}) error {
@@ -390,6 +392,81 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func putModelPageView(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	err := IncrPageViewCount(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+func getModelPageView(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	result, err := GetPageViewCounts(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response, err := json.Marshal(result)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), result), 500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(response)
+}
+
+func putModelDemoRun(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	err := IncrDemoRunCount(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+func getModelDemoRun(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+	name := vars["model"]
+	tag := vars["tag"]
+
+	printRequest(r)
+
+	result, err := GetDemoRunCount(kvstore, models.ModelId(user, name, tag))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response, err := json.Marshal(result)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), result), 500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(response)
+}
 func teardownModel(user string, name string, tag string) error {
 	deployName := getModelDeployName(user, name, tag)
 	path := GetModelPath(user, name, tag)
@@ -965,6 +1042,7 @@ func main() {
 	} else if command == "start" {
 		// Database.
 		db = models.CreateDB(DBAddress)
+		kvstore = models.CreateKeyValueStore(RedisDBAddress, RedisDBPassword)
 		kubeClient = CreateClient(KubeConfig)
 		defer db.Close()
 
@@ -1011,6 +1089,12 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples", listExamples).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples/{exampleId}", putDemoExample).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples", listDemoExamples).Methods("GET")
+		// Endpoints for analytics.
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", putModelPageView).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", getModelPageView).Methods("GET")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/demo-run", putModelDemoRun).Methods("PUT")
+		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/demo-run", getModelDemoRun).Methods("GET")
+		// List models.
 		router.HandleFunc("/users/{user}/models", listModels).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}", listModelTags).Methods("GET")
 		router.HandleFunc("/job/{user}/{repo}/{commit}", putJob).Methods("PUT")

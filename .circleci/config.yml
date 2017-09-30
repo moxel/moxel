@@ -39,3 +39,4 @@ workflows:
         - pip-install-moxel-python2
         - pip-install-moxel-python3
         - ci-perceptron
+        - ci-perceptron-dir

@@ -35,19 +35,73 @@ class ModelStoreClass {
 	}
 
 	fetchModel(userId, modelId, tag) { 
+		var self = this;
+
 		return new Promise(function(resolve, reject) {
 			fetch(`/api/users/${userId}/models/${modelId}/${tag}`).then((response)=>{
 	            return response.json();
 	        }).then(function(data) {
 	        	console.log('Model metadata', data)
 
-	        	var model = this.formatModel(userId, modelId, tag, data);
+	        	var model = self.formatModel(userId, modelId, tag, data);
 
 	        	resolve(model);
-	        }.bind(this)).catch(function() {
+	        }).catch(function() {
 		        reject();
 		    });;
-		}.bind(this));
+		});
+	}
+
+	getModelPageView(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/page-view`).then((response)=>{
+	            return response.json();
+	        }).then(function(data) {
+	        	resolve(data);
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
+	getModelDemoRun(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/demo-run`).then((response)=>{
+	            return response.json();
+	        }).then(function(data) {
+	        	resolve(data);
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
+	incrModelPageView(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/page-view`,
+				{	
+					method: 'PUT'
+				}
+			).then((response)=>{
+				resolve();
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
+	}
+
+	incrModelDemoRun(userId, modelName, tag) {
+		return new Promise(function(resolve, reject) {
+			fetch(`/api/users/${userId}/models/${modelName}/${tag}/analytics/demo-run`,
+				{	
+					method: 'PUT'
+				}
+			).then((response)=>{
+				resolve();
+	        }).catch(function() {
+		        reject();
+		    });;
+		});
 	}
 
 	deleteModels(userId, modelId) { 
