@@ -557,8 +557,6 @@ class ModelView extends Component {
 
         // Handle run button.
         self.handleDemoRun = function() {
-            const {userId, modelName, tag} = this.props.match.params;
-
             self.setState({
                 isRunning: true
             })
