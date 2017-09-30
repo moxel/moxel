@@ -78,7 +78,7 @@ func TestCreateDeployV2(t *testing.T) {
 	yamlString := string(yamlBytes)
 	fmt.Println("yaml", yamlString)
 
-	name, err := CreateDeployV2(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", yamlString, 1)
+	name, err := CreateDeployV2(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", "dummy", "tf-object-detection", "latest", yamlString, 1)
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +119,7 @@ func TestCreateDeployV2GPU(t *testing.T) {
 	yamlString := string(yamlBytes)
 	fmt.Println("yaml", yamlString)
 
-	name, err := CreateDeployV2(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", yamlString, 1)
+	name, err := CreateDeployV2(client, "df37f8e945184997e27a3ecb9c05c69fe8e84be6", "dummy", "tf-object-detection", "latest", yamlString, 1)
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +129,7 @@ func TestCreateDeployV2GPU(t *testing.T) {
 // Test creating an experiment job.
 func TestCreateJobV1(t *testing.T) {
 	client := createClient(kubeconfig)
-	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest", "?")
 
 	data := map[string]interface{}{
 		"user":      "dummy",
@@ -186,7 +186,7 @@ func TestStreamLogsFromPod(t *testing.T) {
 func TestCreateService(t *testing.T) {
 	client := createClient(kubeconfig)
 
-	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest", "?")
 	err := CreateService(client, deployName)
 	if err != nil {
 		panic(err)
@@ -197,7 +197,7 @@ func TestCreateService(t *testing.T) {
 func TestTeardownService(t *testing.T) {
 	client := createClient(kubeconfig)
 
-	deployName := GetDeployName("dummy", "tf-object-detection", "latest")
+	deployName := GetDeployName("dummy", "tf-object-detection", "latest", "?")
 	err := TeardownService(client, deployName)
 	if err != nil {
 		panic(err)

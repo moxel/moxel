@@ -41,6 +41,8 @@ var DBAddress string
 var RedisDBAddress string
 var RedisDBPassword string
 
+const MandrillAPIKey = "1HMBQ1mtVG5p3QtYpmI5tA"
+
 func InitGlobal() {
 	env := os.Getenv("ENV")
 	fmt.Println("ENV", env)
