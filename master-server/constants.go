@@ -41,6 +41,10 @@ var DBAddress string
 var RedisDBAddress string
 var RedisDBPassword string
 
+const AUTH0_DOMAIN = "dummyai.auth0.com"
+const AUTH0_CLIENT_ID = "0hItkN1iRVqZGtU2okpiyTJmsiR49K9f"
+const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiIxLjiuOEB8NF3J" // Suffer from reverse-compilation.
+
 const MandrillAPIKey = "1HMBQ1mtVG5p3QtYpmI5tA"
 
 func InitGlobal() {
