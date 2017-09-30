@@ -1579,7 +1579,14 @@ class ModelView extends Component {
               }
 
             var dateToday = new Date(new Date().toJSON().slice(0,10));
-            const numDays = 300;
+
+            var numDays;
+            if(LayoutUtils.isMobile) {
+                numDays = 100;
+            }else{
+                numDays = 300;
+            }
+            
 
             
             return (
@@ -1753,7 +1760,7 @@ class ModelView extends Component {
                         </span>
                         
                         {
-                            self.isAuthor
+                            self.isAuthor && !LayoutUtils.isMobile()
                             ?
                             <span style={{marginLeft: "auto", marginRight: "0px"}}>
                                 <div style={{textAlign: "center", width: "100%"}}>
@@ -1802,7 +1809,7 @@ class ModelView extends Component {
                     </FixedWidthRow>
 
                     <FixedWidthRow>
-                        <Tabs inkBarStyle={{backgroundColor: "red"}} tabItemContainerStyle={{background: "none"}}>
+                        <Tabs inkBarStyle={{backgroundColor: "red"}} tabItemContainerStyle={{background: "none"}} tabTemplateStyle={{marginLeft: "5px", marginRight: "5px"}}>
                             <Tab label={renderTabTitle('widgets', 'Demo')} active >
                                 {renderModelHeader()}
                                 {renderModelGallery()}
@@ -1825,9 +1832,15 @@ class ModelView extends Component {
                                 {renderModelComments()}
                             </Tab>
 
-                            <Tab label={renderTabTitle('settings', 'Settings')} disabled={self.isAuthor ? false : true}>
-                                {renderModelDangerZone()}
-                            </Tab>
+                            {
+                                self.isAuthor && !LayoutUtils.isMobile()
+                                ?
+                                <Tab label={renderTabTitle('settings', 'Settings')}>
+                                    {renderModelDangerZone()}
+                                </Tab>
+                                :
+                                null
+                            }
                             
                             
                         </Tabs>
