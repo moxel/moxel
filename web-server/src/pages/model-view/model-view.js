@@ -235,8 +235,9 @@ const StyledModelLayout = styled(Flex)`
     .react-calendar-heatmap .color-scale-2 { fill: #8cc665; }
     .react-calendar-heatmap .color-scale-3 { fill: #44a340; }
     .react-calendar-heatmap .color-scale-4 { fill: #1e6823; }
+
     .react-calendar-heatmap {
-        font-size: 10px;
+        font-size: 6px;
     }
 
     .react-calendar-heatmap title {            
@@ -1581,10 +1582,10 @@ class ModelView extends Component {
             var dateToday = new Date(new Date().toJSON().slice(0,10));
 
             var numDays;
-            if(LayoutUtils.isMobile) {
+            if(LayoutUtils.isMobile()) {
                 numDays = 100;
             }else{
-                numDays = 300;
+                numDays = 200;
             }
             
 
