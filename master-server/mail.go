@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/mattbaird/gochimp"
 )
 
@@ -37,9 +37,7 @@ func SendTemplateEmail(subject string, template string, data []map[string]string
 			content = append(content, contentVar)
 		}
 
-		fmt.Println("content", content)
 		renderedTemplate, err := mandrillApi.TemplateRender(templateName, nil, content)
-		fmt.Println("renderedTemplate", renderedTemplate)
 		if err != nil {
 			return err
 		}
