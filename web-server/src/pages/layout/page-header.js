@@ -68,10 +68,6 @@ class PageHeader extends Component {
         document.querySelector('#mc-embedded-subscribe').value = "Thanks!"
     }
 
-
-
-   
-
     render() {
         var self = this;
 
@@ -124,6 +120,10 @@ class PageHeader extends Component {
                                     <ProfileImage size={32} url={AuthStore.picture()} style={{marginTop: "8px"}}/>
                                     <a style={{fontSize: "12px", color: "#666", display: "inline-block", position: "absolute"}}>Signed in as <b>{AuthStore.username()}</b></a> 
                                 </SideNavItem>
+                                <SideNavItem waves icon="account_box">
+                                    <Link className="black-text" to={`/users/${AuthStore.username()}`}>Your Profile</Link>
+                                </SideNavItem>    
+                                <SideNavItem divider />
                                 <SideNavItem waves icon="exit_to_app">
                                     <Link className="black-text" to="/logout">Logout</Link>
                                 </SideNavItem>
@@ -143,6 +143,10 @@ class PageHeader extends Component {
                                 <li>
                                     <a style={{fontSize: "12px", color: "#666"}}>Signed in as <b>{AuthStore.username()}</b></a>
                                 </li>
+                                <li className="divider"></li>
+                                <li>
+                                    <Link className="black-text" to={`/users/${AuthStore.username()}`}>Your Profile</Link>
+                                </li>    
                                 <li className="divider"></li>
                                 <li>
                                     <Link className="black-text" to="/logout">Logout</Link>
