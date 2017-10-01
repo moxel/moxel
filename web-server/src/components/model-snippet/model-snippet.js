@@ -80,53 +80,53 @@ export default function ModelSnippet({
                                      }: Props) {
     return (
         <StyledModelSnippet component={Flex} column className="model-snippet">
-             <div className="col s12 m7">
-                <div className="card horizontal">
-                  {/*<div className="card-image">
-                    <img src="https://lorempixel.com/100/190/nature/6"/>
-                  </div>*/}
-                  <div className="card-stacked">
-                    <div className="card-content">
-                      <Link to={`/models/${user}/${id}/${tag}`}>
-                            <FlexItem className="snippet-id">
-                                {user}
-                                <span style={{marginLeft: "5px", marginRight: "5px"}}>/</span>
-                                {id}
-                            </FlexItem>
-                            <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
-                            <FlexItem className="snippet-body">
-                                <p>{description}</p>
-                            </FlexItem>
-                            {/*<Flex row
-                                  className="snippet-footer"
-                                  component={FlexItem}
-                                  fixed>
-                                {{contributors.map(({username}) => <ProfileImage className="profile-snippet"
-                                                                                key={username}
-                                                                                username={username}
-                                                                                size={30}/>)}}
-                                <FlexSpacer/>
-                                <FlexItem></FlexItem>
-                            </Flex>*/}
-                        </Link>
-                    </div>
-                    <div className="card-action">
-                        <span>{
-                            labels.map((label, i) => <SimpleTag key={i} href={`/list?label=${label}`}>{label}</SimpleTag>)
-                        }</span>
-                        <span style={{float: "right"}}>
-                            <span>
-                                <i className="material-icons" style={{fontSize: "15px"}}>loyalty</i>&nbsp;  <span>{tag}</span> &nbsp;
-                            </span>
-                            &nbsp;
-                            <span>
-                                <i className="material-icons" style={{fontSize: "15px"}}>star</i>&nbsp; <span>{stars}</span>
-                            </span>
+             
+            <div className="card horizontal">
+              {/*<div className="card-image">
+                <img src="https://lorempixel.com/100/190/nature/6"/>
+              </div>*/}
+              <div className="card-stacked">
+                <div className="card-content">
+                  <Link to={`/models/${user}/${id}/${tag}`}>
+                        <FlexItem className="snippet-id">
+                            {user}
+                            <span style={{marginLeft: "5px", marginRight: "5px"}}>/</span>
+                            {id}
+                        </FlexItem>
+                        <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
+                        <FlexItem className="snippet-body">
+                            <p>{description}</p>
+                        </FlexItem>
+                        {/*<Flex row
+                              className="snippet-footer"
+                              component={FlexItem}
+                              fixed>
+                            {{contributors.map(({username}) => <ProfileImage className="profile-snippet"
+                                                                            key={username}
+                                                                            username={username}
+                                                                            size={30}/>)}}
+                            <FlexSpacer/>
+                            <FlexItem></FlexItem>
+                        </Flex>*/}
+                    </Link>
+                </div>
+                <div className="card-action">
+                    <span>{
+                        labels.map((label, i) => <SimpleTag key={i} href={`/list?label=${label}`}>{label}</SimpleTag>)
+                    }</span>
+                    <span style={{float: "right"}}>
+                        <span>
+                            <i className="material-icons" style={{fontSize: "15px"}}>loyalty</i>&nbsp;  <span>{tag}</span> &nbsp;
                         </span>
-                    </div>
-                  </div>
+                        &nbsp;
+                        <span>
+                            <i className="material-icons" style={{fontSize: "15px"}}>star</i>&nbsp; <span>{stars}</span>
+                        </span>
+                    </span>
                 </div>
               </div>
+            </div>
+          
             
         </StyledModelSnippet>
     )

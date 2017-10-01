@@ -9,8 +9,12 @@ import SocialShare from 'material-ui/svg-icons/social/share';
 import ContentDrafts from 'material-ui/svg-icons/content/drafts';
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
-import AuthStore from "../../stores/AuthStore";
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
+// Store
+import AuthStore from "../../stores/AuthStore";
+import ModelStore from "../../stores/ModelStore";
+// Our react components
+import ModelSnippet from "../../components/model-snippet/model-snippet";
 
 
 const StyledModelLayout = styled(Flex)`
@@ -20,6 +24,31 @@ const StyledModelLayout = styled(Flex)`
 class UserView extends Component {
 	constructor() {
 		super()
+		var self = this;
+
+		self.state = {
+			'models': []
+		}
+	}
+
+	componentDidMount() {
+		ModelStore.fetchModelAll().then(function(models) {
+            var modelHash = {};
+            var modelAgg = [];
+            for(var model of models) {
+                // TODO: aggregate based on whichever tag comes later :)
+                var uid = model.user + "/" + model.id;
+                if(uid in modelHash) continue;
+                modelHash[uid] = model;
+                if(model.access == "public" || model.user == AuthStore.username()) {
+                    modelAgg.push(model); 
+                }
+            }
+            console.log(modelAgg)
+            this.setState({
+                models: modelAgg
+            })
+        }.bind(this));
 	}
 
 	render() {
@@ -55,6 +84,7 @@ class UserView extends Component {
 							  </Card>
                         </div>
                         <div className="col s8 m8">
+                        	{self.state.models.map((item) => (<ModelSnippet {...item}/>))}
                         </div>
                     </div>
 				</FixedWidthRow>

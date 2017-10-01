@@ -17,14 +17,12 @@ class Main extends Component {
 
 	componentDidMount() {
 		var user = AuthStore.username();
-		ModelStore.fetchModelAll().then(function(models) {
+		ModelStore.listModel().then(function(models) {
             var modelHash = {};
             var modelAgg = [];
             for(var model of models) {
                 // TODO: aggregate based on whichever tag comes later :)
                 var uid = model.user + "/" + model.id;
-                if(uid in modelHash) continue;
-                modelHash[uid] = model;
                 if(model.access == "public" || model.user == AuthStore.username()) {
                     modelAgg.push(model); 
                 }
