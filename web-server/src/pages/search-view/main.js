@@ -17,7 +17,7 @@ class Main extends Component {
 
 	componentDidMount() {
 		var user = AuthStore.username();
-		ModelStore.listModel().then(function(models) {
+		ModelStore.fetchModelAll().then(function(models) {
             var modelHash = {};
             var modelAgg = [];
             for(var model of models) {

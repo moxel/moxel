@@ -32,7 +32,10 @@ class UserView extends Component {
 	}
 
 	componentDidMount() {
-		ModelStore.fetchModelAll().then(function(models) {
+		var self = this;
+		const {userId} = self.props.match.params;
+
+		ModelStore.listModels(userId).then(function(models) {
             var modelHash = {};
             var modelAgg = [];
             for(var model of models) {
