@@ -32,6 +32,8 @@ class UserView extends Component {
 		self.state = {
 			'models': []
 		}
+
+		this.handleSearchBarChange = this.handleSearchBarChange.bind(this);
 	}
 
 	componentDidMount() {
@@ -51,10 +53,28 @@ class UserView extends Component {
                 }
             }
             console.log(modelAgg)
-            this.setState({
+            self.models = modelAgg
+            self.setState({
                 models: modelAgg
             })
-        }.bind(this));
+        });
+	}
+
+	handleSearchBarChange(text) {
+		var self = this;
+
+		text = text.toLowerCase();
+
+		var modelsFiltered = [];
+		for(var model of self.models) {
+			if(model.title.toLowerCase().search(text) != -1 || model.id.toLowerCase().search(text) != -1) {
+				modelsFiltered.push(model);
+			}
+		}
+
+		self.setState({
+			'models': modelsFiltered
+		})
 	}
 
 	render() {
@@ -94,7 +114,7 @@ class UserView extends Component {
 			return (
 				<div className="user-models-view">
 					 <SearchBar
-				      onChange={() => console.log('onChange')}
+				      onChange={self.handleSearchBarChange}
 				      onRequestSearch={() => console.log('onRequestSearch')}
 				      style={{
 				        margin: '0 auto',
