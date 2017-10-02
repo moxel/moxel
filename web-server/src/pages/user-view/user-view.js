@@ -15,6 +15,7 @@ import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
 // Our react components
 import ModelSnippet from "../../components/model-snippet/model-snippet";
+import LayoutUtils from "../../libs/LayoutUtils"
 
 
 const StyledModelLayout = styled(Flex)`
@@ -58,37 +59,70 @@ class UserView extends Component {
 		var self = this;
 		const {userId} = self.props.match.params;
 
+		
+
+		function renderUserProfile() {
+			return (
+				<Card>
+				    {/*<CardHeader
+				      title={AuthStore.username()}
+				      subtitle={userId}
+				      avatar={AuthStore.picture()}
+				    />*/}
+				    <CardMedia
+				      overlay={<CardTitle title={AuthStore.username()} subtitle={userId} />}
+				    >
+				      <img src={AuthStore.picture()} alt="" />
+				    </CardMedia>
+				    {/*<CardTitle title="Card title" subtitle={userId} />*/}
+				    <CardText>
+				      I tame wild neural networks.
+				    </CardText>
+				    <Divider/>
+				    <List>
+				      <ListItem primaryText="Stanford University" leftIcon={<MapsPlace />} />
+				      <ListItem primaryText="tianlins@cs.stanford.edu" leftIcon={<CommunicationEmail />} />
+				      <ListItem primaryText="http://timshi.xyz" leftIcon={<SocialShare />} />
+				    </List>
+				</Card>
+			);
+		}
+
+		function renderUserModels() {
+			return (
+				<div>
+					{self.state.models.map((item) => (<ModelSnippet {...item}/>))}
+				</div>
+			);
+		}
+
+		function renderUserView() {
+			if(LayoutUtils.isMobile()) {
+				return (
+					<div>
+						{renderUserProfile()}	
+						{renderUserModels()}
+					</div>
+				);
+			}else{
+				return (
+					<div>
+						<div className="col s4 m4">
+							{renderUserProfile()}	
+		                </div>
+		                <div className="col s8 m8">
+		                	{renderUserModels()}
+		                </div>
+		            </div>
+	            );
+			}
+		}
+
 		return (
 			<StyledModelLayout>
 				<FixedWidthRow>
 					<div className="row" style={{width: "100%"}}>
-                        <div className="col s4 m4">
-                        	<Card>
-							    {/*<CardHeader
-							      title={AuthStore.username()}
-							      subtitle={userId}
-							      avatar={AuthStore.picture()}
-							    />*/}
-							    <CardMedia
-							      overlay={<CardTitle title={AuthStore.username()} subtitle={userId} />}
-							    >
-							      <img src={AuthStore.picture()} alt="" />
-							    </CardMedia>
-							    {/*<CardTitle title="Card title" subtitle={userId} />*/}
-							    <CardText>
-							      I tame wild neural networks.
-							    </CardText>
-							    <Divider/>
-							    <List>
-							      <ListItem primaryText="Stanford University" leftIcon={<MapsPlace />} />
-							      <ListItem primaryText="tianlins@cs.stanford.edu" leftIcon={<CommunicationEmail />} />
-							      <ListItem primaryText="http://timshi.xyz" leftIcon={<SocialShare />} />
-							    </List>
-							  </Card>
-                        </div>
-                        <div className="col s8 m8">
-                        	{self.state.models.map((item) => (<ModelSnippet {...item}/>))}
-                        </div>
+                        {renderUserView()}
                     </div>
 				</FixedWidthRow>
 			</StyledModelLayout>
