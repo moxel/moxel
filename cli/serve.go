@@ -118,8 +118,8 @@ func (model *LocalModel) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	results := map[interface{}]interface{}{
-		"status":   "LIVE",
-		"metadata": configInterface,
+		"status": "LIVE",
+		"spec":   configInterface,
 	}
 	response, err := json.Marshal(cleanupInterfaceMap(results))
 	if err != nil {
