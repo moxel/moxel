@@ -16,10 +16,12 @@ import ModelStore from "../../stores/ModelStore";
 // Our react components
 import ModelSnippet from "../../components/model-snippet/model-snippet";
 import LayoutUtils from "../../libs/LayoutUtils"
-
+import SearchBar from 'material-ui-search-bar'
 
 const StyledModelLayout = styled(Flex)`
-
+.user-models-view input {
+	color: black !important;
+}
 `
 
 class UserView extends Component {
@@ -90,7 +92,16 @@ class UserView extends Component {
 
 		function renderUserModels() {
 			return (
-				<div>
+				<div className="user-models-view">
+					 <SearchBar
+				      onChange={() => console.log('onChange')}
+				      onRequestSearch={() => console.log('onRequestSearch')}
+				      style={{
+				        margin: '0 auto',
+				        maxWidth: 800,
+				        color: "black"
+				      }}
+				    />
 					{self.state.models.map((item) => (<ModelSnippet {...item}/>))}
 				</div>
 			);

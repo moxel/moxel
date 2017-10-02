@@ -22,6 +22,7 @@
     "markdown-it": "^8.3.1",
     "material-ui": "^0.19.1",
     "material-ui-chip-input": "^0.17.2",
+    "material-ui-search-bar": "^0.4.0",
     "morgan": "^1.8.2",
     "mousetrap": "^1.6.1",
     "neal-react": "^0.2.5",
