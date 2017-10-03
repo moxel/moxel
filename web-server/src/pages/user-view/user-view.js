@@ -361,7 +361,7 @@ class UserView extends Component {
 				    <CardMedia
 				      overlay={<CardTitle title={renderUserFullName()} subtitle={userId} />}
 				    >
-				      <img src={AuthStore.picture()} alt="" />
+				      <img src={self.state.profile ? self.state.profile.picture : ''} alt="" />
 				    </CardMedia>
 				    {/*<CardTitle title="Card title" subtitle={userId} />*/}
 				    <CardText>

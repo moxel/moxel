@@ -58,6 +58,10 @@ const StyledModelSnippet = styled(FlexItem)`
         color: #888 !important;
         border: 1px solid #888;
     }
+
+    .model-id a:hover {
+        text-decoration: underline;
+    }
 `;
 type Props = {
     id: string,
@@ -88,10 +92,10 @@ export default function ModelSnippet({
               <div className="card-stacked">
                 <div className="card-content">
                   <Link to={`/models/${user}/${id}/${tag}`}>
-                        <FlexItem className="snippet-id">
-                            {user}
+                        <FlexItem className="snippet-id model-id">
+                            <Link to={`/users/${user}`}>{user}</Link>
                             <span style={{marginLeft: "5px", marginRight: "5px"}}>/</span>
-                            {id}
+                            <Link to={`/models/${user}/${id}/`}>{id}</Link>
                         </FlexItem>
                         <FlexItem className="snippet-title" component="h1">{title}</FlexItem>
                         <FlexItem className="snippet-body">
