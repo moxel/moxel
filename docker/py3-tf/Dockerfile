@@ -6,6 +6,10 @@ RUN pip3 install tensorflow
 
 RUN apt update \
     && apt install -y sox libsox-fmt-all protobuf-compiler python-pil python-lxml tmux htop
+
+# Dependencies for NLP.
+RUN pip install flask nltk tqdm jinja2 \
+    && python -c "import nltk; nltk.download('punkt')"
     
 # dependencies for DeepSpeech
 RUN apt install -y libssl-dev

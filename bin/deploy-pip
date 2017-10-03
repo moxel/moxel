@@ -1,4 +1,5 @@
 #!/bin/bash
+sudo echo
 ./bin/release-cli
 sudo ./bin/deploy-drivers
 sudo ./bin/deploy-clients

@@ -1327,7 +1327,10 @@ class ModelView extends Component {
                                     {renderModelShare()}
                                 </div>
 
-                                {renderModelStatus()}
+
+                                <div>
+                                    {renderModelStatus()}
+                                </div>
 
                                 {renderModelDescription()}
 
