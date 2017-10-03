@@ -26,6 +26,7 @@ const StyledFileUploader = styled(FlexItem)`
         width: 100%;
         height: 100%;
         text-align: center;
+        overflow: hidden;
     }
 
     .dropzone.dz-clickable {
@@ -38,7 +39,7 @@ const StyledFileUploader = styled(FlexItem)`
         text-align: center;
         margin: 0;
         position: absolute !important;
-        z-index: 99999;
+        z-index: 999;
         color: rgba(255, 255, 255, 0);
         height: 100%;
         width: 100%;
@@ -46,6 +47,8 @@ const StyledFileUploader = styled(FlexItem)`
         background: rgba(255, 255, 255, 0);
         -webkit-transition: background-color .5s;
         transition: background-color .5s;
+        left: 0;
+        top: 0;
     }
 
     .dropzone .dz-message:hover {
@@ -80,16 +83,14 @@ const StyledFileUploader = styled(FlexItem)`
 
     .dropzone .dz-preview.dz-image-preview {
         background: white;
-        width: 100%;
         margin: 0;
-        height: 100%;
-    }
-
-    .dropzone .dz-preview.dz-image-preview {
-        background: white;
+        left: 0;
+        top: 0;
+        position: absolute !important;
         height: 100% !important;
         width: 100% !important;
     }
+
 
     height: 300px;
     width: auto;

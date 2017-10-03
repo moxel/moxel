@@ -19,6 +19,7 @@ import ModelStore from "../../stores/ModelStore";
 import ModelSnippet from "../../components/model-snippet/model-snippet";
 import LayoutUtils from "../../libs/LayoutUtils"
 import SearchBar from 'material-ui-search-bar'
+import ImageUploader from "../../widgets/image-uploader";
 
 
 const StyledModelLayout = styled(Flex)`
@@ -34,6 +35,8 @@ const StyledModelLayout = styled(Flex)`
     border-bottom-style: dashed;
     border-left-style: none;
     overflow: hidden;
+    margin-bottom: 0;
+    margin-top: 0;
 }
 
 .editable-input:hover {
@@ -53,6 +56,8 @@ const StyledModelLayout = styled(Flex)`
     overflow-x: hidden;
     overflow-y: auto;
     resize: "none";
+    margin-bottom: 0;
+    margin-top: 0;
 }
 
 .editable-input-dark:hover {
@@ -62,8 +67,47 @@ const StyledModelLayout = styled(Flex)`
     border-width: 1px;
 }
 
+textarea {
+	resize: none;
+}
+
 textarea:focus {
     outline: none;
+}
+
+.dropzone-col {
+	width: 100%;
+}
+
+.dz-preview.dz-processing.dz-error.dz-complete.dz-image-preview {
+    width: 80%;
+    height: 80%;
+}
+
+.dz-image {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.dz-image img {
+    width: 100%;
+    height: 100%;
+}
+
+
+
+.filepicker.dropzone.dz-clickable {
+	border: none;
+}
+
+.profile-card img {
+	width: auto !important;
+    height: auto !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 130% !important;
+    max-height: 130% !important;
+    flex-shrink: 0 !important;
 }
 `
 
@@ -84,6 +128,7 @@ class UserView extends Component {
 		this.handleUpdateUserHomepage = this.handleUpdateUserHomepage.bind(this);
 		this.handleUpdateUserBio = this.handleUpdateUserBio.bind(this);
 		this.handleToggleEdit = this.handleToggleEdit.bind(this);
+		this.handleUploadUserPicture = this.handleUploadUserPicture.bind(this);
 		this.updateProfile = this.updateProfile.bind(this);
 		this.updateUserView = this.updateUserView.bind(this);
 
@@ -240,6 +285,34 @@ class UserView extends Component {
 		})
 	}
 
+	handleUploadUserPicture(file) {
+		var self = this;
+        // for(var selector of ['.dz-error-mark', '.dz-error-message']) {
+        //     var ignoreView = document.querySelector(selector);    
+        //     ignoreView.outerHTML = '';
+        // }
+            
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.addEventListener("load", function () {
+            var url = reader.result;
+            console.log('image loaded', url);
+            AuthStore.updateProfile({
+				user_metadata: {
+					picture: url
+				}
+			}).then((profile) => {
+				self.setState({
+					profile: profile
+				});
+				self.notificationSystem.addNotification({
+		          message: 'Successfully updated your profile picture!',
+		          level: 'success'
+		        });
+			})	
+        }, false);
+	}
+
 	render() {
 		var self = this;
 		const {userId} = self.props.match.params;
@@ -314,8 +387,8 @@ class UserView extends Component {
 			if(self.state.editMode) {
 				return <ListItem primaryText={
 					<input id="author-location" defaultValue={location} className="editable-input-dark" 
-                            onBlur={self.handleUpdateUserLocation}/>
-				} leftIcon={<MapsPlace />} />
+                            onBlur={self.handleUpdateUserLocation} />
+				} leftIcon={<MapsPlace />} innerDivStyle={{paddingTop: 0, paddingBottom: 0}} />
 			}else if(location) {
 				return <ListItem primaryText={location} leftIcon={<MapsPlace />} onClick={()=>{window.open('https://www.google.com/maps/search/' + location)}}/>
 			} else {
@@ -342,11 +415,30 @@ class UserView extends Component {
 				return <ListItem primaryText={
 					<input id="author-homepage" defaultValue={homepage} className="editable-input-dark" 
                             onBlur={self.handleUpdateUserHomepage}/>
-				} leftIcon={<SocialShare />} />
+				} leftIcon={<SocialShare />}  innerDivStyle={{paddingTop: 0, paddingBottom: 0}} />
 			}else if(homepage) {
-				return <ListItem primaryText={homepage} leftIcon={<MapsPlace />} onClick={()=>{window.open(homepage)}}/>
+				return <ListItem primaryText={homepage} leftIcon={<SocialShare />} onClick={()=>{window.open(homepage)}}/>
 			} else {
 				return null;
+			}
+		}
+
+		function renderUserPicture() {
+			if(!self.state.profile) return <img alt=""></img>;
+
+			var profilePicture = self.state.profile ? self.state.profile.picture : '';
+			if(self.state.profile.user_metadata.picture) {
+				profilePicture = self.state.profile.user_metadata.picture;
+			}
+
+			function addThumbnailHandler(func) {
+				func(profilePicture);
+			}
+
+			if(self.state.editMode) {
+				return <ImageUploader uploadEventHandlers={{addedfile: self.handleUploadUserPicture}} addThumbnailHandler={addThumbnailHandler}></ImageUploader>
+			}else{
+				return <img src={profilePicture} alt="" style={{flexShrink: "0 !important"}}/>
 			}
 		}
 
@@ -358,10 +450,10 @@ class UserView extends Component {
 				      subtitle={userId}
 				      avatar={AuthStore.picture()}
 				    />*/}
-				    <CardMedia
+				    <CardMedia className="profile-card" overlayContentStyle={{zIndex: 9999}} mediaStyle={{width: "264px", height: "264px", position: "relative", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden"}}
 				      overlay={<CardTitle title={renderUserFullName()} subtitle={userId} />}
 				    >
-				      <img src={self.state.profile ? self.state.profile.picture : ''} alt="" />
+				      {renderUserPicture()}
 				    </CardMedia>
 				    {/*<CardTitle title="Card title" subtitle={userId} />*/}
 				    <CardText>

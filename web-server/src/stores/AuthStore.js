@@ -16,7 +16,7 @@ var lockOptions = {
   rememberLastLogin: true, // disable sso.
   auth: {
     redirectUrl: window.location.protocol + '//' + window.location.host + '/logged-in',
-    params: {scope: "openid user_metadata", audience: "https://dummyai.auth0.com/api/v2/"},
+    params: {scope: "openid user_metadata picture", audience: "https://dummyai.auth0.com/api/v2/"},
   }
 };
 
