@@ -28,4 +28,5 @@ pages:
 - Tutorial:
   - Deploy in Python:
     - 'tutorials/question-answering.md'
+    - 'tutorials/mnist.md'
 

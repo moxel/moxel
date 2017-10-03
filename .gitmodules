@@ -46,3 +46,6 @@
 [submodule "tests/upload-tests/theano-bare"]
 	path = tests/upload-tests/theano-bare
 	url = https://github.com/moxel/theano-bare
+[submodule "examples/tf-mnist"]
+	path = examples/tf-mnist
+	url = https://github.com/moxel/tf-mnist
