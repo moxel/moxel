@@ -35,9 +35,10 @@ class LoggedInView extends Component {
             var redirectUrl = localStorage.getItem('auth0RedirectUrl');
             if(redirectUrl) {
                 localStorage.removeItem('auth0RedirectUrl');
-                self.setState({
-                    redirectUrl: redirectUrl
-                });
+                window.location.href = redirectUrl;
+                // self.setState({
+                //     redirectUrl: redirectUrl
+                // });
             }
         });
     }
