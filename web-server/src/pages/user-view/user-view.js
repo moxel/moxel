@@ -85,7 +85,7 @@ class UserView extends Component {
 
 		function renderUserProfile() {
 			return (
-				<Card>
+				<Card style={{marginBottom: "20px"}}>
 				    {/*<CardHeader
 				      title={AuthStore.username()}
 				      subtitle={userId}
