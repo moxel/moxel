@@ -15,34 +15,26 @@ var lockOptions = {
   socialButtonStyle: 'small',
   rememberLastLogin: true, // disable sso.
   auth: {
-    redirectUrl: window.location.protocol + '//' + window.location.host + '/logged-in'
+    redirectUrl: window.location.protocol + '//' + window.location.host + '/logged-in',
+    params: {scope: "openid user_metadata", audience: "https://dummyai.auth0.com/api/v2/"},
   }
 };
+
+const AUTH0_DOMAIN = 'dummyai.auth0.com';
 
 class AuthStoreClass {
   lock = new Auth0Lock(
     'MJciGnUXnD850clHoLM4tkltFlkgJGPs',
-    'dummyai.auth0.com',
+    AUTH0_DOMAIN,
     lockOptions
   );
 
   constructor() {
     var lock = this.lock;
     
-    lock.on("authenticated", function(authResult) {
-      lock.getUserInfo(authResult.accessToken, function(error, profile) {
-        if (error) {
-          console.log('Error: ', error);
-          return;
-        }
-        console.log('profile', profile);
-        localStorage.setItem('accessToken', authResult.accessToken);
-        localStorage.setItem('profile', JSON.stringify(profile));
-      }.bind(this));
-    }.bind(this));
-
     this.login = this.login.bind(this);
     this.loginOrSignup = this.loginOrSignup.bind(this);
+    this.getProfileByUser = this.getProfileByUser.bind(this);
   }
 
 	isAuthenticated() {
@@ -109,12 +101,73 @@ class AuthStoreClass {
     return this.profile().nickname;
   }
 
+  metadata() {
+    return this.profile().user_metadata;
+  }
+
+  fullName() {
+    return this.metadata()['full_name'];
+  }
+
   email() {
     return this.profile().email;
   }
 
   picture() {
     return this.profile().picture;
+  }
+
+  auth0UserId() {
+    var profile = this.profile();
+    return profile['user_id'];
+  }
+
+  accessToken() {
+    var accessToken = localStorage.getItem('accessToken');
+    if(!accessToken) {
+      this.login(window.location.pathname);
+      throw "No accessToken is available."
+      return "";
+    }
+    return accessToken;
+  }
+
+  updateProfile(data) {
+    console.log('updateProfile', this);
+    var uid = this.auth0UserId();
+    var accessToken = this.accessToken();
+
+    return new Promise((resolve, reject) => {
+      fetch(`https://${AUTH0_DOMAIN}/api/v2/users/${uid}`, {
+        method: 'PATCH',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken
+        }),
+        body: JSON.stringify(data)
+      }).then((response)=>{
+        return response.json();
+      }).then((profile) => {
+        localStorage.setItem('profile', JSON.stringify(profile));
+        resolve(profile);
+      }).catch((err) => {
+        reject(err);
+      });
+    });
+  }
+
+  getProfileByUser(userId) {
+    var self = this;
+
+    return new Promise(function(resolve, reject) {
+      fetch(`/api/users/${userId}`, {
+        method: 'GET'
+      }).then((response)=>{
+        return response.json();
+      }).then((result) => {
+        resolve(result);          
+      })
+    });
   }
 }
 

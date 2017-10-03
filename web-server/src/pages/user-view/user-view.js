@@ -10,6 +10,8 @@ import ContentDrafts from 'material-ui/svg-icons/content/drafts';
 import PropTypes from "prop-types";
 import FixedWidthRow from "../../components/fixed-width-row";
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
+import FlatButton from 'material-ui/FlatButton';
+import NotificationBanner from '../../components/notification-banner/notification-banner';
 // Store
 import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
@@ -18,9 +20,50 @@ import ModelSnippet from "../../components/model-snippet/model-snippet";
 import LayoutUtils from "../../libs/LayoutUtils"
 import SearchBar from 'material-ui-search-bar'
 
+
 const StyledModelLayout = styled(Flex)`
 .user-models-view input {
 	color: black !important;
+}
+
+.editable-input {
+    border-color: #fff;
+    border-width: 1px;
+    border-top-style: none;
+    border-right-style: none;
+    border-bottom-style: dashed;
+    border-left-style: none;
+    overflow: hidden;
+}
+
+.editable-input:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-bottom: solid;
+    border-color: #fff;
+    border-width: 1px;
+}
+
+.editable-input-dark {
+    border-color: #333;
+    border-width: 1px;
+    border-top-style: none;
+    border-right-style: none;
+    border-bottom-style: dashed;
+    border-left-style: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    resize: "none";
+}
+
+.editable-input-dark:hover {
+    background-color: rgba(50, 50, 50, 0.14);
+    border-bottom: solid;
+    border-color: #333;
+    border-width: 1px;
+}
+
+textarea:focus {
+    outline: none;
 }
 `
 
@@ -30,15 +73,41 @@ class UserView extends Component {
 		var self = this;
 
 		self.state = {
-			'models': []
+			'models': [],
+			'editMode': false,
+			'profile': null,
 		}
 
 		this.handleSearchBarChange = this.handleSearchBarChange.bind(this);
+		this.handleUpdateUserFullName = this.handleUpdateUserFullName.bind(this);
+		this.handleUpdateUserLocation = this.handleUpdateUserLocation.bind(this);
+		this.handleUpdateUserHomepage = this.handleUpdateUserHomepage.bind(this);
+		this.handleUpdateUserBio = this.handleUpdateUserBio.bind(this);
+		this.handleToggleEdit = this.handleToggleEdit.bind(this);
+		this.updateProfile = this.updateProfile.bind(this);
+		this.updateUserView = this.updateUserView.bind(this);
+
 	}
 
-	componentDidMount() {
+	updateProfile(profile) {
+		var self = this
+
+		console.log('profile', profile);
+		if(!profile.user_metadata) profile.user_metadata = {}
+		self.setState({
+			profile: profile
+		});
+	}
+
+	updateUserView(userId) {
 		var self = this;
-		const {userId} = self.props.match.params;
+
+		self.isAuthor = (userId == AuthStore.username());
+		if(!self.isAuthor) {
+			AuthStore.getProfileByUser(userId).then(self.updateProfile);
+		}else{
+			self.updateProfile(AuthStore.profile());
+		}
 
 		ModelStore.listModels(userId).then(function(models) {
             var modelHash = {};
@@ -60,6 +129,92 @@ class UserView extends Component {
         });
 	}
 
+	componentDidMount() {
+		var self = this;
+		const {userId} = self.props.match.params;
+
+		self.updateUserView(userId);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		var self = this;
+		const {userId} = nextProps.match.params;
+		console.log('will receive props', userId)
+		self.updateUserView(userId);
+	}
+
+	handleUpdateUserFullName(e) {
+		var self = this;
+
+		AuthStore.updateProfile({
+			user_metadata: {
+				'full_name': e.target.value
+			}
+		}).then((profile) => {
+			self.setState({
+				profile: profile
+			});
+			self.notificationSystem.addNotification({
+	          message: 'Successfully updated your name!',
+	          level: 'success'
+	        });
+		})
+	}
+
+	handleUpdateUserLocation(e) {
+		var self = this;
+
+		AuthStore.updateProfile({
+			user_metadata: {
+				'location': e.target.value
+			}
+		}).then((profile) => {
+			self.setState({
+				profile: profile
+			});
+			self.notificationSystem.addNotification({
+	          message: 'Successfully updated your location!',
+	          level: 'success'
+	        });
+		})
+	}
+
+	handleUpdateUserHomepage(e) {
+		var self = this;
+
+		AuthStore.updateProfile({
+			user_metadata: {
+				'homepage': e.target.value
+			}
+		}).then((profile) => {
+			self.setState({
+				profile: profile
+			});
+			self.notificationSystem.addNotification({
+	          message: 'Successfully updated your homepage!',
+	          level: 'success'
+	        });
+		})
+	}
+
+	handleUpdateUserBio(e) {
+		var self = this;
+
+		AuthStore.updateProfile({
+			user_metadata: {
+				'bio': e.target.value
+			}
+		}).then((profile) => {
+			self.setState({
+				profile: profile
+			});
+			self.notificationSystem.addNotification({
+	          message: 'Successfully updated your bio!',
+	          level: 'success'
+	        });
+		})	
+	}
+
 	handleSearchBarChange(text) {
 		var self = this;
 
@@ -77,11 +232,123 @@ class UserView extends Component {
 		})
 	}
 
+	handleToggleEdit() {
+		var self = this;
+
+		self.setState({
+			editMode: !self.state.editMode
+		})
+	}
+
 	render() {
 		var self = this;
 		const {userId} = self.props.match.params;
 
-		
+		function renderEditOrSaveButton() {
+			if(!self.isAuthor) return null;
+			if(self.state.editMode) {
+				return (
+					<div>
+						<Divider/>
+				    	<CardActions>
+					      <FlatButton label="Save" onClick={self.handleToggleEdit}/>
+					    </CardActions>	
+					</div>
+				);
+		    }else{
+		    	return (
+		    		<div>
+		    			<Divider/>
+		    			<CardActions>
+					      <FlatButton label="Edit" onClick={self.handleToggleEdit}/>
+					    </CardActions>	
+		    		</div>
+		    	);
+		    	
+		    }
+		}
+
+		function renderUserFullName() {
+			if(!self.state.profile) {
+				return <div></div>;	
+			}
+
+			var fullName = self.state.profile.username;
+			if(self.state.profile.user_metadata['full_name']) {
+				fullName = self.state.profile.user_metadata['full_name'];
+			}
+
+			if(self.state.editMode) {
+				return (
+					<input id="author-fullname" defaultValue={fullName} className="editable-input" 
+                            onBlur={self.handleUpdateUserFullName}/>
+				);	
+			}else{
+				return fullName;
+			}
+		}
+
+		function renderUserBio() {
+			if(!self.state.profile) {
+				return '';	
+			}
+
+			var bio = self.state.profile.user_metadata['bio']
+			if(self.state.editMode) {
+				return (
+					<textarea id="author-bio" defaultValue={bio} className="editable-input-dark" 
+                            onBlur={self.handleUpdateUserBio}/>
+				);
+			}else{
+				return bio;
+			}
+		}
+
+		function renderUserLocation() {
+			if(!self.state.profile) {
+				return '';	
+			}
+
+			var location = self.state.profile.user_metadata['location'];
+
+			if(self.state.editMode) {
+				return <ListItem primaryText={
+					<input id="author-location" defaultValue={location} className="editable-input-dark" 
+                            onBlur={self.handleUpdateUserLocation}/>
+				} leftIcon={<MapsPlace />} />
+			}else if(location) {
+				return <ListItem primaryText={location} leftIcon={<MapsPlace />} onClick={()=>{window.open('https://www.google.com/maps/search/' + location)}}/>
+			} else {
+				return null;
+			}
+		}
+
+		function renderUserEmail() {
+			if(!self.state.profile) {
+				return '';	
+			}
+
+			return self.state.profile.email;
+		}
+
+		function renderUserHomepage() {
+			if(!self.state.profile) {
+				return '';	
+			}
+
+			var homepage = self.state.profile.user_metadata['homepage'];
+
+			if(self.state.editMode) {
+				return <ListItem primaryText={
+					<input id="author-homepage" defaultValue={homepage} className="editable-input-dark" 
+                            onBlur={self.handleUpdateUserHomepage}/>
+				} leftIcon={<SocialShare />} />
+			}else if(homepage) {
+				return <ListItem primaryText={homepage} leftIcon={<MapsPlace />} onClick={()=>{window.open(homepage)}}/>
+			} else {
+				return null;
+			}
+		}
 
 		function renderUserProfile() {
 			return (
@@ -92,20 +359,21 @@ class UserView extends Component {
 				      avatar={AuthStore.picture()}
 				    />*/}
 				    <CardMedia
-				      overlay={<CardTitle title={AuthStore.username()} subtitle={userId} />}
+				      overlay={<CardTitle title={renderUserFullName()} subtitle={userId} />}
 				    >
 				      <img src={AuthStore.picture()} alt="" />
 				    </CardMedia>
 				    {/*<CardTitle title="Card title" subtitle={userId} />*/}
 				    <CardText>
-				      I tame wild neural networks.
+				      {renderUserBio()}
 				    </CardText>
 				    <Divider/>
 				    <List>
-				      <ListItem primaryText="Stanford University" leftIcon={<MapsPlace />} />
-				      <ListItem primaryText="tianlins@cs.stanford.edu" leftIcon={<CommunicationEmail />} />
-				      <ListItem primaryText="http://timshi.xyz" leftIcon={<SocialShare />} />
+				      {renderUserLocation()}
+				      <ListItem primaryText={renderUserEmail()} leftIcon={<CommunicationEmail />} />
+				      {renderUserHomepage()}
 				    </List>
+				    {renderEditOrSaveButton()}
 				</Card>
 			);
 		}
@@ -156,6 +424,7 @@ class UserView extends Component {
                         {renderUserView()}
                     </div>
 				</FixedWidthRow>
+				<NotificationBanner ref={(notificationSystem) => {self.notificationSystem = notificationSystem;}} />
 			</StyledModelLayout>
 		)
 	}

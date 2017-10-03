@@ -38,6 +38,10 @@ func GetAuth0AccessToken() (string, error) {
 }
 
 func GetAuth0Users(accessToken string) ([]map[string]interface{}, error) {
+	return GetAuth0UsersByQuery(accessToken, "")
+}
+
+func GetAuth0UsersByQuery(accessToken string, query string) ([]map[string]interface{}, error) {
 	const numUsersPerPage = 10
 	totalUsers := -1
 	pageId := 0
@@ -49,7 +53,7 @@ func GetAuth0Users(accessToken string) ([]map[string]interface{}, error) {
 		}
 		req, _ := http.NewRequest("GET",
 			"https://"+AUTH0_DOMAIN+
-				fmt.Sprintf("/api/v2/users?page=%s&per_page=%s&include_totals=true", strconv.Itoa(pageId), strconv.Itoa(numUsersPerPage)), nil)
+				fmt.Sprintf("/api/v2/users?page=%s&per_page=%s&include_totals=true&q=%s", strconv.Itoa(pageId), strconv.Itoa(numUsersPerPage), query), nil)
 		req.Header.Add("Authorization", "Bearer "+accessToken)
 
 		res, _ := http.DefaultClient.Do(req)
