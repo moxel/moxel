@@ -78,9 +78,13 @@ class AuthStoreClass {
     });
   }
 
-	logout() {
-	  localStorage.removeItem('accessToken');	
+  clear() {
+    localStorage.removeItem('accessToken'); 
     localStorage.removeItem('profile'); 
+  }
+
+	logout() {
+    this.clear();
     this.lock.logout({ returnTo: window.location.protocol + '//' + window.location.host});
 	}
 
@@ -89,13 +93,20 @@ class AuthStoreClass {
       this.logout();
       return;
     }
+
     var rawProfile = localStorage.getItem('profile');
     if(!rawProfile) {
       this.login(window.location.pathname);
       throw "No profile is available."
       return;
     }
+
     var profile = JSON.parse(rawProfile);
+
+    if(!profile.user_metadata) {
+      profile.user_metadata = {}
+    }
+
     return profile;
   }
 
@@ -117,7 +128,7 @@ class AuthStoreClass {
 
   picture() {
     var pic = this.metadata().picture;
-    if(!pic) pic = this.profile().picture();
+    if(!pic) pic = this.profile().picture;
     return pic;
   }
 
@@ -136,8 +147,20 @@ class AuthStoreClass {
     return accessToken;
   }
 
+  setAccessToken(accessToken) {
+    localStorage.setItem('accessToken', accessToken);
+  }
+
+  setProfile(profile) {
+    if(!profile.user_metadata) {
+      profile.user_metadata = {}
+    }
+    localStorage.setItem('profile', JSON.stringify(profile));
+  }
+
   updateProfile(data) {
-    console.log('updateProfile', this);
+    var self = this;
+    
     var uid = this.auth0UserId();
     var accessToken = this.accessToken();
 
@@ -152,7 +175,7 @@ class AuthStoreClass {
       }).then((response)=>{
         return response.json();
       }).then((profile) => {
-        localStorage.setItem('profile', JSON.stringify(profile));
+        self.setProfile(profile);
         resolve(profile);
       }).catch((err) => {
         reject(err);

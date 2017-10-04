@@ -29,9 +29,8 @@ class LoggedInView extends Component {
         fetch(`/api/auth?code=${code}&redirect_uri=${redirect_uri}`).then((response) => {
             return response.json();
         }).then((result) => {
-
-            localStorage.setItem('accessToken', result['id_token']);
-            localStorage.setItem('profile', JSON.stringify(result['profile']));
+            AuthStore.setAccessToken(result['id_token']);
+            AuthStore.setProfile(result['profile'])
             console.log('User profile', result['profile']);
             var redirectUrl = localStorage.getItem('auth0RedirectUrl');
             if(redirectUrl) {
