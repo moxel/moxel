@@ -27,7 +27,7 @@ for name in ['linux', 'osx', 'windows']:
     bin_paths.append(os.path.join('moxel', 'bin', name, 'moxel'))
 
 setup(name='moxel',
-      version='0.0.3.post29',
+      version='0.0.3.post30',
       author='Moxel team',
       author_email='support@moxel.ai',
       url='http://moxel.ai',
