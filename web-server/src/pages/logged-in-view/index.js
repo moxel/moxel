@@ -1,6 +1,7 @@
 import React, {Component} from "react";
 import AuthStore from "../../stores/AuthStore";
 import {Redirect} from "react-router-dom";
+import ErrorNoConnectionView from "../../pages/error-view/no-connection";
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -40,12 +41,19 @@ class LoggedInView extends Component {
                 //     redirectUrl: redirectUrl
                 // });
             }
+        }).catch((err) => {
+            self.setState({
+                redirectUrl: '404'
+            })
         });
     }
 
     render() {
         if(!this.state.redirectUrl) {
             return <div></div>;
+        }
+        if(this.state.redirectUrl == '404') {
+            return <ErrorNoConnectionView/>
         }
         return <Redirect to={this.state.redirectUrl}/>;
     }
