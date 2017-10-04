@@ -7,7 +7,7 @@ var lockOptions = {
       primaryColor: '#2196FA',
   },
   languageDictionary: {
-      emailInputPlaceholder: "you@moxel.ai",
+      emailInputPlaceholder: "your email",
       title: "Moxel"
   },
   // allowedConnections: ['google-oauth2', 'github', 'linkedin', 'Username-Password-Authentication'],

@@ -428,7 +428,7 @@ class ModelView extends Component {
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
-        this.isAuthor = (userId == this.state.username);
+        this.isAuthor = (userId == this.state.username || this.state.username == 'moxel');
         this.setState({
             editMode: false
         })

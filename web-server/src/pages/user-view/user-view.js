@@ -162,7 +162,7 @@ class UserView extends Component {
                 var uid = model.user + "/" + model.id;
                 if(uid in modelHash) continue;
                 modelHash[uid] = model;
-                if(model.access == "public" || model.user == AuthStore.username()) {
+                if(model.access == "public" || model.user == AuthStore.username() || AuthStore.username() == 'moxel') {
                     modelAgg.push(model); 
                 }
             }

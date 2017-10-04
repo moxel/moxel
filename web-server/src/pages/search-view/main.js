@@ -37,7 +37,7 @@ class Main extends Component {
             for(var model of models) {
                 // TODO: aggregate based on whichever tag comes later :)
                 var uid = model.user + "/" + model.id;
-                if(model.access == "public" || model.user == AuthStore.username()) {
+                if(model.access == "public" || model.user == AuthStore.username() || AuthStore.username() == 'moxel') {
                     modelAgg.push(model); 
                 }
             }
