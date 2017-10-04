@@ -92,7 +92,10 @@ func PushAssets(repo *Repo, modelName string, commit string, config map[string]i
 		if assets != nil {
 			for _, asset := range assets.([]interface{}) {
 				assetPath, _ := filepath.Abs(asset.(string))
-				assetInfo, _ := os.Stat(assetPath)
+				assetInfo, err := os.Stat(assetPath)
+				if err != nil {
+					return err
+				}
 				if assetInfo.Mode().IsDir() {
 					filepath.Walk(assetPath, func(path string, f os.FileInfo, err error) error {
 						if assetInfo, _ := os.Stat(path); !assetInfo.Mode().IsDir() {

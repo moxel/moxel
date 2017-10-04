@@ -49,6 +49,12 @@
 [submodule "examples/tf-mnist"]
 	path = examples/tf-mnist
 	url = https://github.com/moxel/tf-mnist
+[submodule "examples/skip-thoughts"]
+	path = examples/skip-thoughts
+	url = https://github.com/ryankiros/skip-thoughts
 [submodule "examples/neural-storyteller"]
 	path = examples/neural-storyteller
 	url = https://github.com/ryankiros/neural-storyteller
+[submodule "examples/pix2pix-tensorflow"]
+	path = examples/pix2pix-tensorflow
+	url = https://github.com/affinelayer/pix2pix-tensorflow
