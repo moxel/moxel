@@ -114,7 +114,9 @@ class AuthStoreClass {
   }
 
   picture() {
-    return this.profile().picture;
+    var pic = this.metadata().picture;
+    if(!pic) pic = this.profile().picture();
+    return pic;
   }
 
   auth0UserId() {
