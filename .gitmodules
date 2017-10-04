@@ -49,3 +49,6 @@
 [submodule "examples/tf-mnist"]
 	path = examples/tf-mnist
 	url = https://github.com/moxel/tf-mnist
+[submodule "examples/neural-storyteller"]
+	path = examples/neural-storyteller
+	url = https://github.com/ryankiros/neural-storyteller

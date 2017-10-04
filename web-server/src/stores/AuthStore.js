@@ -69,8 +69,6 @@ class AuthStoreClass {
   }
 
 	login(callbackPath) {
-    var err = new Error();
-    console.error(err.stack);
     this.loginOrSignup(callbackPath, {});
 	}
 
@@ -87,6 +85,10 @@ class AuthStoreClass {
 	}
 
   profile() {
+    if(localStorage.getItem("accessToken") == "undefined") {
+      this.logout();
+      return;
+    }
     var rawProfile = localStorage.getItem('profile');
     if(!rawProfile) {
       this.login(window.location.pathname);
