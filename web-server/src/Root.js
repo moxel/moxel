@@ -4,6 +4,7 @@ import PageLayout from "./pages/layout/page-layout";
 import UploadViews from './pages/upload-view';
 import SearchViews from './pages/search-view';
 import ModelViews from './pages/model-view';
+import UserViews from './pages/user-view';
 import CreateView from './pages/create-view';
 import LoggedInView from './pages/logged-in-view';
 import LandingPage from './pages/home-view/landing-page';
@@ -46,6 +47,7 @@ export default function Root() {
                 {UploadViews}
                 {SearchViews}
                 {ModelViews}
+                {UserViews}
             </PageLayout>
         </MuiThemeProvider>
     );

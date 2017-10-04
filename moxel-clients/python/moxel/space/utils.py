@@ -42,6 +42,8 @@ def encode_json(kwargs, spaces):
 
         Return: A JSON-serializable dictionary.
     '''
+    assert kwargs, 'Cannot encode empty input/output {}'.format(spaces)
+    assert isinstance(kwargs, dict), 'input/output to encode must be a dict'
     input_dict = {}
     for var_name, var_space in spaces.items():
         assert var_name in kwargs, 'Requires argument {}'.format(var_name)
@@ -72,6 +74,9 @@ def encode_json(kwargs, spaces):
 
 
 def decode_json(results, spaces):
+    assert results, 'Cannot decode empty input/output {}'.format(spaces)
+    assert isinstance(results, dict), 'input/output to decode must be a dict'
+
     output_dict = {}
 
     for var_name, var_space in spaces.items():

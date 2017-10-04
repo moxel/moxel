@@ -117,6 +117,8 @@ class ModelStoreClass {
 	}
 
 	fetchModelAll() { 
+		var self = this;
+		
 		return new Promise(function(resolve) {
 			fetch(`/api/users/_/models`).then((response)=>{
 				console.log(response.text);
@@ -132,14 +134,14 @@ class ModelStoreClass {
 		                var userId = parts[0];
 		                var modelId = parts[1];
 
-		        		var model = this.formatModel(userId, modelId, tag, row);
+		        		var model = self.formatModel(userId, modelId, tag, row);
 		        		models.push(model);
 		        	}		
 	        	}
 
 	        	resolve(models);
-	        }.bind(this));
-		}.bind(this));
+	        });
+		});
 	}
 
 	listModelTags(userId, modelId) {
@@ -159,17 +161,30 @@ class ModelStoreClass {
 		});
 	}
 
-	listModel(userId) {
+	listModels(userId) {
 		var self = this;
+		if(!userId) throw "userId cannot be null in listModels";
+
 		return new Promise(function(resolve, reject) {
 			fetch(`/api/users/${userId}/models`).then((response)=>{
 	            return response.json();
 	        }).then(function(data) {
-	        	var results = [];
-	        	for(var model of data) {
-	        		results.push(self.formatModel(userId, model.id, model.tag, model));
+	        	var models = [];
+	        	
+	        	if(data) {
+	        		for(var row of data) {
+		        		var parts = row.uid.split(':');
+		                var tag = parts[1];
+		                parts = parts[0].split('/')
+		                var userId = parts[0];
+		                var modelId = parts[1];
+
+		        		var model = self.formatModel(userId, modelId, tag, row);
+		        		models.push(model);
+		        	}		
 	        	}
-	        	resolve(results);
+
+	        	resolve(models);
 	        }).catch(function() {
 		        reject();
 		    });;

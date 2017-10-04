@@ -88,8 +88,11 @@ var TypeWhitelist = map[string]bool{
 var ImageWhitelist = map[string]bool{
 	"py3-tf":      true,
 	"py3-tf-0.11": true,
+	"py2-tf":      true,
+	"py2-tf-0.11": true,
 	"conda2":      true,
 	"conda3":      true,
+	"python2":     true,
 	"python3":     true,
 	"py2-caffe":   true,
 	"py2-theano":  true,

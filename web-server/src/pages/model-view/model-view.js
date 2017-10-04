@@ -34,6 +34,7 @@ import Moxel from 'moxel'
 import Mousetrap from 'mousetrap'
 import CalendarHeatmap from 'react-calendar-heatmap';
 import ReactTooltip from 'react-tooltip'
+import {Link} from "react-router-dom";
 
 
 // Most browsers don't support Object.values
@@ -256,6 +257,10 @@ const StyledModelLayout = styled(Flex)`
         z-index: 9999999;
         border-width:1px;
     }
+
+    .model-id a:hover {
+        text-decoration: underline;
+    }
 `;
 
 // Some utils.
@@ -423,7 +428,7 @@ class ModelView extends Component {
         var self = this;
         const {userId, modelName, tag} = this.props.match.params;
 
-        this.isAuthor = (userId == this.state.username);
+        this.isAuthor = (userId == this.state.username || this.state.username == 'moxel');
         this.setState({
             editMode: false
         })
@@ -1322,7 +1327,10 @@ class ModelView extends Component {
                                     {renderModelShare()}
                                 </div>
 
-                                {renderModelStatus()}
+
+                                <div>
+                                    {renderModelStatus()}
+                                </div>
 
                                 {renderModelDescription()}
 
@@ -1741,8 +1749,8 @@ class ModelView extends Component {
 
                             }
                         </i> &nbsp; 
-                        <span style={{fontSize: "20px", color: "#2196E1"}}>
-                            <b>{model.user}</b> / <b>{model.name}</b> 
+                        <span className="model-id" style={{fontSize: "20px", color: "#2196E1"}}>
+                            <b><Link to={`/users/${model.user}`}>{model.user}</Link></b> / <b><Link to="./">{model.name}</Link></b> 
                             {
                                 model.metadata.access == "public"
                                 ?

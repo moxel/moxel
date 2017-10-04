@@ -392,6 +392,44 @@ func putModel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user := vars["user"]
+
+	printRequest(r)
+
+	if user == "" {
+		http.Error(w, "Must provide a username to get his/her profile", 400)
+		return
+	}
+
+	accessToken, err := GetAuth0AccessToken()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	users, err := GetAuth0UsersByQuery(accessToken, "username:"+user)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	if len(users) != 1 {
+		http.Error(w, "Found no user or more than 1 users", 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response, err := json.Marshal(users[0])
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Unable to dump JSON: %s. %v", err.Error(), users[0]), 500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(response)
+}
+
 func putModelPageView(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["user"]
@@ -1089,6 +1127,8 @@ func main() {
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/examples", listExamples).Methods("GET")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples/{exampleId}", putDemoExample).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/demo-examples", listDemoExamples).Methods("GET")
+		// Get user metadata.
+		router.HandleFunc("/users/{user}", getUser).Methods("GET")
 		// Endpoints for analytics.
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", putModelPageView).Methods("PUT")
 		router.HandleFunc("/users/{user}/models/{model}/{tag}/analytics/page-view", getModelPageView).Methods("GET")

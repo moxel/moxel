@@ -29,12 +29,7 @@ class Image(Space):
         from PIL import Image as PILImage
 
         image = PILImage.open(f)
-
-        (im_width, im_height) = image.size
-        im = np.array(image.getdata()).reshape(
-            (im_height, im_width, 3)) / 255.
-
-        return Image(im)
+        return Image.from_PIL(image)
 
     @staticmethod
     def from_base64(data):
@@ -54,6 +49,21 @@ class Image(Space):
         with open(filename, 'rb') as f:
             return Image.from_stream(f)
 
+    @staticmethod
+    def from_PIL(image):
+        image_data = np.array(image.getdata())
+
+        (im_width, im_height) = image.size
+        im_channel = len(image.getbands())
+
+        if im_channel == 1:
+            im = image_data.reshape((im_height, im_width)) / 255.
+        else:
+            im = image_data.reshape((im_height, im_width, im_channel)) / 255.
+
+        return Image(im)
+
+
 
     def to_numpy(self):
         return self.im
@@ -65,13 +75,19 @@ class Image(Space):
         from PIL import Image as PILImage
         return PILImage.fromarray(np.array(self.im * 255, dtype='uint8'))
 
-    def to_base64(self):
-        """ Return png of the image in base64 encoding.
+    def to_stream(self):
+        """ Return a stream of the image
         """
         image_pil = self.to_PIL()
         buf = BytesIO()
         image_pil.save(buf, 'png')
         buf.seek(0)
+        return buf
+
+    def to_base64(self):
+        """ Return png of the image in base64 encoding.
+        """
+        buf = self.to_stream()
         return base64.b64encode(buf.read()).decode('utf_8')
 
     def __repr__(self):

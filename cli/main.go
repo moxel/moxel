@@ -694,6 +694,10 @@ func CommandServe() cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			if err := InitGlobal(c); err != nil {
+				return err
+			}
+
 			file := c.String("file")
 
 			model, err := CreateLocalModel(file)
@@ -701,7 +705,10 @@ func CommandServe() cli.Command {
 				return err
 			}
 
-			model.Serve()
+			err = model.Serve()
+			if err != nil {
+				return err
+			}
 			return nil
 		},
 	}
