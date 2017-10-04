@@ -9,8 +9,7 @@ RUN pip install pexpect pyyaml flask numpy
 COPY .build/moxel-drivers /drivers
 COPY .build/moxel-clients /clients
 
+# Install moxel drivers.
+ARG DATE=$DATE
 RUN pip install flask setuptools \
-  && pip install -e /clients/python \
-  && pip install -e /drivers/python \
-  && pip install -e /drivers/http 
-
+  && pip install -U moxel-python-driver moxel-http-driver moxel

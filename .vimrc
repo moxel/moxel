@@ -1,5 +1,5 @@
 " options for custom project vim config
-let g:ctrlp_custom_ignore = '\v[\/]\.(git|build)$'
+let g:ctrlp_custom_ignore = 'examples\|\v[\/]\.(git|build)$'
 
 function! UpdateTags()
   let cmd = 'gotags -R -f tags -L master-server/*.go'
