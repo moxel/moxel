@@ -1082,7 +1082,7 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
                         <textarea id={`demo-output-${outputName}`} 
-                            style={{minHeight: "50px", maxHeight: "150px", width: "100%", 
+                            style={{minHeight: "300px", maxHeight: "150px", width: "100%", 
                                    padding: "10px", color: "#333", width: "100%",
                                    borderRadius: "5px", border: "2px dashed #C7C7C7",
                                     width: "300px", marginLeft: "auto", marginRight: "auto",
