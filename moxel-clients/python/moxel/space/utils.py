@@ -36,6 +36,18 @@ def get_space(name):
         raise Exception('Only str and dict are supported in get_space. Not ' + str(type(name)))
 
 
+def format_json(obj):
+    ''' Try convert obj into JSON serializable format.
+    '''
+    if isinstance(obj, dict):
+        return {k: format_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [format_json(v) for v in obj]
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return json.loads(json.dumps(obj))
+
 def encode_json(kwargs, spaces):
     ''' Encode a dictionary of moxel variables into JSON.
         Used for HTTP transimission.
@@ -62,7 +74,7 @@ def encode_json(kwargs, spaces):
         elif var_space in [np.float32, np.float64]:
             encoded = base64.b64encode(obj.tostring())
         elif var_space == JSON:
-            encoded = obj.to_object()
+            encoded = format_json(obj)
         elif var_space == Array:
             encoded = json.dumps(obj.to_list())
         else:
