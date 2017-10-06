@@ -33,3 +33,11 @@ moxel serve -f moxel.yml --docker
 ```
 
 The docker will use `image` in the model yaml spec as Docker image .
+
+## Debug Moxel Drivers
+
+To debug moxel drivers, set `DRIVER_DEV=1` environment variable when serving models locally.
+
+```
+DRIVER_DEV=1 moxel serve -f moxel.yml --docker
+```
