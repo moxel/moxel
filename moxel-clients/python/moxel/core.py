@@ -27,10 +27,15 @@ class Model(object):
         self.api_endpoint = self.endpoint + '/api'
         self.model_endpoint = self.endpoint + '/model'
 
-        data = requests.get(self.api_endpoint +
+        response = requests.get(self.api_endpoint +
                             '/users/{user}/models/{model}/{tag}'.format(
                                 user=self.user, model=self.model, tag=self.tag)
-                            ).json()
+                            )
+
+        if response.status_code == 200:
+            data = response.json()
+        else:
+            raise Exception(response.text)
 
         self.status = data.get('status', 'UNKNOWN')
 

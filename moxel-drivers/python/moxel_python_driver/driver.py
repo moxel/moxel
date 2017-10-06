@@ -100,7 +100,6 @@ def main():
     # Clear argv in case user module parses arguments
     # https://github.com/moxel/moxel/issues/117
     sys.argv[1:] = []
-    print('[debug] config', config)
 
     code_root = config.get('code_root', './')
     asset_root = config.get('asset_root', '')
@@ -113,9 +112,6 @@ def main():
     setup = config.get('setup', [])
 
     switch_to_work_path(code_root, work_path)
-
-    if not exists('.git'):
-        raise Exception('This is not a valid git repository: {}'.format(root))
 
     # Mount assets.
     if len(assets) > 0:

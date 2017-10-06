@@ -3,7 +3,7 @@ from moxel.space import Image, Array, JSON
 import numpy as np
 import base64
 import six
-import json
+import simplejson
 
 
 SPACE_MAP = {
@@ -46,7 +46,7 @@ def format_json(obj):
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     else:
-        return json.loads(json.dumps(obj))
+        return simplejson.loads(simplejson.dumps(obj))
 
 def encode_json(kwargs, spaces):
     ''' Encode a dictionary of moxel variables into JSON.
@@ -76,7 +76,7 @@ def encode_json(kwargs, spaces):
         elif var_space == JSON:
             encoded = format_json(obj)
         elif var_space == Array:
-            encoded = json.dumps(obj.to_list())
+            encoded = simplejson.dumps(obj.to_list())
         else:
             raise Exception('Not implemented input space: ' + repr(var_space))
 
@@ -105,7 +105,7 @@ def decode_json(results, spaces):
         elif var_space == JSON:
             obj = var_space.from_object(encoded)
         elif var_space == Array:
-            obj = var_space.from_list(json.loads(encoded))
+            obj = var_space.from_list(simplejson.loads(encoded))
         else:
             raise Exception('Not implemented output space: ' + str(var_space))
 

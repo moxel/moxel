@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +11,9 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -176,7 +179,23 @@ func (model *LocalModel) Serve(useDocker bool) error {
 			"--rm",
 			"-v", repo.Path + ":/app",
 			"-p", "5900:5900",
-			"-i", model.env}...)
+			// "-e", "FLASK_DEBUG=1",
+			"-i"}...)
+
+		// If useDev is true, we search for moxel clients and drivers.
+		// And map them to ones in docker.
+		useDev := os.Getenv("DRIVER_DEV") != ""
+		if useDev {
+			for _, module := range []string{"moxel", "moxel_python_driver", "moxel_http_driver"} {
+				hostPath, _ := exec.Command("/usr/bin/env", []string{"python", "-c", "import " + module + ", sys; sys.stdout.write(" + module + ".__path__[0])"}...).CombinedOutput()
+				containerPath, _ := exec.Command("docker", []string{"run", "-i", model.env, "python", "-c", "import sys, " + module + "; sys.stdout.write(" + module + ".__path__[0])"}...).CombinedOutput()
+				command = append(command, []string{"-v", string(hostPath) + ":" + string(containerPath)}...)
+			}
+		}
+
+		command = append(command, []string{model.env}...)
+	} else {
+		// os.Setenv("FLASK_DEBUG", "1")
 	}
 
 	if model.driverType == "python" {
@@ -204,12 +223,11 @@ func (model *LocalModel) Serve(useDocker bool) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	doneCommand := make(chan bool)
 	go func() {
-		err := cmd.Start()
-		if err != nil {
-			panic(err)
-
-		}
+		cmd.Start()
+		cmd.Wait()
+		doneCommand <- true
 	}()
 
 	router := mux.NewRouter()
@@ -223,10 +241,28 @@ func (model *LocalModel) Serve(useDocker bool) error {
 		WriteTimeout: 3600 * time.Second,
 		ReadTimeout:  3600 * time.Second,
 	}
-	err = server.ListenAndServe()
+
+	doneServer := make(chan bool)
+	go func() {
+		server.ListenAndServe()
+		doneServer <- true
+	}()
+
+	// Wait for shutdown.
+	irqSig := make(chan os.Signal, 1)
+	signal.Notify(irqSig, syscall.SIGINT, syscall.SIGTERM)
+	<-irqSig
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = server.Shutdown(ctx)
 	if err != nil {
 		return err
 	}
+
+	<-doneServer
+	<-doneCommand
 
 	return nil
 }
