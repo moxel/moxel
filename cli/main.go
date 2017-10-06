@@ -695,6 +695,10 @@ func CommandServe() cli.Command {
 				Value: "moxel.yml",
 				Usage: "Config file to specify the model",
 			},
+			cli.BoolFlag{
+				Name:  "docker",
+				Usage: "Serve the model inside a docker container",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			if err := InitGlobal(c); err != nil {
@@ -702,13 +706,14 @@ func CommandServe() cli.Command {
 			}
 
 			file := c.String("file")
+			useDocker := c.Bool("docker")
 
 			model, err := CreateLocalModel(file)
 			if err != nil {
 				return err
 			}
 
-			err = model.Serve()
+			err = model.Serve(useDocker)
 			if err != nil {
 				return err
 			}

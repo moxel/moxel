@@ -60,4 +60,7 @@
 	url = https://github.com/affinelayer/pix2pix-tensorflow
 [submodule "examples/caffe-mobilenet"]
 	path = examples/caffe-mobilenet
-	url = https://github.com/shicai/MobileNet-Caffe
+	url = https://github.com/moxel/caffe-mobilenet
+[submodule "examples/caffe-faces"]
+	path = examples/caffe-faces
+	url = https://github.com/moxel/caffe-faces

@@ -15,9 +15,13 @@ import (
 )
 
 type LocalModel struct {
+	pathToYAML string
+
 	user string
 	name string
 	tag  string
+
+	env string
 
 	config     map[string]interface{}
 	driverType string
@@ -56,20 +60,12 @@ func CreateLocalModel(file string) (*LocalModel, error) {
 	if _, ok := config["tag"]; ok {
 		tag = config["tag"].(string)
 	}
-	model := LocalModel{user: user, name: name, tag: tag, config: config}
+	model := LocalModel{user: user, name: name, tag: tag, config: config,
+		env: config["image"].(string), pathToYAML: file}
 
 	main := config["main"].(map[interface{}]interface{})
 	model.driverType = main["type"].(string)
 	params := make(map[interface{}]interface{})
-
-	repo, err := GetWorkingRepo()
-	if err != nil {
-		return nil, err
-	}
-
-	params["code_root"] = repo.Path
-	params["work_path"] = GetWorkingPath(filepath.Dir(file), repo)
-	params["asset_root"] = repo.Path
 
 	// TODO: verify all assets exist.
 	params["assets"] = []interface{}{}
@@ -108,6 +104,21 @@ func (model *LocalModel) Get(w http.ResponseWriter, r *http.Request) {
 	name := vars["model"]
 	tag := vars["tag"]
 
+	if model.user != user {
+		http.Error(w, fmt.Sprintf("User name does not match. Expected \"%s\" but get \"%s\" :(", model.user, user), 400)
+		return
+	}
+
+	if model.name != name {
+		http.Error(w, fmt.Sprintf("Model name does not match. Expected \"%s\" but get \"%s\" :(", model.name, name), 400)
+		return
+	}
+
+	if model.tag != tag {
+		http.Error(w, fmt.Sprintf("Model tag does not match. Expected \"%s\" but get \"%s\" :(", model.tag, tag), 400)
+		return
+	}
+
 	printRequest(r, fmt.Sprintf("Get model %s/%s:%s", user, name, tag))
 
 	w.Header().Set("Content-Type", "application/json")
@@ -130,8 +141,27 @@ func (model *LocalModel) Get(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func (model *LocalModel) Serve() error {
-	fmt.Println(fmt.Sprintf("Serving model locally: %s/%s:%s", model.user, model.name, model.tag))
+func (model *LocalModel) Serve(useDocker bool) error {
+	useDockerPrompt := ""
+	if useDocker {
+		useDockerPrompt = "Using Docker image: " + model.env + "."
+	}
+
+	fmt.Println(fmt.Sprintf("Locally serving model %s/%s:%s. %s", model.user, model.name, model.tag, useDockerPrompt))
+
+	repo, err := GetWorkingRepo()
+	if err != nil {
+		return err
+	}
+
+	if useDocker {
+		model.driverSpec["code_root"] = "/app"
+		model.driverSpec["asset_root"] = "/app"
+	} else {
+		model.driverSpec["code_root"] = repo.Path
+		model.driverSpec["asset_root"] = repo.Path
+	}
+	model.driverSpec["work_path"] = GetWorkingPath(filepath.Dir(model.pathToYAML), repo)
 
 	jsonBytes, err := json.Marshal(model.driverSpec)
 	if err != nil {
@@ -139,25 +169,36 @@ func (model *LocalModel) Serve() error {
 	}
 
 	var cmd *exec.Cmd
+	var command []string
+
+	if useDocker {
+		command = append(command, []string{"docker", "run",
+			"--rm",
+			"-v", repo.Path + ":/app",
+			"-p", "5900:5900",
+			"-i", model.env}...)
+	}
+
 	if model.driverType == "python" {
-		cmd = exec.Command("moxel-python-driver", "--json", string(jsonBytes))
+		command = append(command, []string{"moxel-python-driver", "--json", string(jsonBytes)}...)
 	} else if model.driverType == "http" {
-		var args []string
-		args = append(args, []string{
+		command = append(command, []string{
+			"moxel-http-driver",
 			"--code_root", model.driverSpec["code_root"].(string),
 			"--asset_root", model.driverSpec["asset_root"].(string),
 			"--work_path", model.driverSpec["work_path"].(string)}...)
-		args = append(args, "--cmd")
-		for _, command := range model.driverSpec["setup"].([]interface{}) {
-			fmt.Println("command", command)
-			args = append(args, command.(string))
+		command = append(command, "--cmd")
+		for _, line := range model.driverSpec["setup"].([]interface{}) {
+			fmt.Println("line", line)
+			command = append(command, line.(string))
 		}
-		args = append(args, model.driverSpec["entrypoint"].(string))
-
-		cmd = exec.Command("moxel-http-driver", args...)
+		command = append(command, model.driverSpec["entrypoint"].(string))
 	} else {
 		return errors.New("Unknow driver type " + model.driverType)
 	}
+
+	fmt.Println("Command:", command)
+	cmd = exec.Command(command[0], command[1:]...)
 
 	// Run the HTTP driver.
 	cmd.Stdout = os.Stdout
