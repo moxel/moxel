@@ -309,7 +309,7 @@ def predict(sentence):
 
                                 {renderCommandWithCopy('moxel-git-add', 'git add serve.py')}
 
-                                Typically, machine learning model has large weight files. You do not need to check in those files, as they would be uploaded by Moxel to cloud storage.
+                                Typically, machine learning model has large weight files. You do not need to check in those files, as they will be tracked in the next step.
 
                                 <br/>
 
