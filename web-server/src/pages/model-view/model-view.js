@@ -1620,7 +1620,6 @@ class ModelView extends Component {
                                               values={self.state.pageViewCount}
                                               classForValue={classForValue}
                                               titleForValue={(value) => {
-                                                console.log('titleForValue', value);
                                                 return 'title';
                                               }}
                                               tooltipDataAttrs={(value) => {
@@ -1727,6 +1726,26 @@ class ModelView extends Component {
         }
 
 
+        function getUserDisplay() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var invite = urlParams.get('invite');
+            if(invite) return invite;
+            else {
+                return model.user;
+            }
+        }
+
+        function getUserLink() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var invite = urlParams.get('invite');
+            if(invite) {
+                return `/new`;
+            }else{
+                return `/users/${model.user}`;
+            }
+        }
+
+
         return (
             <StyledModelLayout column className="catalogue-layout-container">
                 {/*<FixedWidthRow component="h1" className="catalogue-hero"*/}
@@ -1750,7 +1769,7 @@ class ModelView extends Component {
                             }
                         </i> &nbsp; 
                         <span className="model-id" style={{fontSize: "20px", color: "#2196E1"}}>
-                            <b><Link to={`/users/${model.user}`}>{model.user}</Link></b> / <b><Link to="./">{model.name}</Link></b> 
+                            <b><Link to={getUserLink()}>{getUserDisplay()}</Link></b> / <b><Link to="./">{model.name}</Link></b> 
                             {
                                 model.metadata.access == "public"
                                 ?
