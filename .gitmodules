@@ -64,3 +64,6 @@
 [submodule "examples/caffe-faces"]
 	path = examples/caffe-faces
 	url = https://github.com/moxel/caffe-faces
+[submodule "examples/caffe-nudity"]
+	path = examples/caffe-nudity
+	url = https://github.com/moxel/caffe-nudity

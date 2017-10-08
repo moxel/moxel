@@ -35,7 +35,7 @@ import Mousetrap from 'mousetrap'
 import CalendarHeatmap from 'react-calendar-heatmap';
 import ReactTooltip from 'react-tooltip'
 import {Link} from "react-router-dom";
-
+import html2canvas from "html2canvas-render-offscreen"
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -261,6 +261,12 @@ const StyledModelLayout = styled(Flex)`
     .model-id a:hover {
         text-decoration: underline;
     }
+
+    // AddThis sharing.
+    .add-this-image img {
+        opacity: 0;
+    }
+
 `;
 
 // Some utils.
@@ -291,6 +297,7 @@ class ModelView extends Component {
             pageViewsTotalCount: 0,
             demoRunCount: [],
             demoRunTotalCount: 0,
+            demoShareURL: null,  // share demo on social networks.
             editMode: false,
             username: username,
             isRunning: false,
@@ -309,6 +316,8 @@ class ModelView extends Component {
         this.handleUpdateDescription = this.handleUpdateDescription.bind(this);
         this.handleToggleEdit = this.handleToggleEdit.bind(this);
         this.handlePopulateExample = this.handlePopulateExample.bind(this);
+        this.handleDemoSnapshot = this.handleDemoSnapshot.bind(this);
+
         this.doingHandleUpvote = false;
         this.syncModel = this.syncModel.bind(this);
         this.syncRating = this.syncRating.bind(this);        
@@ -511,6 +520,11 @@ class ModelView extends Component {
                             }
                         }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
+                        }else if(inputSpace == moxel.space.array) {
+                            input.toJSON().then((json) => {
+                                demoWidget.value = json;
+                                resolve();
+                            })
                         }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
                             input.toText().then((text) => {
                                 demoWidget.value = text;
@@ -577,6 +591,9 @@ class ModelView extends Component {
                     return;
                 }
             }
+
+            console.log('canvas', html2canvas);
+            self.handleDemoSnapshot();
 
             console.log('Moxel predicting...');
             self.state.model.predict(self.inputs)
@@ -671,11 +688,25 @@ class ModelView extends Component {
         self.createTextareaEditor = function(inputName) {
             // onchange event handler.
             return function(e) {
+                if(!self.state.model) {
+                    return;
+                }
                 var text = document.querySelector('#demo-input-' + inputName).value;
-                moxel.space.str.fromText(text).then((str) => {
-                    self.inputs[inputName] = str;
-                    console.log('Model input updated', self.inputs);
-                })
+                var inputSpace = self.state.model.inputSpace[inputName];
+                if(inputSpace == moxel.space.array) {
+                    moxel.space.array.fromJSON(text)
+                    .then((arr) => {
+                        self.inputs[inputName] = arr;
+                    })
+                    .catch((err) => { // ignore. could be a ill-formated json.
+
+                    });
+                }else{
+                    moxel.space.str.fromText(text).then((str) => {
+                        self.inputs[inputName] = str;
+                    });
+                }
+                console.log('Model input updated', self.inputs);
             }
         }
         
@@ -891,6 +922,95 @@ class ModelView extends Component {
         })
     }
 
+    handleDemoSnapshot() {
+        var self = this;
+
+        var canvasHeight = Math.max(
+            document.querySelector('#model-input-area').clientHeight,
+            document.querySelector('#model-output-area').clientHeight
+        ) + 100;
+
+        var canvasWidth = 750;
+        var title = self.state.model.metadata.title;
+        var titleFontSize = title.length / 'image colorization'.length * 30;
+
+        var snapContainer = document.createElement('div');
+        snapContainer.style.zIndex = -9999;
+
+        var snap = document.createElement('div');
+        snap.style.position = "fixed";
+        snap.style.top = "0";
+        snap.style.left = "0";
+        snap.style.width = `${canvasWidth}px`;
+        snap.style.height = `${canvasHeight}px`;
+        snap.style.zIndex = -9999;
+        var snapTitle = document.createElement('div');
+        snapTitle.style.textAlign = 'center'
+        snapTitle.innerHTML = `<p style="font-size: ${titleFontSize}px; font-family: helvetica">${title}</p>`
+        snap.appendChild(snapTitle);
+
+
+        var snapInputContent = document.querySelector('#model-input-area').cloneNode(true);
+        snapInputContent.id = "model-input-area-clone";
+        var snapInputContainer = document.createElement('div');
+        snapInputContainer.appendChild(snapInputContent);
+        snapInputContainer.style.position = 'fixed';
+        snapInputContainer.style.top = '0';
+        snapInputContainer.style.left = '0';
+        snapInputContainer.style.zIndex = -9999;
+        document.querySelector('#model-input-area').parentNode.appendChild(snapInputContainer);
+
+
+        var snapOutputContent = document.querySelector('#model-output-area').cloneNode(true);
+        snapOutputContent.id = "model-output-area-clone";
+        var snapOutputContainer = document.createElement('div');
+        snapOutputContainer.appendChild(snapOutputContent);
+        snapOutputContainer.style.position = 'fixed';
+        snapOutputContainer.style.top = '0';
+        snapOutputContainer.style.left = '0';
+        snapOutputContainer.style.zIndex = -9999;
+        document.querySelector('#model-output-area').parentNode.appendChild(snapOutputContainer);
+
+        snapContainer.appendChild(snap);
+        document.body.appendChild(snapContainer);
+
+
+        html2canvas(snapInputContainer).then((inputCanvas) => {
+            var img = document.createElement('img');
+            img.src = inputCanvas.toDataURL("image/png");
+            img.style.position = "absolute";
+            img.style.left = "50px";
+            img.style.top = "50";
+            snap.appendChild(img);
+            snapInputContainer.parentNode.removeChild(snapInputContainer);
+            return html2canvas(snapOutputContainer);
+        })
+        .then((outputCanvas) => {
+            var img = document.createElement('img');
+            img.src = outputCanvas.toDataURL("image/png");
+            img.style.position = "absolute";
+            img.style.left = "400px";
+            img.style.top = "50";
+            snap.appendChild(img);
+            snapOutputContainer.parentNode.removeChild(snapOutputContainer);
+            return html2canvas(snap, {
+                width: canvasWidth,
+                height: canvasHeight
+            });
+        })
+        .then((canvas) => {
+            var img = document.createElement('img');
+            img.id = 'result'
+            img.src = canvas.toDataURL("image/png");
+            self.setState({
+                demoShareURL: img.src
+            });
+            snapContainer.parentNode.removeChild(snapContainer);
+        });
+        
+
+    }
+
     componentWillUnmount() {
         Mousetrap.bind(['shift+enter', 'ctrl+enter'], this.handleDemoRun);
     }
@@ -1082,7 +1202,7 @@ class ModelView extends Component {
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(outputName, outputSpace)}
                         <textarea id={`demo-output-${outputName}`} 
-                            style={{minHeight: "300px", maxHeight: "150px", width: "100%", 
+                            style={{minHeight: "150px", maxHeight: "150px", width: "100%", 
                                    padding: "10px", color: "#333", width: "100%",
                                    borderRadius: "5px", border: "2px dashed #C7C7C7",
                                     width: "300px", marginLeft: "auto", marginRight: "auto",
@@ -1093,8 +1213,6 @@ class ModelView extends Component {
             outputWidgets[outputName] = outputWidget;
         }
         this.outputWidgets = outputWidgets;
-
-        
 
         function renderModelTitle() {
             if(LayoutUtils.isMobile()) {
@@ -1222,6 +1340,18 @@ class ModelView extends Component {
                         Save
                     </a>
                 );
+            }
+        }
+
+        function renderShareDemoButtons() {
+            if(!self.state.demoShareURL) {
+                return null;
+            }else{
+                return (
+                    <div className="add-this-image" style={{position: "absolute", left: 0, top: 0, width: "100%", height: "100%"}}>
+                        <img src={self.state.demoShareURL} style={{width: "100%", height: "100%"}}/>
+                    </div>
+                )
             }
         }
 
@@ -1474,14 +1604,16 @@ class ModelView extends Component {
                     <div className="row">
                         <br/>
                         <div className="col m6" style={{textAlign: "center", marginBottom: "10px"}}>
-                            Model Input
-                            
-                            <br/><br/>
+                            <div id="model-input-area">
+                                Model Input
+                                
+                                <br/><br/>
 
 
-                            {Object.values(inputWidgets)}
+                                {Object.values(inputWidgets)}
 
-                            <br/>
+                                <br/>
+                            </div>
 
                             {renderBrowserExample()}
 
@@ -1499,16 +1631,20 @@ class ModelView extends Component {
                             }
                         </div>
                         <div className="col m6" style={{textAlign: "center"}} >
-                            Model Output
+                            <div id="model-output-area">
+                                Model Output
 
-                            <br/><br/>
+                                <br/><br/>
 
-                            {Object.values(outputWidgets)}
+                                {Object.values(outputWidgets)}
 
-                            <br/>
+                                <br/>
+                            </div>
 
                             {renderSaveDemoButton()}
-                                
+                            
+                            {renderShareDemoButtons()}
+
                         </div>
                     </div>
                 </span>
