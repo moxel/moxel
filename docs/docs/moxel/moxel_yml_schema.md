@@ -13,9 +13,9 @@ resources:
  memory: 512Mi
  cpu: "1"
 input_space:
-  img_in: image.base64
+  img_in: image
 output_space: 
-  img_out: image.base64
+  img_out: image
 main:
   type: python
     entrypoint: serve.py::get_answer
