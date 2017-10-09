@@ -105,18 +105,21 @@ var Moxel = function(config) {
 		}
 
 		// Get data URL for cloud storage.
-		getAssetURL(user, name, tag, path, verb) {
+		getAssetURL(user, name, tag, path, verb, contentType) {
 			if(!path.startsWith('/'))  {
 				throw 'path must start with /';
 			}
 			if(!verb) verb = 'GET';
+			if(!contentType) contentType = '';
+
 			return new Promise((resolve, reject) => {
 				var params = {
 					user: user,
 					name: name,
 					cloud: 'gcloud',
 					path: `${tag}${path}`,
-					verb: verb
+					verb: verb,
+					"content-type": contentType
 				}
 				fetch(
 					API_ENDPOINT + `/url/data?${Utils.encodeQueryParams(params)}`, 
@@ -571,10 +574,10 @@ var Moxel = function(config) {
 		}
 
 		// TODO: if user has access to this code, they can store anything on our cloud.
-		// Save examples to cloud, as 
-		// {'input': inputBlob, 'output': outputBlob}
+		// Save examples to cloud.
+		// - `assets` is a dict of objects.
 		// return exmapleId.
-		_store(inputBlob, outputBlob) {
+		_store(inputBlob, outputBlob, assets) {
 			var self = this;
 
 			return new Promise((resolve, reject) => {
@@ -609,11 +612,32 @@ var Moxel = function(config) {
 					return masterAPI.putExample(self.user, self.name, self.tag, exampleId, clientLatency);
 				})
 				.then(() => {
+					// Store assets.
+					if(!assets) return;
+
+					for(var key in assets) {
+						var asset = assets[key];
+						masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}/${key}`, 'PUT', 'image/png')
+						.then((url) => {
+							console.log("Generated asset url " + url);
+							return fetch(url, {
+								method: 'PUT',
+								body: asset
+							})
+						})
+						.catch((err) => {
+							reject(err);
+						})
+					}
+				})
+				.then(() => {
 					resolve(exampleId);
 				})
 				.catch((err) => {
 					reject(err);
 				})
+
+				
 			});
 		}
 
@@ -764,16 +788,25 @@ var Moxel = function(config) {
 			});
 		}
 
+		loadExampleAsset(exampleId, assetKey) {
+			var self = this;
+
+			return masterAPI.getAssetURL(self.user, self.name, self.tag, `/examples/${exampleId}/${assetKey}`, 'GET', 'ignore');
+		}
+
+		// Load example from cloud.
+		// - assets is a list of keys to load.
 		loadRuntimeExample(exampleId) {
-			return this._loadExample(exampleId, false);
+			return this._loadExample(exampleId, false, assets);
 		}
 
 		loadDemoExample(exampleId) {
 			return this._loadExample(exampleId, true);
 		}
 
-		_saveExample(inputObject, outputObject, clientLatency, demo) {
+		_saveExample(inputObject, outputObject, clientLatency, demo, assets) {
 			var self = this;
+			var exampleId = null;
 
 			return new Promise((resolve, reject) => {
 				var inputBlob = {};
@@ -785,18 +818,18 @@ var Moxel = function(config) {
 				})
 				.then((blob) => {
 					outputBlob = blob;
-					return self._store(inputBlob, outputBlob);
+					return self._store(inputBlob, outputBlob, assets);
 				})
-				.then((exampleId) => {
+				.then((_exampleId) => {
+					exampleId = _exampleId;
 					if(demo) {
 						return masterAPI.putDemoExample(self.user, self.name, self.tag, exampleId);	
 					}else{
-						return masterAPI.putExample(self.user, self.name, self.tag, clientLatency, exampleId);	
+						return masterAPI.putExample(self.user, self.name, self.tag, exampleId, clientLatency);	
 					}
-					
 				})
 				.then(() => {
-					resolve();
+					resolve(exampleId);
 				})
 				.catch((err) => {
 					reject(err);
@@ -804,12 +837,12 @@ var Moxel = function(config) {
 			});
 		}
 
-		saveRuntimeExample(inputObject, outputObject, clientLatency) {
-			return this._saveExample(inputObject, outputObject, clientLatency, false);
+		saveRuntimeExample(inputObject, outputObject, clientLatency, assets) {
+			return this._saveExample(inputObject, outputObject, clientLatency, false, assets);
 		}
 
-		saveDemoExample(inputObject, outputObject) {
-			return this._saveExample(inputObject, outputObject, null, true)
+		saveDemoExample(inputObject, outputObject, assets) {
+			return this._saveExample(infsObject, outputObject, null, true, assets)
 		}
 
 		_listExamples(demo) {
@@ -899,10 +932,7 @@ var Moxel = function(config) {
 				}).then((outputBlob) => {
 					// Parse result.
 					console.log('Moxel output blob', outputBlob);
-					var outputObject = {};
-
-					self._store(inputBlob, outputBlob).then((exampleId) => {console.log('exampleId', exampleId);});
-
+					// self._store(inputBlob, outputBlob).then((exampleId) => {console.log('exampleId', exampleId);});
 					return self.decode(outputBlob, self.outputSpace);
 				}).then((outputObject) => {
 					resolve(outputObject);	

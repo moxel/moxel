@@ -117,8 +117,8 @@ def main():
     if len(assets) > 0:
         print('Mounting assets...')
     for asset in assets:
-        asset_path = relpath(join(work_path, asset), '.')
-        mount_asset(asset_path, asset_path)
+        asset_path = relpath(join(code_root, work_path, asset), code_root)
+        mount_asset(asset_path, asset)
 
     # Run setup commands.
     for command in setup:
