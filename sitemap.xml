@@ -22,8 +22,46 @@
     
         
     <url>
-     <loc>http://beta.moxel.ai</loc>
-     <lastmod></lastmod>
+     <loc>http://beta.moxel.ai/tutorials/question-answering/</loc>
+     <lastmod>2017-10-09</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>http://beta.moxel.ai/tutorials/mnist/</loc>
+     <lastmod>2017-10-09</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
+    
+        
+    <url>
+     <loc>http://beta.moxel.ai/moxel/moxel_yml_schema/</loc>
+     <lastmod>2017-10-09</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>http://beta.moxel.ai/moxel/supported_images/</loc>
+     <lastmod>2017-10-09</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>http://beta.moxel.ai/moxel/io_types/</loc>
+     <lastmod>2017-10-09</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
+    
+        
+    <url>
+     <loc>http://beta.moxel.ai/moxel/serve/</loc>
+     <lastmod>2017-10-09</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
