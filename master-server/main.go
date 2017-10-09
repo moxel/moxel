@@ -118,6 +118,8 @@ func getRepoURL(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// contentType: by default is "application/octet-stream". Set to "ignore" to not
+// use this in GCS sign.
 func getDataURL(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -126,6 +128,15 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 	cloud := query.Get("cloud") // cloud provider: gcloud
 	verb := query.Get("verb")   // HTTP verb: PUT | GET
 	path := query.Get("path")   // path to object
+	contentType := query.Get("content-type")
+
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	if cloud == "" {
+		cloud = "gcloud"
+	}
 
 	fmt.Println("[GET] Data URL from Cloud Provider " + cloud)
 
@@ -134,7 +145,7 @@ func getDataURL(w http.ResponseWriter, r *http.Request) {
 
 	if cloud == "gcloud" {
 		// Signed URL from Google Cloud Storage.
-		url, err = GetGCloudStorageURL(user, name, path, verb)
+		url, err = GetGCloudStorageURL(user, name, path, verb, contentType)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -943,6 +954,8 @@ func deleteRating(w http.ResponseWriter, r *http.Request) {
 
 func putExample(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
+	printRequest(r)
 
 	var params map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&params)

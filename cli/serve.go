@@ -185,9 +185,11 @@ func (model *LocalModel) Serve(useDocker bool) error {
 		// And map them to ones in docker.
 		useDev := os.Getenv("DRIVER_DEV") != ""
 		if useDev {
-			moxelHostPath, _ := exec.Command("/usr/bin/env", []string{"python", "-c", "import moxel, sys; sys.stdout.write(moxel.__path__[0])"}...).CombinedOutput()
-			moxelContainerPath, _ := exec.Command("docker", []string{"run", "-i", model.env, "python", "-c", "import sys, moxel; sys.stdout.write(moxel.__path__[0])"}...).CombinedOutput()
-			command = append(command, []string{"-v", string(moxelHostPath) + ":" + string(moxelContainerPath)}...)
+			for _, module := range []string{"moxel", "moxel_python_driver", "moxel_http_driver"} {
+				hostPath, _ := exec.Command("/usr/bin/env", []string{"python", "-c", "import " + module + ", sys; sys.stdout.write(" + module + ".__path__[0])"}...).CombinedOutput()
+				containerPath, _ := exec.Command("docker", []string{"run", "-i", model.env, "python", "-c", "import sys, " + module + "; sys.stdout.write(" + module + ".__path__[0])"}...).CombinedOutput()
+				command = append(command, []string{"-v", string(hostPath) + ":" + string(containerPath)}...)
+			}
 		}
 
 		command = append(command, []string{model.env}...)

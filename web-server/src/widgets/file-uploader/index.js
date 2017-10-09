@@ -99,7 +99,7 @@ const StyledFileUploader = styled(FlexItem)`
 var defaultComponentConfig = {
     iconFiletypes: ['*'],
     showFiletypeIcon: true,
-    postUrl: 'no-url'
+    postUrl: 'no-url',
 };
 
 var djsConfig = {
@@ -109,6 +109,8 @@ var djsConfig = {
         'Cache-Control': null,
         'X-Requested-With': null
     },
+    thumbnailWidth: 300,
+    thumbnailHeight: 300,
 };
 
 // type Props {

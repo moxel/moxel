@@ -3,7 +3,7 @@ from moxel.space import Image, Array, JSON
 import numpy as np
 import base64
 import six
-import json
+import simplejson
 
 
 SPACE_MAP = {
@@ -46,7 +46,7 @@ def format_json(obj):
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     else:
-        return json.loads(json.dumps(obj))
+        return simplejson.loads(simplejson.dumps(obj))
 
 def encode_json(kwargs, spaces):
     ''' Encode a dictionary of moxel variables into JSON.
@@ -66,6 +66,7 @@ def encode_json(kwargs, spaces):
                 .format(var_name, type(kwargs[var_name]), var_name, var_space))
 
         obj = kwargs[var_name]
+        # TODO: be able to nest types in dict and list.
         if var_space == Image:
             # Assume base64 encoding.
             encoded = obj.to_base64()
@@ -76,7 +77,13 @@ def encode_json(kwargs, spaces):
         elif var_space == JSON:
             encoded = format_json(obj)
         elif var_space == Array:
-            encoded = json.dumps(obj.to_list())
+            if isinstance(obj, np.ndarray):
+                obj = obj.tolist()
+            elif isinstance(obj, list) or isinstance(obj, dict):
+                obj = format_json(obj)
+            else:
+                obj = obj.to_list()
+            encoded = simplejson.dumps(obj)
         else:
             raise Exception('Not implemented input space: ' + repr(var_space))
 
@@ -105,7 +112,7 @@ def decode_json(results, spaces):
         elif var_space == JSON:
             obj = var_space.from_object(encoded)
         elif var_space == Array:
-            obj = var_space.from_list(json.loads(encoded))
+            obj = var_space.from_list(simplejson.loads(encoded))
         else:
             raise Exception('Not implemented output space: ' + str(var_space))
 

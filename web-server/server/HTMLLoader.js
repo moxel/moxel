@@ -2,6 +2,11 @@
 import fs from 'fs';
 import fetch from 'isomorphic-fetch'
 
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
 // todo: add index.html loading
 export default function HTMLLoader(req, res, next) {
     console.log('HTMLLoader', req.url)
@@ -9,6 +14,9 @@ export default function HTMLLoader(req, res, next) {
     const location = req.url.toString();
     var chunks = location.split('/');
     var url = req.protocol + '://' + req.hostname + location;
+
+    var ogMedia = req.query['og:media'];
+    var ogImage = req.query['og:image'];
 
     var host = null;
     if(req.hostname == 'localhost') {
@@ -27,12 +35,14 @@ export default function HTMLLoader(req, res, next) {
         fetch(`${req.protocol}://${host}/api/users/${userId}/models/${modelId}/${tag}`).then((response)=>{
             return response.json();
         }).then(function(modelData) {
-        console.log('model data', modelData);
+            console.log('model data', modelData);
             HTML = HTML
-                .replace("__META:OG:TITLE__", modelData.metadata.title)
-                .replace("__META:OG:URL__", url)
-                .replace("__META:OG:TYPE__", 'article')
-                .replace("__META:OG:DESCRIPTION__", modelData.metadata.description);
+                .replaceAll("__META:OG:TITLE__", modelData.metadata.title)
+                .replaceAll("__META:OG:URL__", url)
+                .replaceAll("__META:OG:TYPE__", 'article')
+                .replaceAll("__META:OG:DESCRIPTION__", modelData.metadata.description)
+                .replaceAll("__META:OG:MEDIA__", ogMedia)
+                .replaceAll("__META:OG:IMAGE__", ogImage);
 
             var labels = modelData.metadata.labels;
             if(!labels || labels.length == 0) {
