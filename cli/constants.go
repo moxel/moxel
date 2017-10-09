@@ -52,7 +52,7 @@ var ResourceWhitelist = map[string]bool{
 
 var DefaultResources = map[string]interface{}{
 	"cpu":    "1",
-	"memory": "1Gi",
+	"memory": "100Mi",
 }
 
 var SampleModelConfig = `image: moxel/python3

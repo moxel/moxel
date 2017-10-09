@@ -842,7 +842,7 @@ var Moxel = function(config) {
 		}
 
 		saveDemoExample(inputObject, outputObject, assets) {
-			return this._saveExample(infsObject, outputObject, null, true, assets)
+			return this._saveExample(inputObject, outputObject, null, true, assets)
 		}
 
 		_listExamples(demo) {

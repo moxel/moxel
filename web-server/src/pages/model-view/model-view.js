@@ -1731,6 +1731,7 @@ class ModelView extends Component {
 
                             {renderSaveDemoButton()}
                             
+                            <br/>
                             {renderShareDemoButtons()}
 
                         </div>
@@ -1949,10 +1950,19 @@ class ModelView extends Component {
             );
         }
 
+        function getURLSearchParams() {
+          var query = window.location.search.substr(1);
+          var result = {};
+          query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+          });
+          return result;
+        }
 
         function getUserDisplay() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var invite = urlParams.get('invite');
+            var urlParams = new getURLSearchParams();
+            var invite = urlParams['invite'];
             if(invite) return invite;
             else {
                 return model.user;
@@ -1960,8 +1970,8 @@ class ModelView extends Component {
         }
 
         function getUserLink() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var invite = urlParams.get('invite');
+            var urlParams = new getURLSearchParams();
+            var invite = urlParams['invite'];
             if(invite) {
                 return `/new`;
             }else{
