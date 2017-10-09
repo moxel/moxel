@@ -26,7 +26,6 @@ pages:
 - Install:
   - install/cli.md
 - Tutorial:
-  - Deploy in Python:
-    - 'tutorials/question-answering.md'
-    - 'tutorials/mnist.md'
+  - 'tutorials/question-answering.md'
+  - 'tutorials/mnist.md'
 
