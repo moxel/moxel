@@ -34,7 +34,7 @@ The docker will use `image` in the model yaml spec as Docker image .
 
 ## Testing locally
 
-To test an endpoint locally, create a test script:
+To test one of your local endpoints created above, create a test script:
 
 ```
 import moxel
