@@ -179,7 +179,6 @@ func (model *LocalModel) Serve(useDocker bool) error {
 			"--rm",
 			"-v", repo.Path + ":/app",
 			"-p", "5900:5900",
-			// "-e", "FLASK_DEBUG=1",
 			"-i"}...)
 
 		// If useDev is true, we search for moxel clients and drivers.
@@ -194,8 +193,6 @@ func (model *LocalModel) Serve(useDocker bool) error {
 		}
 
 		command = append(command, []string{model.env}...)
-	} else {
-		// os.Setenv("FLASK_DEBUG", "1")
 	}
 
 	if model.driverType == "python" {
