@@ -36,6 +36,40 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import ReactTooltip from 'react-tooltip'
 import {Link} from "react-router-dom";
 import html2canvas from "html2canvas-render-offscreen"
+import shorturl from "shorturl"
+import {
+  ShareButtons,
+  ShareCounts,
+  generateShareIcon
+} from 'react-share';
+
+
+const {
+  FacebookShareButton,
+  GooglePlusShareButton,
+  LinkedinShareButton,
+  TwitterShareButton,
+  TelegramShareButton,
+  WhatsappShareButton,
+  PinterestShareButton,
+  VKShareButton,
+  OKShareButton,
+  RedditShareButton,
+  EmailShareButton,
+} = ShareButtons;
+
+const FacebookIcon = generateShareIcon('facebook');
+const TwitterIcon = generateShareIcon('twitter');
+const TelegramIcon = generateShareIcon('telegram');
+const WhatsappIcon = generateShareIcon('whatsapp');
+const GooglePlusIcon = generateShareIcon('google');
+const LinkedinIcon = generateShareIcon('linkedin');
+const PinterestIcon = generateShareIcon('pinterest');
+const VKIcon = generateShareIcon('vk');
+const OKIcon = generateShareIcon('ok');
+const RedditIcon = generateShareIcon('reddit');
+const EmailIcon = generateShareIcon('email');
+
 
 // Most browsers don't support Object.values
 Object.values = function(obj) {
@@ -266,7 +300,6 @@ const StyledModelLayout = styled(Flex)`
     .add-this-image img {
         opacity: 0;
     }
-
 `;
 
 // Some utils.
@@ -593,16 +626,55 @@ class ModelView extends Component {
             }
 
             console.log('canvas', html2canvas);
-            self.handleDemoSnapshot();
 
             console.log('Moxel predicting...');
+            var timeStart = Date.now();
             self.state.model.predict(self.inputs)
             .then((outputs) => {
                 console.log('Moxel output', outputs);
-                self.handleOutputs(outputs).then(() => {;
+                self.handleOutputs(outputs)
+                .then(() => {;
                     self.setState({
                         isRunning: false
                     })
+
+                    return self.handleDemoSnapshot();
+                })
+                .then((data) => {
+                    console.log('snapshot', data);
+                    var timeEnd = Date.now();
+                    var latencyMS = timeEnd - timeStart; 
+                    return self.state.model.saveRuntimeExample(self.inputs, self.outputs, latencyMS, {
+                        "snapshot.jpeg": data
+                    });
+                })
+                .then((exampleId) => {
+                    return self.state.model.loadExampleAsset(exampleId, 'snapshot.jpeg');
+                })
+                .then((url) => {
+                    self.setState({
+                        demoShareURL: url
+                    })
+                    console.log('Snapshot url', url);
+
+                    fetch('https://www.googleapis.com/urlshortener/v1/url?key=AIzaSyBkkYnAG1vChiy63gCupREALYbFlRAf2Nk', 
+                        {
+                            'method': 'POST',
+                            'headers': {
+                                'Content-Type': 'application/json',
+                            },
+                            'body': JSON.stringify({
+                                'longUrl': url
+                            })
+                        }
+                    ).then((response) => {
+                        return response.json();
+                    }).then((shortURL) => {
+                        window.addthis.update('share', 'url', window.location.origin + window.location.pathname + '?og:image=' + shortURL); 
+                        self.setState({
+                            demoShareURL: shortURL
+                        })
+                    });
                 });
             })
             .catch((message) => {
@@ -925,88 +997,96 @@ class ModelView extends Component {
     handleDemoSnapshot() {
         var self = this;
 
-        var canvasHeight = Math.max(
-            document.querySelector('#model-input-area').clientHeight,
-            document.querySelector('#model-output-area').clientHeight
-        ) + 100;
+        return new Promise((resolve, reject) => {
+            var canvasHeight = Math.max(
+                document.querySelector('#model-input-area').clientHeight,
+                document.querySelector('#model-output-area').clientHeight
+            ) + 100;
 
-        var canvasWidth = 750;
-        var title = self.state.model.metadata.title;
-        var titleFontSize = title.length / 'image colorization'.length * 30;
+            var canvasWidth = 750;
+            var title = self.state.model.metadata.title;
+            var titleFontSize = 'image colorization'.length * 50 / title.length;
 
-        var snapContainer = document.createElement('div');
-        snapContainer.style.zIndex = -9999;
+            var snapContainer = document.createElement('div');
+            snapContainer.style.zIndex = -9999;
 
-        var snap = document.createElement('div');
-        snap.style.position = "fixed";
-        snap.style.top = "0";
-        snap.style.left = "0";
-        snap.style.width = `${canvasWidth}px`;
-        snap.style.height = `${canvasHeight}px`;
-        snap.style.zIndex = -9999;
-        var snapTitle = document.createElement('div');
-        snapTitle.style.textAlign = 'center'
-        snapTitle.innerHTML = `<p style="font-size: ${titleFontSize}px; font-family: helvetica">${title}</p>`
-        snap.appendChild(snapTitle);
-
-
-        var snapInputContent = document.querySelector('#model-input-area').cloneNode(true);
-        snapInputContent.id = "model-input-area-clone";
-        var snapInputContainer = document.createElement('div');
-        snapInputContainer.appendChild(snapInputContent);
-        snapInputContainer.style.position = 'fixed';
-        snapInputContainer.style.top = '0';
-        snapInputContainer.style.left = '0';
-        snapInputContainer.style.zIndex = -9999;
-        document.querySelector('#model-input-area').parentNode.appendChild(snapInputContainer);
+            var snap = document.createElement('div');
+            snap.style.position = "fixed";
+            snap.style.top = "0";
+            snap.style.left = "0";
+            snap.style.width = `${canvasWidth}px`;
+            snap.style.height = `${canvasHeight}px`;
+            snap.style.zIndex = -9999;
+            var snapTitle = document.createElement('div');
+            snapTitle.style.textAlign = 'center'
+            snapTitle.innerHTML = `<p style="font-size: ${titleFontSize}px; font-family: helvetica">${title}</p>`
+            snap.appendChild(snapTitle);
 
 
-        var snapOutputContent = document.querySelector('#model-output-area').cloneNode(true);
-        snapOutputContent.id = "model-output-area-clone";
-        var snapOutputContainer = document.createElement('div');
-        snapOutputContainer.appendChild(snapOutputContent);
-        snapOutputContainer.style.position = 'fixed';
-        snapOutputContainer.style.top = '0';
-        snapOutputContainer.style.left = '0';
-        snapOutputContainer.style.zIndex = -9999;
-        document.querySelector('#model-output-area').parentNode.appendChild(snapOutputContainer);
-
-        snapContainer.appendChild(snap);
-        document.body.appendChild(snapContainer);
+            var snapInputContent = document.querySelector('#model-input-area').cloneNode(true);
+            snapInputContent.id = "model-input-area-clone";
+            var snapInputContainer = document.createElement('div');
+            snapInputContainer.appendChild(snapInputContent);
+            snapInputContainer.style.position = 'fixed';
+            snapInputContainer.style.top = '0';
+            snapInputContainer.style.left = '0';
+            snapInputContainer.style.zIndex = -9999;
+            document.querySelector('#model-input-area').parentNode.appendChild(snapInputContainer);
 
 
-        html2canvas(snapInputContainer).then((inputCanvas) => {
-            var img = document.createElement('img');
-            img.src = inputCanvas.toDataURL("image/png");
-            img.style.position = "absolute";
-            img.style.left = "50px";
-            img.style.top = "50";
-            snap.appendChild(img);
-            snapInputContainer.parentNode.removeChild(snapInputContainer);
-            return html2canvas(snapOutputContainer);
-        })
-        .then((outputCanvas) => {
-            var img = document.createElement('img');
-            img.src = outputCanvas.toDataURL("image/png");
-            img.style.position = "absolute";
-            img.style.left = "400px";
-            img.style.top = "50";
-            snap.appendChild(img);
-            snapOutputContainer.parentNode.removeChild(snapOutputContainer);
-            return html2canvas(snap, {
-                width: canvasWidth,
-                height: canvasHeight
+            var snapOutputContent = document.querySelector('#model-output-area').cloneNode(true);
+            snapOutputContent.id = "model-output-area-clone";
+            var snapOutputContainer = document.createElement('div');
+            snapOutputContainer.appendChild(snapOutputContent);
+            snapOutputContainer.style.position = 'fixed';
+            snapOutputContainer.style.top = '0';
+            snapOutputContainer.style.left = '0';
+            snapOutputContainer.style.zIndex = -9999;
+            document.querySelector('#model-output-area').parentNode.appendChild(snapOutputContainer);
+
+            snapContainer.appendChild(snap);
+            document.body.appendChild(snapContainer);
+
+
+            html2canvas(snapInputContainer).then((inputCanvas) => {
+                var img = document.createElement('img');
+                img.src = inputCanvas.toDataURL("image/png");
+                img.style.position = "absolute";
+                img.style.left = "50px";
+                img.style.top = "50";
+                snap.appendChild(img);
+                snapInputContainer.parentNode.removeChild(snapInputContainer);
+                return html2canvas(snapOutputContainer);
+            })
+            .then((outputCanvas) => {
+                var img = document.createElement('img');
+                img.src = outputCanvas.toDataURL("image/png");
+                img.style.position = "absolute";
+                img.style.left = "400px";
+                img.style.top = "50";
+                snap.appendChild(img);
+                snapOutputContainer.parentNode.removeChild(snapOutputContainer);
+                return html2canvas(snap, {
+                    width: canvasWidth,
+                    height: canvasHeight
+                });
+            })
+            .then((canvas) => {
+                // var img = document.createElement('img');
+                // img.id = 'result'
+                // img.src = canvas.toDataURL("image/png");
+                // document.body.append(img);
+
+                canvas.toBlob(function(blob) {
+                    snapContainer.parentNode.removeChild(snapContainer);
+                    resolve(blob);
+                }, 'image/png');
+            })
+            .catch((err) => {
+                reject(err);
             });
         })
-        .then((canvas) => {
-            var img = document.createElement('img');
-            img.id = 'result'
-            img.src = canvas.toDataURL("image/png");
-            self.setState({
-                demoShareURL: img.src
-            });
-            snapContainer.parentNode.removeChild(snapContainer);
-        });
+
         
 
     }
@@ -1344,15 +1424,21 @@ class ModelView extends Component {
         }
 
         function renderShareDemoButtons() {
-            if(!self.state.demoShareURL) {
-                return null;
-            }else{
-                return (
-                    <div className="add-this-image" style={{position: "absolute", left: 0, top: 0, width: "100%", height: "100%"}}>
-                        <img src={self.state.demoShareURL} style={{width: "100%", height: "100%"}}/>
-                    </div>
-                )
+            var style = {
+                opacity: 0,
+                pointerEvents: 'none'                
+            };
+            if(self.state.demoShareURL) {
+                style = {
+                    opacity: 1,
+                    pointerEvents: 'inherit'
+                }
             }
+                    
+            var metadata = self.state.model.metadata;
+            return (
+                <div className="addthis_inline_share_toolbox_5dtc" style={style}></div>
+            )
         }
 
         function renderBrowserExample() {
