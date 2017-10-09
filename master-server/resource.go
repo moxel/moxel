@@ -141,7 +141,7 @@ func LoadGCSCredentials() (string, string) {
 }
 
 // Get the signed url for storage, given user, project name, and path.
-func GetGCloudStorageURL(user string, name string, path string, verb string) (string, error) {
+func GetGCloudStorageURL(user string, name string, path string, verb string, contentType string) (string, error) {
 	if gcsAccessID == "" || gcsAccessKey == "" {
 		LoadGCSCredentials()
 	}
@@ -155,13 +155,17 @@ func GetGCloudStorageURL(user string, name string, path string, verb string) (st
 
 	gcsPath := user + "/" + name + "/" + path
 
-	url, err := gcs.SignedURL(gcsBucket, gcsPath, &gcs.SignedURLOptions{
+	options := gcs.SignedURLOptions{
 		GoogleAccessID: gcsAccessID,
 		PrivateKey:     []byte(gcsAccessKey),
 		Method:         method,
 		Expires:        expires,
-		ContentType:    "application/octet-stream",
-	})
+	}
+
+	if contentType != "ignore" {
+		options.ContentType = contentType
+	}
+	url, err := gcs.SignedURL(gcsBucket, gcsPath, &options)
 
 	if err != nil {
 		return "", err

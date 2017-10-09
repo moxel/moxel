@@ -669,7 +669,8 @@ class ModelView extends Component {
                         }
                     ).then((response) => {
                         return response.json();
-                    }).then((shortURL) => {
+                    }).then((result) => {
+                        var shortURL = result.id;
                         window.addthis.update('share', 'url', window.location.origin + window.location.pathname + '?og:image=' + shortURL); 
                         self.setState({
                             demoShareURL: shortURL
@@ -1011,6 +1012,7 @@ class ModelView extends Component {
             snapContainer.style.zIndex = -9999;
 
             var snap = document.createElement('div');
+            snap.style.backgroundColor = 'white';
             snap.style.position = "fixed";
             snap.style.top = "0";
             snap.style.left = "0";
