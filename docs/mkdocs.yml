@@ -25,7 +25,10 @@ pages:
 - index.md
 - Install:
   - install/cli.md
-- Tutorial:
+- Tutorials:
   - 'tutorials/question-answering.md'
   - 'tutorials/mnist.md'
-
+- Schema:
+  - 'moxel/moxel_yml_schema.md'
+  - 'moxel/supported_images.md'
+  - 'moxel/io_types.md'
