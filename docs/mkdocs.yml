@@ -32,3 +32,5 @@ pages:
   - 'moxel/moxel_yml_schema.md'
   - 'moxel/supported_images.md'
   - 'moxel/io_types.md'
+- Testing:
+  - 'moxel/serve.md'
