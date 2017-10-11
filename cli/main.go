@@ -425,7 +425,7 @@ func CommandTeardown() cli.Command {
 				return err
 			}
 
-			if err := TeardownModel(modelName, tag, true); err != nil {
+			if err := TeardownModel(modelName, tag, false); err != nil {
 				return err
 			}
 
