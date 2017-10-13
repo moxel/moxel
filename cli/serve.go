@@ -215,15 +215,19 @@ func (model *LocalModel) Serve(useDocker bool) error {
 
 	fmt.Println("Command:", command)
 	cmd = exec.Command(command[0], command[1:]...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	// Run the HTTP driver.
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	doneCommand := make(chan bool)
+	doneServer := make(chan bool)
+	irqSig := make(chan os.Signal, 1)
+
 	go func() {
-		cmd.Start()
-		cmd.Wait()
+		cmd.Run()
+		irqSig <- syscall.SIGINT
 		doneCommand <- true
 	}()
 
@@ -239,27 +243,28 @@ func (model *LocalModel) Serve(useDocker bool) error {
 		ReadTimeout:  3600 * time.Second,
 	}
 
-	doneServer := make(chan bool)
 	go func() {
 		server.ListenAndServe()
 		doneServer <- true
 	}()
 
 	// Wait for shutdown.
-	irqSig := make(chan os.Signal, 1)
 	signal.Notify(irqSig, syscall.SIGINT, syscall.SIGTERM)
 	<-irqSig
+	syscall.Kill(-cmd.Process.Pid, syscall.SIGINT)
 
+	<-doneCommand
+
+	// Terminate server as well since serving has finished.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	err = server.Shutdown(ctx)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	<-doneServer
-	<-doneCommand
 
 	return nil
 }

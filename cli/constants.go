@@ -46,6 +46,7 @@ var YAMLWhitelist = map[string]bool{
 }
 
 var ResourceWhitelist = map[string]bool{
+	"gpu":    true,
 	"cpu":    true,
 	"memory": true,
 }
@@ -87,6 +88,7 @@ var TypeWhitelist = map[string]bool{
 // A whitelist for model images.
 var ImageWhitelist = map[string]bool{
 	"py3-tf":      true,
+	"py3-tf-gpu":  true,
 	"py3-tf-0.11": true,
 	"py2-tf":      true,
 	"py2-tf-0.11": true,
