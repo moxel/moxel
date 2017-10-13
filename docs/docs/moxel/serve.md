@@ -4,8 +4,6 @@ You can serve models locally before uploading them to Moxel.
 
 ## Serve Models without Docker
 
-Let's use the `perceptron` example: [https://github.com/moxel/perceptron](https://github.com/moxel/perceptron).
-
 To serve this model locally, simply run 
 
 ```
@@ -33,6 +31,23 @@ moxel serve -f moxel.yml --docker
 ```
 
 The docker will use `image` in the model yaml spec as Docker image .
+
+## Testing locally
+
+To test one of your local endpoints created above, create a test script:
+
+```
+import moxel
+
+model = moxel.Model('<username>/question-answering:latest', where='localhost')
+
+output = model.predict(
+    paragraph='Daniel is 10 years old.', 
+        question: 'How old is Daniel?'
+        )
+
+        print(output['answer'])
+```
 
 ## Debug Moxel Drivers
 

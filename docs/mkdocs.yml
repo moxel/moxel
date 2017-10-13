@@ -25,8 +25,12 @@ pages:
 - index.md
 - Install:
   - install/cli.md
-- Tutorial:
-  - Deploy in Python:
-    - 'tutorials/question-answering.md'
-    - 'tutorials/mnist.md'
-
+- Tutorials:
+  - 'tutorials/question-answering.md'
+  - 'tutorials/mnist.md'
+- Schema:
+  - 'moxel/moxel_yml_schema.md'
+  - 'moxel/supported_images.md'
+  - 'moxel/io_types.md'
+- Testing:
+  - 'moxel/serve.md'
