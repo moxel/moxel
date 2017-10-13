@@ -145,13 +145,6 @@ func (model *LocalModel) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (model *LocalModel) Serve(useDocker bool) error {
-	useDockerPrompt := ""
-	if useDocker {
-		useDockerPrompt = "Using Docker image: " + model.env + "."
-	}
-
-	fmt.Println(fmt.Sprintf("Locally serving model %s/%s:%s. %s", model.user, model.name, model.tag, useDockerPrompt))
-
 	repo, err := GetWorkingRepo()
 	if err != nil {
 		return err

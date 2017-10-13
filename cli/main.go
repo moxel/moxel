@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"os"
@@ -12,6 +13,18 @@ import (
 	"strings"
 	"time"
 )
+
+func PrintHR(textColor string) {
+	sep := "-"
+
+	if textColor == "green" {
+		sep = color.GreenString("-")
+	}
+	for i := 0; i < 80; i++ {
+		fmt.Print(sep)
+	}
+	fmt.Println()
+}
 
 // Parse a modelId of format <modelName>:<tag> into parts.
 // Return modelName, tag, error.
@@ -712,6 +725,14 @@ func CommandServe() cli.Command {
 			if err != nil {
 				return err
 			}
+
+			useDockerPrompt := ""
+			if useDocker {
+				useDockerPrompt = "Using Docker image: " + model.env + "."
+			}
+
+			color.Green(fmt.Sprintf("Locally serving model %s/%s:%s. %s", model.user, model.name, model.tag, useDockerPrompt))
+			PrintHR("green")
 
 			err = model.Serve(useDocker)
 			if err != nil {
