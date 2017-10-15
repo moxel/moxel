@@ -774,6 +774,17 @@ class ModelView extends Component {
                     .catch((err) => { // ignore. could be a ill-formated json.
 
                     });
+                }else if(inputSpace == moxel.space.json) {
+                    try{
+                        var obj = JSON.parse(text);
+                    }catch(err) {
+                        return;
+                    }
+
+                    moxel.space.json.fromObject(obj)
+                    .then((jsonObject) => {
+                        self.inputs[inputName] = jsonObject;
+                    })
                 }else{
                     moxel.space.str.fromText(text).then((str) => {
                         self.inputs[inputName] = str;
@@ -1230,7 +1241,7 @@ class ModelView extends Component {
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
                 );
-            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
+            }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.array || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool || inputSpace == moxel.space.json) {
                 inputWidget = 
                     <div style={{paddingBottom: "30px"}}>
                         {displayVariable(inputName, inputSpace)}
