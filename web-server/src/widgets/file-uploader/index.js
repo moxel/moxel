@@ -109,6 +109,7 @@ var djsConfig = {
         'Cache-Control': null,
         'X-Requested-With': null
     },
+    autoQueue: false,
     thumbnailWidth: 300,
     thumbnailHeight: 300,
 };
@@ -135,8 +136,17 @@ export default function FileUploader({uploadEventHandlers, addThumbnailHandler, 
                                 theDropzone.removeFile(theFile);
                             }
                             theFile = file;
+
                             if(file.mock) return;
-                            uploadEventHandlers.addedfile(file);
+                            if(uploadEventHandlers.addedfile) {
+                                uploadEventHandlers.addedfile(file);
+                            }
+
+                            try { // try enque if file is not in queue.
+                                theDropzone.enqueueFile(file);
+                            }catch(err){
+
+                            }
                         },
                         init: function(dropzone) {
                             theDropzone = dropzone;
@@ -151,6 +161,9 @@ export default function FileUploader({uploadEventHandlers, addThumbnailHandler, 
                                     theDropzone.emit("thumbnail", mockFile, src);
                                     theDropzone.emit("complete", mockFile);
                                 });
+                            }
+                            if(uploadEventHandlers.init) {
+                                uploadEventHandlers.init(dropzone);
                             }
                         }
                     }}
