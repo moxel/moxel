@@ -244,7 +244,11 @@ func (model *LocalModel) Serve(useDocker bool) error {
 	// Wait for shutdown.
 	signal.Notify(irqSig, syscall.SIGINT, syscall.SIGTERM)
 	<-irqSig
-	syscall.Kill(-cmd.Process.Pid, syscall.SIGINT)
+	fmt.Println("SIGTERM")
+	for i := 0; i < 3; i++ {
+		fmt.Println("Sending SIGINT")
+		syscall.Kill(-cmd.Process.Pid, syscall.SIGINT)
+	}
 
 	<-doneCommand
 

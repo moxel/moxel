@@ -22,11 +22,11 @@ build-release:  build-linux build-windows build-osx
 	@echo "All versions built".
 
 link:
-	ln -s `pwd`/bin/moxel /usr/local/bin/moxel
+	ln -fs `pwd`/bin/moxel /usr/local/bin/moxel
 
 build:
 	# Update version constant
-	sed -i .bk "s/CLI_VERSION = .*/CLI_VERSION = \"`cat VERSION`\"/" constants.go
+	sed -i .bk "s/CLI_VERSION = .*/CLI_VERSION = \"`cat VERSION` (BUILD `date`)\"/" constants.go
 	./manage.py build
 	
 clean:

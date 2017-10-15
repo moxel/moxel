@@ -581,7 +581,7 @@ func CommandPush() cli.Command {
 				return err
 			}
 
-			fmt.Println("Pushing to " + modelId)
+			color.Green("Pushing to " + modelId)
 
 			// Check if model repo is available.
 			// If model is created from Moxel site,
