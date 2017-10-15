@@ -72,6 +72,9 @@ export default function ImageUploader({uploadEventHandlers, addThumbnailHandler}
 
 			      if (width <= MAX_WIDTH && height <= MAX_HEIGHT) {
 			        theDropzone.enqueueFile(origFile);
+			        if(uploadEventHandlers.addedfile) {
+                        uploadEventHandlers.addedfile(origFile);
+                   }
 			        return;
 			      }
 
@@ -113,6 +116,10 @@ export default function ImageUploader({uploadEventHandlers, addThumbnailHandler}
 			      // further processing by dropzone
 			      console.log('Image resized automatically', resizedFile);
 			      theDropzone.enqueueFile(resizedFile);
+
+			      if(uploadEventHandlers.addedfile) {
+                        uploadEventHandlers.addedfile(resizedFile);
+                   }
 			    });
 			  });
 
