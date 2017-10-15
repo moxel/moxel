@@ -111,7 +111,7 @@ spec:
           path: /dev/fuse
       - name: nvidia
         hostPath:
-          path: /var/lib/nvidia-docker/volumes/nvidia_driver/375.26
+          path: /var/lib/nvidia-docker/volumes/nvidia_driver/384.81
 `
 
 // experiment job template.
@@ -323,6 +323,8 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 
 	// Set up resource specs.
 	container.Resources.Requests = make(v1.ResourceList)
+	container.Resources.Limits = make(v1.ResourceList)
+
 	if cpu, ok := resources["cpu"]; ok {
 		container.Resources.Requests["cpu"] = resource.MustParse(fmt.Sprintf("%v", cpu))
 	}
@@ -332,7 +334,7 @@ func CreateDeployV2HTTP(client *kube.Clientset, user string, name string, tag st
 	}
 
 	if gpu, ok := resources["gpu"]; ok {
-		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
+		container.Resources.Limits["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
 	}
 
 	deployment.Spec.Template.Spec.Containers[0] = container // Update container spec.
@@ -424,6 +426,8 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 
 	// Set up resource specs.
 	container.Resources.Requests = make(v1.ResourceList)
+	container.Resources.Limits = make(v1.ResourceList)
+
 	if cpu, ok := resources["cpu"]; ok {
 		container.Resources.Requests["cpu"] = resource.MustParse(fmt.Sprintf("%v", cpu))
 	}
@@ -433,7 +437,15 @@ func CreateDeployV2Python(client *kube.Clientset, user string, name string, tag 
 	}
 
 	if gpu, ok := resources["gpu"]; ok {
-		container.Resources.Requests["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
+		container.Resources.Limits["alpha.kubernetes.io/nvidia-gpu"] = resource.MustParse(fmt.Sprintf("%v", gpu))
+		container.Env = append(container.Env, v1.EnvVar{
+			Name:  "LD_LIBRARY_PATH",
+			Value: "/usr/local/nvidia/lib64",
+		})
+		container.Env = append(container.Env, v1.EnvVar{
+			Name:  "PATH",
+			Value: "/opt/conda/bin:/opt/caffe/build/tools:/opt/caffe/python:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/nvidia/bin",
+		})
 	}
 
 	deployment.Spec.Template.Spec.Containers[0] = container // Update container spec.
