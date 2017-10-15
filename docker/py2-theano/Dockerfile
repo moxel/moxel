@@ -5,7 +5,7 @@ MAINTAINER Moxel <support@moxel.ai>
 RUN apt update \
     && apt-get install -y tree git wget build-essential curl 
 
-RUN conda install numpy scipy mkl theano
+RUN conda install numpy scipy mkl theano=0.8 pygpu=0.6
 
 # Install moxel drivers.
 ARG DATE=$DATE
