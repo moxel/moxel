@@ -55,9 +55,6 @@
 [submodule "examples/neural-storyteller"]
 	path = examples/neural-storyteller
 	url = https://github.com/ryankiros/neural-storyteller
-[submodule "examples/pix2pix-tensorflow"]
-	path = examples/pix2pix-tensorflow
-	url = https://github.com/affinelayer/pix2pix-tensorflow
 [submodule "examples/caffe-mobilenet"]
 	path = examples/caffe-mobilenet
 	url = https://github.com/moxel/caffe-mobilenet
@@ -67,3 +64,6 @@
 [submodule "examples/caffe-nudity"]
 	path = examples/caffe-nudity
 	url = https://github.com/moxel/caffe-nudity
+[submodule "examples/caffe-car-recognition"]
+	path = examples/caffe-car-recognition
+	url = https://github.com/moxel/caffe-car-recognition
