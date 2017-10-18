@@ -1,5 +1,5 @@
 #!/bin/bash
 echo '[pip] uploading python drivers'
-cd moxel-drivers/python && make push
+cd drivers/python && make push
 echo '[pip] uploading http drivers'
-cd moxel-drivers/http && make push
+cd drivers/http && make push
