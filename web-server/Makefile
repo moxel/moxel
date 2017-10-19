@@ -1,6 +1,6 @@
 URL='moxel/web-server'
 
-.PHONY: build
+.PHONY: build cors
 
 build:
 	./bin/bake-build-version
@@ -26,4 +26,6 @@ deploy:
 	kubectl create -f deploy.yml
 	kubectl expose deploy web-server --name=web-server --type="LoadBalancer" 
 
-
+cors:
+	gsutil cors set cors/enable-gcloud.json gs://dummy-dev
+	gsutil cors set cors/enable-gcloud-asset.json gs://dummy-asset

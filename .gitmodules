@@ -67,3 +67,6 @@
 [submodule "examples/caffe-car-recognition"]
 	path = examples/caffe-car-recognition
 	url = https://github.com/moxel/caffe-car-recognition
+[submodule "widgets"]
+	path = widgets
+	url = https://github.com/moxel/widgets
