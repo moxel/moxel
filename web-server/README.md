@@ -28,6 +28,14 @@ make devbox-deploy
 
 Make sure you have your own devbox, so there is no conflict between Moxel developers.
 
+### Using Moxel JS Client
+
+The `web-server` uses Moxel JS. Instead of installing from npm, you can link it locally: 
+
+```
+sudo npm link ../clients/javascript/moxel/
+```
+
 ## Deployment
 
 Once you have tested the changes, you can deploy the web-server.
