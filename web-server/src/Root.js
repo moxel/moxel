@@ -1,5 +1,5 @@
 import React from "react";
-import {Route, Redirect} from "react-router-dom";
+import {Route, Redirect} from "react-router";
 import PageLayout from "./pages/layout/page-layout";
 import UploadViews from './pages/upload-view';
 import SearchViews from './pages/search-view';
@@ -22,6 +22,13 @@ const muiTheme = getMuiTheme({
   }
 });
 
+const renderMergedProps = (component, ...rest) => {
+  const finalProps = Object.assign({}, ...rest);
+  return (
+    React.createElement(component, finalProps)
+  );
+};
+
 export default function Root() {
     return (
         <MuiThemeProvider muiTheme={muiTheme}>
@@ -32,9 +39,20 @@ export default function Root() {
     			    	<Redirect to="/"/>
     				)
     			}}/>
-                <Route exact path="/" component={() => {
+
+                <Route exact path="/landing" component={() => {
             		return (<LandingPage/>)
                 }}/>
+
+                <Route exact path="/" render={(props) => {
+            		return <SearchViews {...props}/>
+                }} searchEnabled="true"/>
+
+            	<Route exact path="/models" render={() => {
+            		return (
+    			    	<Redirect to="/"/>
+    				)
+    			}}/>
 
                 <Route exact path="/new" component={() => 
                     <CreateView/>
@@ -43,9 +61,8 @@ export default function Root() {
                 <Route exact path="/logged-in" component={() => 
                     <LoggedInView/>
                 }/>
-                
+
                 {UploadViews}
-                {SearchViews}
                 {ModelViews}
                 {UserViews}
             </PageLayout>

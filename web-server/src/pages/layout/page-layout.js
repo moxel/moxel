@@ -41,19 +41,60 @@ const PageBody = styled(Flex)`{
 
 
 class PageLayout extends Component {
+    constructor() {
+        super();
+
+        this.handleSearch = this.handleSearch.bind(this);
+
+        this.state = {
+            searchText: ''
+        };
+    }
+
+    handleSearch(text) {
+        console.log('handle search', text);
+        this.setState({
+            searchText: text
+        });
+    }
+
     render() {
+        var self = this;
+
         var isLoggedIn = AuthStore.isAuthenticated();
         console.log('is logged in? ', isLoggedIn);
 
         let showBanner = false;
+        var bodyOffset;
         if(window.location.pathname == '/') {
             showBanner = true;
+            bodyOffset = "220px"
+        }else{
+            bodyOffset = "0px";
         }
+
+        const childrenWithProps = React.Children.map(this.props.children, 
+            (child) => {
+                let searchEnabled = child.props.searchEnabled;
+
+                if(searchEnabled) {
+                    let render = (props) => {
+                        props.searchText = self.state.searchText;
+                        return child.props.render(props);
+                    };
+                    return React.cloneElement(child, {render: render});
+                }else{
+                    return child;
+                }
+        });
 
         return (
             <Page column>
-                <PageHeader showBanner={showBanner}/>
-                <PageBody className="page-body">{this.props.children}</PageBody>
+                <PageHeader showBanner={showBanner} handleSearch={this.handleSearch}/>
+                <PageBody className="page-body" 
+                    style={{
+                        paddingTop: bodyOffset
+                    }}>{childrenWithProps}</PageBody>
                 <PageFooter/>
             </Page>
         );
