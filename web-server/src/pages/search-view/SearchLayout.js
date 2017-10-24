@@ -5,7 +5,7 @@ import styled from "styled-components";
 
 const StyledSearchLayout = styled(Flex)`
     height: 100%;
-    padding-top: 30px;
+    padding-top: 8px;
 
     .catalogue-hero {
       margin-bottom: 40px;
@@ -28,9 +28,9 @@ export default function SearchLayout(props) {
                   fluid
                   width="100%"
                   className="catalogue-body-container">{
-                props.children.map((child) => <FixedWidthRow
+                props.children.map((child) => <div
                     justify="stretch"
-                    height="100%">{child}</FixedWidthRow>)
+                    height="100%">{child}</div>)
             }</Flex>
         </StyledSearchLayout>
     )

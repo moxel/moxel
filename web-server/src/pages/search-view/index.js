@@ -9,9 +9,18 @@ import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
 import SearchBar from 'material-ui-search-bar'
 import FixedWidthRow from "../../components/fixed-width-row";
+import {List, ListItem} from 'material-ui/List';
+
+import {Sticky, StickyContainer} from "react-sticky"
+
 
 const StyledModelLayout = styled(Flex)`
     marginTop: "150px"
+
+    .vertical-align-middle { 
+        display: inline-block;
+        vertical-align: middle; 
+    }
 `
 
 class SearchViews extends Component {
@@ -79,13 +88,89 @@ class SearchViews extends Component {
     }
 
     render() {
-        var self = this;
+        let self = this;
+
+        let renderModelListViews = function() {
+            return (
+                <SearchLayout>
+                    {self.state.models.map((item) => (<ModelSnippet {...item}/>))}
+                </SearchLayout>
+            );
+        }
+
+        let renderCategories = function() {
+            let renderCategoryItem = function(name, icon) {
+                return (
+                    <ListItem primaryText={
+                            <div>
+                                <i className="material-icons"
+                                    style={{
+                                        fontSize: "16px",
+                                        marginRight: "5px",
+                                        verticalAlign: "middle",
+                                        display: "inline-block"
+                                    }}>{icon}</i>
+                                <div style={{
+                                        verticalAlign: "middle",
+                                        display: "inline-block"
+                                    }}>
+                                    {name}
+                                </div>
+                            </div>
+                        } 
+                        style={{fontSize: "14px"}} 
+                        innerDivStyle={{padding: "8px"}}/>
+                );
+            }
+
+            return (
+                <StickyContainer style={{ height: document.body.scrollHeight}}>
+                    <Sticky>
+                        {
+                            ({
+                              style,
+                              isSticky,
+                              wasSticky,
+                              distanceFromTop,
+                              distanceFromBottom,
+                              calculatedHeight
+                            }) => {
+                                if(distanceFromTop < 0)  {
+                                    style = {
+                                        position: "fixed",
+                                        top: 0
+                                    };
+                                }else{
+                                    style = {
+                                        transform: "translateZ(0)"
+                                    };
+                                }
+                                return (
+                                    <List style={style}>
+                                        {renderCategoryItem('Home', 'home')}
+                                    </List>
+                                );
+                            }
+                        }
+                    </Sticky>
+                </StickyContainer>
+            );
+        }
 
         return (
             <StyledModelLayout>
-                <SearchLayout>
-                    {self.state.models.map((item) => (<ModelSnippet {...item}/>))
-                }</SearchLayout>
+                <FixedWidthRow>
+                    <div className="row" style={{width: "100%"}}>
+                        <div>
+                            <div className="col s2 m2">
+                                {renderCategories()}	
+                            </div>
+                            <div className="col s10 m10">
+                                {renderModelListViews()}
+                            </div>
+                        </div>
+                    </div>
+                </FixedWidthRow>
             </StyledModelLayout>
         );
     }
