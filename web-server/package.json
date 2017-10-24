@@ -30,6 +30,7 @@
     "neal-react": "^0.2.5",
     "nextjs": "0.0.3",
     "pondjs": "^0.8.7",
+    "query-string": "^5.0.1",
     "react": "^15.6.1",
     "react-calendar-heatmap": "^1.3.1",
     "react-clipboard.js": "^1.1.2",

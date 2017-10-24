@@ -148,7 +148,10 @@ export default function ModelSnippet({
                         </Link>
                         <div style={{color: "#666"}}>
                             <span>{
-                                labels.map((label, i) => <SimpleTag key={i} href={`/list?label=${label}`}>{label}</SimpleTag>)
+                                labels.map((label, i) => 
+                                    <SimpleTag>
+                                        <Link to={`?label=${label}`}>{label}</Link>
+                                    </SimpleTag>)
                             }</span>
                         </div>
                     </div>

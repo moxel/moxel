@@ -10,8 +10,10 @@ import ModelStore from "../../stores/ModelStore";
 import SearchBar from 'material-ui-search-bar'
 import FixedWidthRow from "../../components/fixed-width-row";
 import {List, ListItem} from 'material-ui/List';
+import queryString from 'query-string';
 
 import {Sticky, StickyContainer} from "react-sticky"
+import {Link} from "react-router-dom";
 
 
 const StyledModelLayout = styled(Flex)`
@@ -21,6 +23,11 @@ const StyledModelLayout = styled(Flex)`
         display: inline-block;
         vertical-align: middle; 
     }
+
+    .model-category a {
+        color: black;
+    }
+
 `
 
 class SearchViews extends Component {
@@ -31,7 +38,7 @@ class SearchViews extends Component {
 			models: []
 		}
 
-        this.handleSearchText = this.handleSearchText.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
 	}
 
 	componentDidMount() {
@@ -51,35 +58,45 @@ class SearchViews extends Component {
             console.log(modelAgg)
 
             self.models = modelAgg;
-            self.setState({
-                models: self.models
-            })
+
+            let query = queryString.parse(self.props.location.search)
+            self.handleSearch({
+                'text': '',
+                'label': query.label
+            });
         });
 	}
 
     componentWillReceiveProps(nextProps) {
+        let query = queryString.parse(nextProps.location.search)
         let searchText = nextProps.searchText;
-        if(!searchText) {
-            return;
-        }
-        this.handleSearchText(searchText);
+        if(!searchText) searchText = "";
+
+        this.handleSearch({
+            'label': query.label,
+            'text': searchText
+        });
     }
 
-    handleSearchText(text) {
+    handleSearch(constraint) {
         var self = this;
+
+        let {label, text} = constraint;
 
         text = text.toLowerCase();
         
-        if(text.length == 0) {
-            return self.models;
-        }
-
         var modelsFiltered = [];
         for(var model of self.models) {
-            if(model.title.toLowerCase().search(text) != -1 || model.id.toLowerCase().search(text) != -1
-                || model.user.toLowerCase().search(text) != -1) {
-                modelsFiltered.push(model);
+            console.log(model.labels, label);
+            if(text.length > 0 && model.title.toLowerCase().search(text) == -1 && model.id.toLowerCase().search(text) == -1
+                && model.user.toLowerCase().search(text) == -1) {
+                continue;
             }
+
+            if(label && model.labels.indexOf(label) == -1) {
+                continue;
+            }
+            modelsFiltered.push(model);
         }
 
         self.setState({
@@ -102,6 +119,7 @@ class SearchViews extends Component {
             let renderCategoryItem = function(name, icon) {
                 return (
                     <ListItem primaryText={
+                        <Link to="/">
                             <div>
                                 <i className="material-icons"
                                     style={{
@@ -117,6 +135,7 @@ class SearchViews extends Component {
                                     {name}
                                 </div>
                             </div>
+                        </Link>
                         } 
                         style={{fontSize: "14px"}} 
                         innerDivStyle={{padding: "8px"}}/>
@@ -146,7 +165,7 @@ class SearchViews extends Component {
                                     };
                                 }
                                 return (
-                                    <List style={style}>
+                                    <List style={style} className='model-category'>
                                         {renderCategoryItem('Home', 'home')}
                                     </List>
                                 );
