@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Flex, FlexItem} from "layout-components";
 import styled from "styled-components";
+import PropTypes from 'prop-types';
 
 // import {store} from '../../mock-data';
 import SearchLayout from "./SearchLayout";
@@ -10,12 +11,48 @@ import ModelStore from "../../stores/ModelStore";
 import SearchBar from 'material-ui-search-bar'
 import FixedWidthRow from "../../components/fixed-width-row";
 import {makeSelectable, List, ListItem} from 'material-ui/List';
+import Subheader from 'material-ui/Subheader';
 import queryString from 'query-string';
 
 import {Sticky, StickyContainer} from "react-sticky"
 import {Link} from "react-router-dom";
 
 let SelectableList = makeSelectable(List);
+
+function wrapState(ComposedComponent) {
+  return class SelectableList extends Component {
+    static propTypes = {
+      children: PropTypes.node.isRequired,
+      defaultValue: PropTypes.number.isRequired,
+    };
+
+    componentWillMount() {
+      this.setState({
+        selectedIndex: this.props.defaultValue,
+      });
+    }
+
+    handleRequestChange = (event, index) => {
+      this.setState({
+        selectedIndex: index,
+      });
+    };
+
+    render() {
+      return (
+        <ComposedComponent
+          value={this.state.selectedIndex}
+          onChange={this.handleRequestChange}
+          style={this.props.style}
+        >
+          {this.props.children}
+        </ComposedComponent>
+      );
+    }
+  };
+}
+
+SelectableList = wrapState(SelectableList);
 
 const StyledModelLayout = styled(Flex)`
     marginTop: "150px"
@@ -25,9 +62,6 @@ const StyledModelLayout = styled(Flex)`
         vertical-align: middle; 
     }
 
-    .model-category a {
-        color: black;
-    }
 
 `
 
@@ -121,10 +155,11 @@ class SearchViews extends Component {
         }
 
         let renderCategories = function() {
-            let renderCategoryItem = function(name, icon) {
+            let renderCategoryItem = function(name, icon, value, link) {
                 return (
-                    <ListItem primaryText={
-                        <Link to="/">
+                    <ListItem 
+                        linkButton={true} containerElement={<Link to={link}/>}
+                        value={value} primaryText={
                             <div>
                                 <i className="material-icons"
                                     style={{
@@ -140,9 +175,8 @@ class SearchViews extends Component {
                                     {name}
                                 </div>
                             </div>
-                        </Link>
                         } 
-                        style={{fontSize: "14px", width: "125px"}} 
+                        style={{fontSize: "14px", width: "180px"}} 
                         innerDivStyle={{padding: "8px"}}/>
                 );
             }
@@ -169,9 +203,21 @@ class SearchViews extends Component {
                                         transform: "translateZ(0)"
                                     };
                                 }
+
+                                let items = [];
+
+                                items.push(renderCategoryItem('Home', 'home', 1, "/"));
+
+                                let labels = ModelStore.listLabels();
+                                for(var i = 0; i < labels.length; i++) {
+                                    items.push(renderCategoryItem(labels[i], 'local_offer', i + 2, `/?label=${labels[i]}`));
+                                }
+
+                                console.log('distanceFromTop', distanceFromTop, style);
                                 return (
-                                    <SelectableList style={style} className='model-category'>
-                                        {renderCategoryItem('Home', 'home')}
+                                    <SelectableList defaultValue={1} style={style} className='model-category'>
+                                        <Subheader>Feed</Subheader>
+                                        {items}
                                     </SelectableList>
                                 );
                             }
@@ -186,10 +232,10 @@ class SearchViews extends Component {
                 <FixedWidthRow>
                     <div className="row" style={{width: "100%"}}>
                         <div>
-                            <div className="col s2 m2">
+                            <div className="col s3 m3">
                                 {renderCategories()}	
                             </div>
-                            <div className="col s10 m10">
+                            <div className="col s9 m9">
                                 {renderModelListViews()}
                             </div>
                         </div>

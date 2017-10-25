@@ -191,6 +191,21 @@ class ModelStoreClass {
 		});
 	}
 
+    listLabels() {
+        return [
+            'deep learning',
+            'natural language',
+            'computer vision',
+            'genomics',
+            'speech',
+            'videos',
+            'images',
+            'regression',
+            'classification',
+            'translation',
+        ];
+    }
+
 	updateModel(userId, modelId, tag, modelProps) {
 		var body = {
 			'metadata': yaml.safeDump(modelProps)

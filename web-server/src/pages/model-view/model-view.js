@@ -179,6 +179,10 @@ const StyledModelLayout = styled(Flex)`
         box-shadow: 0px 0px 15px #333;
     }
 
+    .model-labels a {
+        color: white;
+    }
+
     .card-gallery {
         padding: 0;
     }
@@ -1504,14 +1508,11 @@ class ModelView extends Component {
 
         function renderModelLabels() {
             if(self.state.editMode) {
-                const sourceTags=[
-                ];
-
                 return (
                     <ChipInput
                       defaultValue={model.metadata.labels}
                       fullWidth="true"
-                      dataSource={sourceTags}
+                      dataSource={ModelStore.listLabels()}
                       hintText="(Add labels to model here)"
                       hintStyle={{color: "white"}}
                       style={{fontSize: "14px"}}
@@ -1521,9 +1522,12 @@ class ModelView extends Component {
                 );
             }else{
                 return (
-                    <div>
+                    <div className="model-labels">
                         <p>{
-                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                            model.metadata.labels.map((label, i) => 
+                                <SimpleTag>
+                                    <Link to={`/?label=${label}`}>{label}</Link>
+                                </SimpleTag>)
                         }</p>
                     </div>
                 );
@@ -1565,12 +1569,8 @@ class ModelView extends Component {
                                 {renderModelDescription()}
 
                                   <br/>
+                                {renderModelLabels()}
 
-                                    <div>
-                                        <p>{
-                                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                        }</p>
-                                    </div>
                                 </div>
                                 
                                 <div className="card-action blue darken-4">

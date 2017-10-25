@@ -25,6 +25,10 @@ const StyledLayout = styled(Flex)`
 .page-banner input:focus {
     box-shadow: none !important;
 }
+
+.page-header-nav a {
+    font-size: 15px;
+}
 `
 
 
@@ -101,12 +105,12 @@ class PageHeader extends Component {
                         <div className="nav-header center page-banner"
                             style={{
                                 paddingTop: "10px",
-                                paddingBottom: "40px"
+                                paddingBottom: "50px"
                             }}>
                             <h1 style={{
-                                fontSize: "22px", 
+                                fontSize: "25px", 
                                 marginTop: "10px",
-                                marginBottom: 0,
+                                marginBottom: "10px",
                                 fontWeight: 300}}>
                                 World's Best Models, Built by the Community.
                             </h1>
@@ -116,7 +120,6 @@ class PageHeader extends Component {
                                       onChange={self.handleSearchBarChange}
                                       onRequestSearch={() => console.log('onRequestSearch')}
                                       hintText="Discover Models"
-                                      spellcheck="false"
                                       style={{
                                           margin: '0 auto',
                                           width: "500px",
@@ -200,7 +203,7 @@ class PageHeader extends Component {
                 }else{
                     /*<ul className="right  hide-on-med-and-down">*/
                     return (
-                        <ul className="right">
+                    <ul className="right page-header-nav">
                             <li><Link to="/models">Models</Link></li>
                             <li><Link to="/new">Create</Link></li>
                             <li><a href="http://docs.moxel.ai">Documentation</a></li>
@@ -240,7 +243,7 @@ class PageHeader extends Component {
                     width: "100%",
                     top: "0px",
                     zIndex: 99999,
-                    height: "220px"
+                    height: "240px"
                 }
             }else{
                 var style = {
@@ -265,14 +268,14 @@ class PageHeader extends Component {
                         <div className="nav-background">
                             <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
                         </div>
-                        <div className="nav-wrapper container">
-                            <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
-                            {getMenu()}
-                            {getBanner()}
-                        </div>
+                        <FixedWidthRow>
+                            <div className="nav-wrapper" style={{width: "100%"}}>
+                                <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
+                                {getMenu()}
+                                {getBanner()}
+                            </div>
+                        </FixedWidthRow>
                     </nav>
-
-                   
                 </div>
             </StyledLayout>
         )

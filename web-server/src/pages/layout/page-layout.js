@@ -68,7 +68,7 @@ class PageLayout extends Component {
         var bodyOffset;
         if(window.location.pathname == '/') {
             showBanner = true;
-            bodyOffset = "220px"
+            bodyOffset = "240px"
         }else{
             bodyOffset = "75px";
         }
