@@ -9,12 +9,13 @@ import AuthStore from "../../stores/AuthStore";
 import ModelStore from "../../stores/ModelStore";
 import SearchBar from 'material-ui-search-bar'
 import FixedWidthRow from "../../components/fixed-width-row";
-import {List, ListItem} from 'material-ui/List';
+import {makeSelectable, List, ListItem} from 'material-ui/List';
 import queryString from 'query-string';
 
 import {Sticky, StickyContainer} from "react-sticky"
 import {Link} from "react-router-dom";
 
+let SelectableList = makeSelectable(List);
 
 const StyledModelLayout = styled(Flex)`
     marginTop: "150px"
@@ -44,14 +45,18 @@ class SearchViews extends Component {
 	componentDidMount() {
         var self = this;
 
-		var user = AuthStore.username();
+        let username = null;
+        if(AuthStore.isAuthenticated()) {
+           username = AuthStore.username();
+        }
+
 		ModelStore.fetchModelAll().then(function(models) {
             var modelHash = {};
             var modelAgg = [];
             for(var model of models) {
                 // TODO: aggregate based on whichever tag comes later :)
                 var uid = model.user + "/" + model.id;
-                if(model.access == "public" || model.user == AuthStore.username() || AuthStore.username() == 'moxel') {
+                if(model.access == "public" || model.user == username || username == 'moxel') {
                     modelAgg.push(model); 
                 }
             }
@@ -137,7 +142,7 @@ class SearchViews extends Component {
                             </div>
                         </Link>
                         } 
-                        style={{fontSize: "14px"}} 
+                        style={{fontSize: "14px", width: "125px"}} 
                         innerDivStyle={{padding: "8px"}}/>
                 );
             }
@@ -165,9 +170,9 @@ class SearchViews extends Component {
                                     };
                                 }
                                 return (
-                                    <List style={style} className='model-category'>
+                                    <SelectableList style={style} className='model-category'>
                                         {renderCategoryItem('Home', 'home')}
-                                    </List>
+                                    </SelectableList>
                                 );
                             }
                         }

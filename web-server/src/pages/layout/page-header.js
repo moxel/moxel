@@ -180,8 +180,8 @@ class PageHeader extends Component {
                 if(LayoutUtils.isMobile()) {
                     return  <SideNav trigger={<i className="material-icons">menu</i>} options={{ closeOnClick: true }}>
                                 <SideNavItem waves icon="home"><Link to="/">Home</Link></SideNavItem>
-                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
                                 <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
+                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
                                 <SideNavItem waves icon="bookmark border"><a href="http://docs.moxel.ai">Documentation</a></SideNavItem>
                                 <SideNavItem divider />
                                 <SideNavItem waves style={{position: "relative"}}>
@@ -201,10 +201,8 @@ class PageHeader extends Component {
                     /*<ul className="right  hide-on-med-and-down">*/
                     return (
                         <ul className="right">
-                            <li><Link to="/new">Create</Link></li>
-
                             <li><Link to="/models">Models</Link></li>
-
+                            <li><Link to="/new">Create</Link></li>
                             <li><a href="http://docs.moxel.ai">Documentation</a></li>
 
                             <ul id="dropdown1" className="dropdown-content">

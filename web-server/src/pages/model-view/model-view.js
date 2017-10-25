@@ -543,6 +543,7 @@ class ModelView extends Component {
                         var inputSpace = inputSpaces[inputName];
                         var input = inputs[inputName];
                         var demoWidget = document.querySelector(`#demo-input-${inputName}`);
+                        if(!demoWidget) return;
                         if(inputSpace == moxel.space.image) {
                             // TODO: Not implemented.
                             var addThumbnail = self.addThumbnails[inputName];

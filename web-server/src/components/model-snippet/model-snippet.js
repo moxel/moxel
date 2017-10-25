@@ -110,14 +110,13 @@ export default function ModelSnippet({
 
     return (
         <StyledModelSnippet component={Flex} column className="model-snippet">
-             
-            <div className="card horizontal">
+        <div className="card horizontal">
                 {/*<div className="card-image">
                   <img src="https://lorempixel.com/100/190/nature/6"/>
                 </div>*/}
                 <div className="card-stacked">
-                    <div className="card-content">
-                        <Link to={`/models/${user}/${id}/${tag}`}>
+                    <Link to={`/models/${user}/${id}/${tag}`} style={{height: "100%"}}>
+                        <div className="card-content">
                               <FlexItem className="snippet-id model-id">
                                   <Link to={`/users/${user}`}>{user}</Link>
                                   <span style={{marginLeft: "5px", marginRight: "5px"}}>/</span>
@@ -145,19 +144,19 @@ export default function ModelSnippet({
                                   <FlexSpacer/>
                                   <FlexItem></FlexItem>
                               </Flex>*/}
-                        </Link>
-                        <div style={{color: "#666"}}>
-                            <span>{
-                                labels.map((label, i) => 
-                                    <SimpleTag>
-                                        <Link to={`?label=${label}`}>{label}</Link>
-                                    </SimpleTag>)
-                            }</span>
+                            <div style={{color: "#666"}}>
+                                <span>{
+                                    labels.map((label, i) => 
+                                        <SimpleTag>
+                                            <Link to={`?label=${label}`}>{label}</Link>
+                                        </SimpleTag>)
+                                }</span>
+                            </div>
                         </div>
-                    </div>
+                    </Link>
                 </div>
             </div>
-          
+      
             
         </StyledModelSnippet>
     )

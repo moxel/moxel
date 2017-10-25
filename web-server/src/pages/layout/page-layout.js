@@ -70,7 +70,7 @@ class PageLayout extends Component {
             showBanner = true;
             bodyOffset = "220px"
         }else{
-            bodyOffset = "0px";
+            bodyOffset = "75px";
         }
 
         const childrenWithProps = React.Children.map(this.props.children, 
