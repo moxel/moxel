@@ -50,7 +50,7 @@ Change `dev` to `prod` if you'd like to deploy changes to production (with CAUTI
 
 This script runs the following steps,
 
-First, build the docker container,
+Make sure you've installed `react-scripts` package. First, create an optimized build and wrap it into a docker container.
 
 ```
 make build

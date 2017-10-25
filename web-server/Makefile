@@ -4,7 +4,7 @@ URL='moxel/web-server'
 
 build:
 	./bin/bake-build-version
-	./node_modules/.bin/react-scripts build
+	react-scripts build
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest
 
