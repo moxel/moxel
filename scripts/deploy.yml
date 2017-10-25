@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: web-server
+spec:
+  replicas: 3
+  template:
+    metadata:
+      name: web-server
+      labels:
+        app: web-server
+    spec:
+      containers:
+      - name: main
+        image: moxel/web-server
+        ports:
+        - containerPort: 3000
+        tty: true
+      imagePullSecrets:
+      - name: regsecret
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dummy-web-server
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.global-static-ip-name: "dummy-ingress"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /web
+        backend:
+          serviceName: web-server
+          servicePort: 3000
+  backend:
+    serviceName: default-http-backend
+    servicePort: 80
