@@ -1,4 +1,4 @@
-const fileType = require('file-type');
+const fileType = require('file-type-es5');
 var browserMode = false;
 
 if(typeof(window) != 'undefined' && !window.Buffer) {

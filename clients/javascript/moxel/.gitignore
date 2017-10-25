@@ -3,3 +3,4 @@ node_modules
 
 /examples/colorization-loaded-input.jpg
 /examples/colorization-loaded-output.jpg
+/bundle.js
