@@ -547,10 +547,10 @@ class ModelView extends Component {
                         var inputSpace = inputSpaces[inputName];
                         var input = inputs[inputName];
                         var demoWidget = document.querySelector(`#demo-input-${inputName}`);
-                        if(!demoWidget) return;
                         if(inputSpace == moxel.space.image) {
                             // TODO: Not implemented.
                             var addThumbnail = self.addThumbnails[inputName];
+                            console.log('add thumbnail', addThumbnail);
                             if(addThumbnail) {
                                 input.toDataURL('image/png').then((src) => {
                                     addThumbnail(src);
@@ -559,11 +559,13 @@ class ModelView extends Component {
                         }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
                         }else if(inputSpace == moxel.space.array) {
+                            if(!demoWidget) return;
                             input.toJSON().then((json) => {
                                 demoWidget.value = json;
                                 resolve();
                             })
                         }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
+                            if(!demoWidget) return;
                             input.toText().then((text) => {
                                 demoWidget.value = text;
                                 growHeight(demoWidget);
@@ -1233,7 +1235,7 @@ class ModelView extends Component {
             var inputWidget = null;
             if(inputSpace == moxel.space.bytes) {
                 inputWidget = (
-                    <div style={{paddingBottom: "30px"}}>
+                    <div style={{paddingBottom: "30px"}} id={`demo-input-${inputName}`}>
                         {displayVariable(inputName, inputSpace)}
                         <FileUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></FileUploader>
                     </div>
@@ -1241,7 +1243,7 @@ class ModelView extends Component {
             }
             else if(inputSpace == moxel.space.image) {
                 inputWidget = (
-                    <div style={{paddingBottom: "30px"}}>
+                    <div style={{paddingBottom: "30px"}} id={`demo-input-${inputName}`}>
                         {displayVariable(inputName, inputSpace)}
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
