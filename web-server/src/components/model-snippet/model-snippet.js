@@ -42,11 +42,11 @@ const StyledModelSnippet = styled(FlexItem)`
 
     h1.snippet-title {
         margin: 0 0 0 0;
-        font-size: 1.3em;
+        font-size: 1.2em;
         font-weight: 400;
         color: #black;
         text-overflow: ellipsis;
-        width: 500px;
+        width: 100%;
         white-space: nowrap;
         overflow: hidden;
     }
