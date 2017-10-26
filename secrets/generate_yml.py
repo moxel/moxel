@@ -1,5 +1,16 @@
 import base64
+import sys
 import os
+
+if len(sys.argv) < 2:
+    print('Usage: python generate_yml.py [prod | dev]')
+    exit(1)
+
+env = sys.argv[1]
+
+if env != 'prod' and env != 'dev':
+    print('Error: env must be [prod | dev], not', env)
+    exit(1)
 
 store = {
     'AUTH0_DOMAIN': 'dummyai.auth0.com',
@@ -14,6 +25,18 @@ assert store.get('AUTH0_CLIENT_SECRET')
 
 # Check SendGrid API Key
 assert store.get('SENDGRID_API_KEY')
+
+# Add environment specific databases.
+if env == 'prod':
+    store['DBAddress'] = '35.197.24.27'
+    store['DBPassword'] = 'postgres'
+    store['RedisDBAddress'] = '35.203.139.111'
+    store['RedisDBPassword'] = 'RKe3DcnXeCLJ'
+elif env == 'dev':
+    store['DBAddress'] = '35.185.221.185'
+    store['DBPassword'] = 'postgres'
+    store['RedisDBAddress'] = '35.203.154.15'
+    store['RedisDBPassword'] = 'zqYT1YVPsEBr'
 
 store_encoded = {k: base64.b64encode(v.encode('utf-8')) for (k, v) in store.items()}
 
@@ -30,5 +53,5 @@ for k, v in store_encoded.items():
 
 print(yml)
 
-with open('credentials.yml', 'w') as f:
+with open('credentials-%s.yml' % env, 'w') as f:
     f.write(yml)

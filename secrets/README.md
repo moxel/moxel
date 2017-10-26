@@ -14,22 +14,36 @@ We use the following services
 * SendGrid
 * Postgres
 
-
 ## How 
 
-User management and authentication.
-
-Copy `credentials.template` to `auth0.json`, and put in the credentials by first encoding:
+To create the credentials for `dev` environment, make sure you've switched to `dev` already by 
 
 ```
-echo '<Credentials>' | base64
+use-moxel-dev
 ```
 
-Then create the credentials by 
+First, set up the environment variables, such as 
+
 
 ```
-kubectl create -f credentials.yml
+
+export AUTH0_CLIENT_ID="xxx"
+export AUTH0_CLIENT_SECRET="xxx"
+
 ```
 
+At Moxel, we have a shared doc to keep track of common secrets. Ask admin for that.
+
+To deploy the secrets to kube cluster, 
+
+```
+make dev
+```
+
+Similarly, to deploy secrets to the production kube cluster, do the above except run 
+
+```
+make prod
+```
 
 
