@@ -1,4 +1,5 @@
-window.Buffer = require('buffer')
+window.Buffer = require('buffer');
+const fileType = require('file-type-es5');
 
 class Image {
     constructor(domImage) {
@@ -44,9 +45,11 @@ function str2ab(str) {
 }
 module.exports = {
     fromBytes: function(data) {
+        var mime = fileType(data).mime;
+        console.log('mine', mine);
         return new Promise((resolve, reject) => {
             var domImage = document.createElement('img');
-            domImage.src = 'data:image/jpeg;base64,' + data.toString('base64');
+            domImage.src = 'data:' + mime + ';base64,' + data.toString('base64');
             resolve(new Image(domImage));
         });
     }

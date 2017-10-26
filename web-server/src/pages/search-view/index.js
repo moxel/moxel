@@ -193,7 +193,7 @@ class SearchViews extends Component {
                               distanceFromBottom,
                               calculatedHeight
                             }) => {
-                                if(distanceFromTop < 0)  {
+                                if(distanceFromTop <= 0)  {
                                     style = {
                                         position: "fixed",
                                         top: 0
@@ -213,7 +213,7 @@ class SearchViews extends Component {
                                     items.push(renderCategoryItem(labels[i], 'local_offer', i + 2, `/?label=${labels[i]}`));
                                 }
 
-                                console.log('distanceFromTop', distanceFromTop, style);
+                                // console.log('distanceFromTop', distanceFromTop, style);
                                 return (
                                     <SelectableList defaultValue={1} style={style} className='model-category'>
                                         <Subheader>Feed</Subheader>

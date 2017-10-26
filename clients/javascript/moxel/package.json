@@ -27,8 +27,5 @@
     "babel-preset-stage-0": "^6.24.1",
     "uglify-es": "^3.1.3",
     "uglify-js": "^3.1.4"
-  },
-  "browser": {
-      "./lib/utils/image.js": "./lib/utils/image-browser.js"
   }
 }
