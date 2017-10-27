@@ -190,7 +190,7 @@ export default function ModelSnippet({
                   <FlexSpacer/>
                   <FlexItem></FlexItem>
               </Flex>*/}
-                <div style={{color: "#666"}}>
+                <div style={{color: "#666", overflow: "hidden", whiteSpace: "nowrap", height: "25px"}}>
                     <span>{
                         labels.map((label, i) => 
                             <SimpleTag>
@@ -208,15 +208,15 @@ export default function ModelSnippet({
                 {/*<div className="card-image">
                   <img src="https://lorempixel.com/100/190/nature/6"/>
                 </div>*/}
-                <div className="card-stacked">
+                <div className="card-stacked" style={{width: "100%"}}>
                     <Link to={`/models/${user}/${id}/${tag}`} style={{height: "100%"}}>
                         <div className="card-content" style={{padding: "18px"}}>
                             <div className="row" style={{width: "100%"}}>
-                                <div>
-                                    <div className="col s2 m2">
+                                <div style={{display: "flex", width: "100%"}}>
+                                    <div>
                                         {renderModelIcon()}
                                     </div>
-                                    <div className="col s10 m10">
+                                    <div style={{verticalAlign: "top", paddingLeft: "10px", overflow: "hidden", width: "100%"}}>
                                         {renderModelSummary()}
                                     </div>
                                 </div>

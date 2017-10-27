@@ -1,13 +1,18 @@
-import React, {Component} from 'react';
-import {Flex} from "layout-components";
+import React, {
+    Component
+} from 'react';
+import {
+    Flex
+} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 import LayoutUtils from "../../libs/LayoutUtils";
 
-if(LayoutUtils.isMobile()) {
-    var Page = styled(Flex)`{
+if (LayoutUtils.isMobile()) {
+    var Page = styled(Flex)
+    `{
         min-height: 600px;
         width: 100%;
         max-width: 500px;
@@ -18,8 +23,9 @@ if(LayoutUtils.isMobile()) {
             flex: 1 0 auto;
         }
     }`;
-}else{
-    var Page = styled(Flex)`{
+} else {
+    var Page = styled(Flex)
+    `{
         min-height: 600px;
         min-width: 860px;
         padding-top: 0;
@@ -31,7 +37,8 @@ if(LayoutUtils.isMobile()) {
 }
 
 
-const PageBody = styled(Flex)`{
+const PageBody = styled(Flex)
+`{
     padding-top: 75px;
     background-color: rgb(246, 249, 255);
     ${PageBody} {
@@ -65,36 +72,31 @@ class PageLayout extends Component {
         console.log('is logged in? ', isLoggedIn);
 
         let showBanner = false;
-        var bodyOffset;
-        if(window.location.pathname == '/') {
+        if (window.location.pathname == '/') {
             showBanner = true;
-            bodyOffset = "240px"
-        }else{
-            bodyOffset = "75px";
-        }
+        } 
 
-        const childrenWithProps = React.Children.map(this.props.children, 
+        const childrenWithProps = React.Children.map(this.props.children,
             (child) => {
                 let searchEnabled = child.props.searchEnabled;
 
-                if(searchEnabled) {
+                if (searchEnabled) {
                     let render = (props) => {
                         props.searchText = self.state.searchText;
                         return child.props.render(props);
                     };
-                    return React.cloneElement(child, {render: render});
-                }else{
+                    return React.cloneElement(child, {
+                        render: render
+                    });
+                } else {
                     return child;
                 }
-        });
+            });
 
         return (
             <Page column>
                 <PageHeader showBanner={showBanner} handleSearch={this.handleSearch}/>
-                <PageBody className="page-body" 
-                    style={{
-                        paddingTop: bodyOffset
-                    }}>{childrenWithProps}</PageBody>
+                <PageBody className="page-body">{childrenWithProps}</PageBody>
                 <PageFooter/>
             </Page>
         );

@@ -5,9 +5,6 @@ import PropTypes from 'prop-types';
 
 // import {store} from '../../mock-data';
 import SearchLayout from "./SearchLayout";
-import ModelSnippet from "../../components/model-snippet/model-snippet";
-import AuthStore from "../../stores/AuthStore";
-import ModelStore from "../../stores/ModelStore";
 import SearchBar from 'material-ui-search-bar'
 import FixedWidthRow from "../../components/fixed-width-row";
 import {makeSelectable, List, ListItem} from 'material-ui/List';
@@ -16,6 +13,11 @@ import queryString from 'query-string';
 
 import {Sticky, StickyContainer} from "react-sticky"
 import {Link} from "react-router-dom";
+
+import ModelSnippet from "../../components/model-snippet/model-snippet";
+import AuthStore from "../../stores/AuthStore";
+import ModelStore from "../../stores/ModelStore";
+import LayoutUtils from "../../libs/LayoutUtils"
 
 let SelectableList = makeSelectable(List);
 
@@ -227,22 +229,36 @@ class SearchViews extends Component {
             );
         }
 
-        return (
-            <StyledModelLayout>
-                <FixedWidthRow>
-                    <div className="row" style={{width: "100%"}}>
-                        <div>
-                            <div className="col s3 m3">
-                                {renderCategories()}	
-                            </div>
-                            <div className="col s9 m9">
+        if(LayoutUtils.isMobile()) {
+            return (
+                <StyledModelLayout style={{paddingTop: "0px"}}>
+                    <FixedWidthRow>
+                        <div className="row" style={{width: "100%"}}>
+                            <div className="col s12 m12">
                                 {renderModelListViews()}
                             </div>
                         </div>
-                    </div>
-                </FixedWidthRow>
-            </StyledModelLayout>
-        );
+                    </FixedWidthRow>
+                </StyledModelLayout>
+            );
+        }else{
+            return (
+                <StyledModelLayout style={{paddingTop: "240px"}}>
+                    <FixedWidthRow>
+                        <div className="row" style={{width: "100%"}}>
+                            <div>
+                                <div className="col s3 m3">
+                                    {renderCategories()}	
+                                </div>
+                                <div className="col s9 m9">
+                                    {renderModelListViews()}
+                                </div>
+                            </div>
+                        </div>
+                    </FixedWidthRow>
+                </StyledModelLayout>
+            );
+        }
     }
 }
 
