@@ -23,7 +23,7 @@ def get_all_users(access_token, query=''):
     total_users = -1
 
     while True:
-        if len(users) > total_users and total_users != -1:
+        if len(users) >= total_users and total_users != -1:
             break
 
         response = requests.get('https://' + constants.AUTH0_DOMAIN
@@ -39,6 +39,8 @@ def get_all_users(access_token, query=''):
         total_users = int(result['total'])
 
         users.extend(result['users'])
+
+        page_id += 1
 
         print('Getting users %d / %d' % (min(len(users), total_users), total_users))
 
