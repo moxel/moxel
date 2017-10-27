@@ -231,7 +231,7 @@ class SearchViews extends Component {
 
         if(LayoutUtils.isMobile()) {
             return (
-                <StyledModelLayout style={{paddingTop: "0px"}}>
+                <StyledModelLayout style={{paddingTop: "200px"}}>
                     <FixedWidthRow>
                         <div className="row" style={{width: "100%"}}>
                             <div className="col s12 m12">

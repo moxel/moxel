@@ -100,6 +100,46 @@ class PageHeader extends Component {
             if(self.props.showBanner) {
                 if(LayoutUtils.isMobile()) {
                     // TODO: implement mobile layout.
+                    return (
+                        <div className="nav-header center page-banner"
+                            style={{
+                                paddingTop: "10px",
+                                paddingBottom: "50px"
+                            }}>
+                            <h1 style={{
+                                fontSize: "30px", 
+                                lineHeight: "1.2",
+                                marginTop: "10px",
+                                marginBottom: "10px",
+                                fontWeight: 300}}>
+                                World's Best Models, <br/> Built by the Community.
+                            </h1>
+                            <FixedWidthRow>
+                                <div style={{lineHeight: 1, textAlign: "center", 
+                                    position: "relative", width: "100%"}}>
+                                    <SearchBar
+                                      onChange={self.handleSearchBarChange}
+                                      onRequestSearch={() => console.log('onRequestSearch')}
+                                      hintText="Discover Models"
+                                      style={{
+                                          margin: '0 auto',
+                                          width: "300px",
+                                          borderRadius: "15px",
+                                          position: "absolute",
+                                          color: "black",
+                                          left: "50px"
+                                      }}
+                                    />
+
+                                    &nbsp;
+                                    <br/>
+
+                                </div>
+                                
+                                <br/>
+                            </FixedWidthRow>
+                        </div>
+                    )
                 }else{ // Desktop layout.
                     return (
                         <div className="nav-header center page-banner"
