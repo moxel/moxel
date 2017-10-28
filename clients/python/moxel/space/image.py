@@ -23,6 +23,12 @@ class Image(Space):
     def rgb(self, i, j):
         return self.im[i, j, :] * 255
 
+
+    @staticmethod
+    def from_numpy(im):
+        return Image(im)
+
+
     @staticmethod
     def from_stream(f):
         # import only if the transformer is used.
