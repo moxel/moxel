@@ -7,7 +7,7 @@ MOXEL_USERS_LISTID = 'moxel-users'
 
 def send_email(recipient, html,
                sender='newsletter@moxel.ai',
-               sender_name='Moxel Newsletter',
+               sender_name='Moxel Team',
                subject='No Subject', ):
     response = requests.post('https://api.sendgrid.com/v3/mail/send',
                              json={
