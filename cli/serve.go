@@ -246,7 +246,7 @@ func (model *LocalModel) Serve(useDocker bool) error {
 	<-irqSig
 	fmt.Println("SIGTERM")
 	for i := 0; i < 3; i++ {
-		fmt.Println("Sending SIGINT")
+		// fmt.Println("Sending SIGINT")
 		syscall.Kill(-cmd.Process.Pid, syscall.SIGINT)
 	}
 

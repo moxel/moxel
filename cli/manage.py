@@ -49,10 +49,20 @@ def build(command='build', args=[]):
             # Use custom go-git
             # os.system('cd .build/src/gopkg.in/src-d/go-git.v4 && (git remote add -f dummy https://github.com/dummy-ai/go-git || git pull dummy v4)')
 
-        elif command == 'build':
+        elif command == 'build-debug':
             cmd = 'go build -i -o bin/moxel github.com/dummy-ai/mvp/moxel'
             try:
                 subprocess.check_call(cmd.split())
+                return 0
+            except subprocess.CalledProcessError:
+                return 1
+
+        elif command == 'build-release':
+            cmd = 'go build -i -o bin/moxel github.com/dummy-ai/mvp/moxel'
+            try:
+                subprocess.check_call(['go', 'build', '-i',
+                                      '-ldflags', '-s -w',
+                                      '-o', 'bin/moxel', 'github.com/dummy-ai/mvp/moxel'])
                 return 0
             except subprocess.CalledProcessError:
                 return 1
