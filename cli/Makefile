@@ -18,7 +18,7 @@ build-windows:
 	mkdir -p bin/release/windows
 	cp -f bin/moxel bin/release/windows/moxel
 
-build-release:  build-linux build-windows build-osx
+build-release:  build-linux build-osx
 	@echo "All versions built".
 
 link:
@@ -27,7 +27,7 @@ link:
 build:
 	# Update version constant
 	sed -i .bk "s/CLI_VERSION = .*/CLI_VERSION = \"`cat VERSION` (BUILD `date`)\"/" constants.go
-	./manage.py build
+	./manage.py build-debug
 	
 clean:
 	./manage.py clean
