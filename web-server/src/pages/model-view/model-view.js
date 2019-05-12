@@ -179,6 +179,10 @@ const StyledModelLayout = styled(Flex)`
         box-shadow: 0px 0px 15px #333;
     }
 
+    .model-labels a {
+        color: white;
+    }
+
     .card-gallery {
         padding: 0;
     }
@@ -546,6 +550,7 @@ class ModelView extends Component {
                         if(inputSpace == moxel.space.image) {
                             // TODO: Not implemented.
                             var addThumbnail = self.addThumbnails[inputName];
+                            console.log('add thumbnail', addThumbnail);
                             if(addThumbnail) {
                                 input.toDataURL('image/png').then((src) => {
                                     addThumbnail(src);
@@ -554,11 +559,13 @@ class ModelView extends Component {
                         }else if(inputSpace == moxel.space.json) {
                             // TODO: Not implemented.
                         }else if(inputSpace == moxel.space.array) {
+                            if(!demoWidget) return;
                             input.toJSON().then((json) => {
                                 demoWidget.value = json;
                                 resolve();
                             })
                         }else if(inputSpace == moxel.space.str || inputSpace == moxel.space.float || inputSpace == moxel.space.int || inputSpace == moxel.space.bool) {
+                            if(!demoWidget) return;
                             input.toText().then((text) => {
                                 demoWidget.value = text;
                                 growHeight(demoWidget);
@@ -1228,7 +1235,7 @@ class ModelView extends Component {
             var inputWidget = null;
             if(inputSpace == moxel.space.bytes) {
                 inputWidget = (
-                    <div style={{paddingBottom: "30px"}}>
+                    <div style={{paddingBottom: "30px"}} id={`demo-input-${inputName}`}>
                         {displayVariable(inputName, inputSpace)}
                         <FileUploader uploadEventHandlers={this.createImageUploadHandler(inputName)}></FileUploader>
                     </div>
@@ -1236,7 +1243,7 @@ class ModelView extends Component {
             }
             else if(inputSpace == moxel.space.image) {
                 inputWidget = (
-                    <div style={{paddingBottom: "30px"}}>
+                    <div style={{paddingBottom: "30px"}} id={`demo-input-${inputName}`}>
                         {displayVariable(inputName, inputSpace)}
                         <ImageUploader uploadEventHandlers={this.createImageUploadHandler(inputName)} addThumbnailHandler={this.createAddThumbnailHandler(inputName)}></ImageUploader>
                     </div>
@@ -1503,14 +1510,11 @@ class ModelView extends Component {
 
         function renderModelLabels() {
             if(self.state.editMode) {
-                const sourceTags=[
-                ];
-
                 return (
                     <ChipInput
                       defaultValue={model.metadata.labels}
                       fullWidth="true"
-                      dataSource={sourceTags}
+                      dataSource={ModelStore.listLabels()}
                       hintText="(Add labels to model here)"
                       hintStyle={{color: "white"}}
                       style={{fontSize: "14px"}}
@@ -1520,9 +1524,12 @@ class ModelView extends Component {
                 );
             }else{
                 return (
-                    <div>
+                    <div className="model-labels">
                         <p>{
-                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
+                            model.metadata.labels.map((label, i) => 
+                                <SimpleTag>
+                                    <Link to={`/?label=${label}`}>{label}</Link>
+                                </SimpleTag>)
                         }</p>
                     </div>
                 );
@@ -1564,12 +1571,8 @@ class ModelView extends Component {
                                 {renderModelDescription()}
 
                                   <br/>
+                                {renderModelLabels()}
 
-                                    <div>
-                                        <p>{
-                                            model.metadata.labels.map((label, i) => <SimpleTag key={i} href={`/list?tag=${label}`}>{label}</SimpleTag>)
-                                        }</p>
-                                    </div>
                                 </div>
                                 
                                 <div className="card-action blue darken-4">

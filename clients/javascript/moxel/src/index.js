@@ -1,6 +1,9 @@
-const fileType = require('file-type');
+const fileType = require('file-type-es5');
+var browserMode = false;
+
 if(typeof(window) != 'undefined' && !window.Buffer) {
 	// Browser environment.
+    browserMode = true;
 	window.Buffer = require('buffer')
 }else{
 	// Node.js environment.
@@ -8,7 +11,9 @@ if(typeof(window) != 'undefined' && !window.Buffer) {
 	require('isomorphic-fetch');
 }
 
-const Jimp = require('jimp');
+const ImageLib = require('./utils/image.js')
+console.log('image lib', ImageLib)
+
 const async = require('async');
 var md5 = require('md5');
 
@@ -235,12 +240,10 @@ var Moxel = function(config) {
 		// img is Jimp image.
 		constructor(img) {
 			this.img = img;
-			this.img.rgba(false); // use RGB only.
 			this.shape = this.shape.bind(this);
 			this.toBytes = this.toBytes.bind(this);
 			this.toBase64 = this.toBase64.bind(this);
 			this.toDataURL = this.toDataURL.bind(this);
-			this.toJimp = this.toJimp.bind(this);
 		}
 
 		// get shape of the image.
@@ -270,9 +273,13 @@ var Moxel = function(config) {
 	        }
 
 	        return new Promise((resolve, reject) => {
-	        	Jimp.read(data).then((result) => {
-	        		resolve(new Image(result));
-	        	});
+                ImageLib.fromBytes(data)
+                .then((result) => {
+                    resolve(new Image(result));
+                })
+                .catch((err) => {
+                    reject(err);
+                });
 	        });
 		}
 
@@ -288,12 +295,7 @@ var Moxel = function(config) {
 			if(!mime) {
 				mime = 'image/png';
 			}
-			var self = this;
-			return new Promise((resolve, reject) => {
-				self.img.getBuffer(mime, (err, data) => {
-					resolve(data);
-				});
-			})
+            return this.img.toBytes();
 		}
 
 		// Convert to base64 encoding.
@@ -321,18 +323,6 @@ var Moxel = function(config) {
 				self.toBytes(mime).then((data) => {
 					resolve(Buffer(data).toString('base64'));
 				})
-			})
-		}
-
-		// Return Jimp representation.
-		toJimp() {
-			var self = this;
-
-			return new Promise((resolve, reject) => {
-				if(!self.img) {
-					reject('No image available.')
-				}
-				resolve(self.img);
 			})
 		}
 	}
@@ -962,5 +952,9 @@ var Moxel = function(config) {
 		utils: Utils
 	}
 };
+
+if(browserMode) {
+    window.Moxel = Moxel
+}
 
 module.exports = Moxel;

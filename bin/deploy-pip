@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ "$EUID" = 0 ]
+  then echo "Please do not run as root."
+  exit
+fi
+
 sudo echo
 ./bin/release-cli
 sudo ./bin/deploy-drivers

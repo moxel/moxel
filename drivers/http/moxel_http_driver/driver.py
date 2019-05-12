@@ -37,6 +37,12 @@ def mount_asset(key, local_path):
                             shell=True)
 
 
+def suspend_container():
+    print('Command failed. Suspending the container')
+    while True:
+        time.sleep(1.)
+
+
 # Verify this is a Git repository
 if not exists(join(root, '.git')):
     print('[daemon] This is not a valid git repository: {}'.format(root))
@@ -50,12 +56,12 @@ for asset in args.assets:
     print(asset_path)
     mount_asset(asset_path, asset_path)
 
-print('[daemon] Running command {}'.format(' '.join(args.cmd)))
+print('[daemon] Running command {}'.format(' ; '.join(args.cmd)))
 sys.stdout.flush() # make sure daemon outputs finish
 
 os.chdir(args.work_path)
 
 for command in args.cmd:
     ret = os.system(command)
-    if ret != 0: exit(ret)
+    if ret != 0: suspend_container()
 

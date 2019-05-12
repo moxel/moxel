@@ -47,6 +47,7 @@ const AUTH0_CLIENT_SECRET = "po_dTnKdw3ZTcNblzOu_M3QLG8s1p5qwMdkwGNg7AbOpoFLLgiI
 
 const MandrillAPIKey = "1HMBQ1mtVG5p3QtYpmI5tA"
 
+// TODO: get environment-specific variables from kube secrets.
 func InitGlobal() {
 	env := os.Getenv("ENV")
 	fmt.Println("ENV", env)

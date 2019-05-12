@@ -1,13 +1,18 @@
-import React, {Component} from 'react';
-import {Flex} from "layout-components";
+import React, {
+    Component
+} from 'react';
+import {
+    Flex
+} from "layout-components";
 import PageHeader from "./page-header";
 import PageFooter from "./page-footer";
 import styled from "styled-components";
 import AuthStore from "../../stores/AuthStore";
 import LayoutUtils from "../../libs/LayoutUtils";
 
-if(LayoutUtils.isMobile()) {
-    var Page = styled(Flex)`{
+if (LayoutUtils.isMobile()) {
+    var Page = styled(Flex)
+    `{
         min-height: 600px;
         width: 100%;
         max-width: 500px;
@@ -18,8 +23,9 @@ if(LayoutUtils.isMobile()) {
             flex: 1 0 auto;
         }
     }`;
-}else{
-    var Page = styled(Flex)`{
+} else {
+    var Page = styled(Flex)
+    `{
         min-height: 600px;
         min-width: 860px;
         padding-top: 0;
@@ -31,7 +37,8 @@ if(LayoutUtils.isMobile()) {
 }
 
 
-const PageBody = styled(Flex)`{
+const PageBody = styled(Flex)
+`{
     padding-top: 75px;
     background-color: rgb(246, 249, 255);
     ${PageBody} {
@@ -41,19 +48,55 @@ const PageBody = styled(Flex)`{
 
 
 class PageLayout extends Component {
+    constructor() {
+        super();
+
+        this.handleSearch = this.handleSearch.bind(this);
+
+        this.state = {
+            searchText: ''
+        };
+    }
+
+    handleSearch(text) {
+        console.log('handle search', text);
+        this.setState({
+            searchText: text
+        });
+    }
+
     render() {
+        var self = this;
+
         var isLoggedIn = AuthStore.isAuthenticated();
         console.log('is logged in? ', isLoggedIn);
 
         let showBanner = false;
-        if(window.location.pathname == '/') {
+        if (window.location.pathname == '/') {
             showBanner = true;
-        }
+        } 
+
+        const childrenWithProps = React.Children.map(this.props.children,
+            (child) => {
+                let searchEnabled = child.props.searchEnabled;
+
+                if (searchEnabled) {
+                    let render = (props) => {
+                        props.searchText = self.state.searchText;
+                        return child.props.render(props);
+                    };
+                    return React.cloneElement(child, {
+                        render: render
+                    });
+                } else {
+                    return child;
+                }
+            });
 
         return (
             <Page column>
-                <PageHeader showBanner={showBanner}/>
-                <PageBody className="page-body">{this.props.children}</PageBody>
+                <PageHeader showBanner={showBanner} handleSearch={this.handleSearch}/>
+                <PageBody className="page-body">{childrenWithProps}</PageBody>
                 <PageFooter/>
             </Page>
         );

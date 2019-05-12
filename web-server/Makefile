@@ -1,10 +1,10 @@
 URL='moxel/web-server'
 
-.PHONY: build
+.PHONY: build cors
 
 build:
 	./bin/bake-build-version
-	./node_modules/.bin/react-scripts build
+	react-scripts build
 	docker build -t $(URL):`cat VERSION` .
 	docker tag $(URL):`cat VERSION` $(URL):latest
 
@@ -26,4 +26,6 @@ deploy:
 	kubectl create -f deploy.yml
 	kubectl expose deploy web-server --name=web-server --type="LoadBalancer" 
 
-
+cors:
+	gsutil cors set cors/enable-gcloud.json gs://dummy-dev
+	gsutil cors set cors/enable-gcloud-asset.json gs://dummy-asset

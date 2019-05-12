@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {FlexItem, FlexSpacer} from "layout-components";
+import {Flex, FlexItem, FlexSpacer} from "layout-components";
 import PropTypes from "prop-types";
 import HeaderButton from "./header-button";
 import ProfileImage from '../../components/profile-image/profile-image';
@@ -13,6 +13,23 @@ import Mask from "../home-view/mask";
 import AuthStore from "../../stores/AuthStore";
 import LayoutUtils from "../../libs/LayoutUtils";
 import {Link} from "react-router-dom";
+import SearchBar from 'material-ui-search-bar'
+
+
+const StyledLayout = styled(Flex)`
+.page-banner input {
+    color: black !important;
+    box-shadow: none !important;
+}
+
+.page-banner input:focus {
+    box-shadow: none !important;
+}
+
+.page-header-nav a {
+    font-size: 15px;
+}
+`
 
 
 class PageHeader extends Component {    
@@ -27,6 +44,7 @@ class PageHeader extends Component {
         this.state = { isOpen: false };
 
         this.handleWindowSizeChange = this.handleWindowSizeChange.bind(this);
+        this.handleSearchBarChange = this.handleSearchBarChange.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
       }
 
@@ -68,6 +86,10 @@ class PageHeader extends Component {
         document.querySelector('#mc-embedded-subscribe').value = "Thanks!"
     }
 
+    handleSearchBarChange(text) {
+        this.props.handleSearch(text);
+    }
+
     render() {
         var self = this;
 
@@ -76,21 +98,110 @@ class PageHeader extends Component {
 
         function getBanner() {
             if(self.props.showBanner) {
-                return (
-                    <div className="nav-header center">
-                        <br/>
-                        <h1 style={{fontSize: (isMobile ? "30px" : "65px"), fontWeight: 400, lineHeight: 1.3}}>World's Best Models <br/> Built by the Community</h1>
-                        <div className="tagline" style={{lineHeight: (isMobile ? 10 : 6), fontSize: (isMobile ? "12px" : "20px")}}>
-                            A platform to build and share machine intelligence.
+                if(LayoutUtils.isMobile()) {
+                    // TODO: implement mobile layout.
+                    return (
+                        <div className="nav-header center page-banner"
+                            style={{
+                                paddingTop: "10px",
+                                paddingBottom: "50px"
+                            }}>
+                            <h1 style={{
+                                fontSize: "30px", 
+                                lineHeight: "1.2",
+                                marginTop: "10px",
+                                marginBottom: "10px",
+                                fontWeight: 300}}>
+                                World's Best Models, <br/> Built by the Community.
+                            </h1>
+                            <FixedWidthRow>
+                                <div style={{lineHeight: 1, textAlign: "center", 
+                                    position: "relative", width: "100%"}}>
+                                    <SearchBar
+                                      onChange={self.handleSearchBarChange}
+                                      onRequestSearch={() => console.log('onRequestSearch')}
+                                      hintText="Discover Models"
+                                      style={{
+                                          margin: '0 auto',
+                                          width: "300px",
+                                          borderRadius: "15px",
+                                          position: "absolute",
+                                          color: "black",
+                                          left: "50px"
+                                      }}
+                                    />
+
+                                    &nbsp;
+                                    <br/>
+
+                                </div>
+                                
+                                <br/>
+                            </FixedWidthRow>
                         </div>
-                        <div>
-                            <Button waves="light" className="blue" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} onClick={() => {AuthStore.login('/new');}}>Upload Models</Button>
-                            <Link to="/models"><Button waves="light" className="green" style={{width: "240px", marginLeft: "20px", marginRight: "20px"}} >Discover Models</Button></Link>
-                        </div> 
-                        
-                        <br/>
-                    </div>
-                )
+                    )
+                }else{ // Desktop layout.
+                    return (
+                        <div className="nav-header center page-banner"
+                            style={{
+                                paddingTop: "10px",
+                                paddingBottom: "50px"
+                            }}>
+                            <h1 style={{
+                                fontSize: "25px", 
+                                marginTop: "10px",
+                                marginBottom: "10px",
+                                fontWeight: 300}}>
+                                World's Best Models, Built by the Community.
+                            </h1>
+                            <FixedWidthRow>
+                                <div style={{lineHeight: 1, position: "relative", width: "100%"}}>
+                                    <SearchBar
+                                      onChange={self.handleSearchBarChange}
+                                      onRequestSearch={() => console.log('onRequestSearch')}
+                                      hintText="Discover Models"
+                                      style={{
+                                          margin: '0 auto',
+                                          width: "500px",
+                                          borderRadius: "15px",
+                                          position: "absolute",
+                                          color: "black",
+                                          left: "50px"
+                                      }}
+                                    />
+
+                                    &nbsp;
+
+                                    <span
+                                        style={{
+                                            lineHeight: "48px",
+                                            fontSize: "16px",
+                                            position: "absolute",
+                                            left: "600px"
+                                        }}>
+                                        Or
+                                    </span>
+
+                                    <Button waves="light" className="blue" 
+                                        style={{
+                                            width: "150px", 
+                                            height: "48px",
+                                            padding: 0,
+                                            marginLeft: "20px", 
+                                            marginRight: "20px",
+                                            position: "absolute",
+                                            borderRadius: "15px",
+                                            textTransform: "none",
+                                            fontSize: "16px",
+                                            left: "630px"
+                                        }} onClick={() => {AuthStore.login('/new');}}>Upload Models</Button>
+                                </div>
+                                
+                                <br/>
+                            </FixedWidthRow>
+                        </div>
+                    )
+                }
             }else{
                 return null;
             }
@@ -112,8 +223,8 @@ class PageHeader extends Component {
                 if(LayoutUtils.isMobile()) {
                     return  <SideNav trigger={<i className="material-icons">menu</i>} options={{ closeOnClick: true }}>
                                 <SideNavItem waves icon="home"><Link to="/">Home</Link></SideNavItem>
-                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
                                 <SideNavItem waves icon="star"><Link to="/models">Models</Link></SideNavItem>
+                                <SideNavItem waves icon="create"><Link to="/new">Create</Link></SideNavItem>
                                 <SideNavItem waves icon="bookmark border"><a href="http://docs.moxel.ai">Documentation</a></SideNavItem>
                                 <SideNavItem divider />
                                 <SideNavItem waves style={{position: "relative"}}>
@@ -132,11 +243,9 @@ class PageHeader extends Component {
                 }else{
                     /*<ul className="right  hide-on-med-and-down">*/
                     return (
-                        <ul className="right">
-                            <li><Link to="/new">Create</Link></li>
-
+                    <ul className="right page-header-nav">
                             <li><Link to="/models">Models</Link></li>
-
+                            <li><Link to="/new">Create</Link></li>
                             <li><a href="http://docs.moxel.ai">Documentation</a></li>
 
                             <ul id="dropdown1" className="dropdown-content">
@@ -174,6 +283,7 @@ class PageHeader extends Component {
                     width: "100%",
                     top: "0px",
                     zIndex: 99999,
+                    height: "240px"
                 }
             }else{
                 var style = {
@@ -192,20 +302,22 @@ class PageHeader extends Component {
         }
 
         return (
-            <div style={getNavbarStyle()}>
-                <nav className="nav-extended" style={{boxShadow: "none"}}>
-                    <div className="nav-background">
-                        <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
-                    </div>
-                    <div className="nav-wrapper container">
-                        <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
-                        {getMenu()}
-                        {getBanner()}
-                    </div>
-                </nav>
-
-               
-            </div>
+            <StyledLayout>
+                <div style={getNavbarStyle()}>
+                    <nav className="nav-extended" style={{boxShadow: "none"}}>
+                        <div className="nav-background">
+                            <div className="pattern active" style={{backgroundImage: "url('http://cdn.shopify.com/s/files/1/1775/8583/t/1/assets/icon-seamless.png')"}}></div>
+                        </div>
+                        <FixedWidthRow>
+                            <div className="nav-wrapper" style={{width: "100%"}}>
+                                <Link to="/" className="brand-logo"><img style={{height: "30px", paddingTop: "5px"}} src="/images/moxel.png"></img></Link>
+                                {getMenu()}
+                                {getBanner()}
+                            </div>
+                        </FixedWidthRow>
+                    </nav>
+                </div>
+            </StyledLayout>
         )
     }
 }

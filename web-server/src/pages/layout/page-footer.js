@@ -31,7 +31,8 @@ class PageFooter extends Component {
                     <HeaderButton fixed to="/">(c) 2017, Moxel.</HeaderButton>
                     <FlexSpacer/>
                     <HeaderButton fixed to="/">
-                        <iframe src="/version.html" scrolling="no" style={{display: "inline-block", border: "none", height: "30px"}}/></HeaderButton>
+                        <iframe src="/version.html" scrolling="no" style={{display: "inline-block", border: "none", width: "150px", height: "30px"}}/>
+                    </HeaderButton>
                     {/*<HeaderButton fixed to="/terms">Terms of Service</HeaderButton>
                     <HeaderButton fixed to="/privacy">Privacy Policy</HeaderButton>
                     <HeaderButton fixed to="/about">About</HeaderButton>*/}
